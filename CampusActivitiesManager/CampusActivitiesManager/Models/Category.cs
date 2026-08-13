@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-
+//test commit
 namespace CampusActivitiesManager.Models
 {
     public class Category
