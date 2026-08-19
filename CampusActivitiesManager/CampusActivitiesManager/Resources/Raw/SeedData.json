@@ -1,60 +1,78 @@
 {
     "Projects": [
         {
-            "Name": "Balance",
-            "Description": "Improve work-life balance.",
-            "Icon": "\uea28",
-            "Category": { "Title": "work", "Color": "#3068df" },
-            "Tags": [
-                { "Title": "work", "Color": "#3068df" }
-            ],
-            "Tasks": [
-                { "Title": "Survey Employees", "IsCompleted": false },
-                { "Title": "Analyze Survey Results", "IsCompleted": false },
-                { "Title": "Develop Action Plan", "IsCompleted": false }
-            ]
-        },
-        {
-            "Name": "Personal",
-            "Description": "Learn to speak another language.",
-            "Icon": "\uf8fe",
-            "Category": { "Title": "education", "Color": "#8800FF" },
-            "Tags": [
-                { "Title": "personal", "Color": "#FF4500" }
-            ],
-            "Tasks": [
-                { "Title": "Read a Book", "IsCompleted": false },
-                { "Title": "Attend a Workshop", "IsCompleted": false },
-                { "Title": "Practice a Hobby", "IsCompleted": false }
-            ]
-        },
-        {
-            "Name": "Fitness",
-            "Description": "Promote health and fitness activities",
+            "Name": "Hội Thao Sinh Viên Toàn Trường",
+            "Description": "Tổ chức chuỗi giải đấu thể thao thường niên dành cho sinh viên và các khoa viện.",
             "Icon": "\uf837",
-            "Category": { "Title": "self", "Color": "#FF3300" },
+            "Category": { "Title": "Thể thao & Rèn luyện", "Color": "#FF3300" },
             "Tags": [
-                { "Title": "health", "Color": "#32CD32" }
+                { "Title": "Hội thao", "Color": "#FF3300" },
+                { "Title": "Sinh viên", "Color": "#3068DF" }
             ],
             "Tasks": [
-                { "Title": "Morning Yoga", "IsCompleted": false },
-                { "Title": "Evening Run", "IsCompleted": false },
-                { "Title": "Healthy Cooking Class", "IsCompleted": false }
+                { "Title": "Khai mạc giải bóng đá nam - nữ sinh viên", "IsCompleted": false },
+                { "Title": "Thi đấu vòng loại cầu lông và bóng bàn", "IsCompleted": false },
+                { "Title": "Chung kết kéo co và trao giải bế mạc", "IsCompleted": false }
             ]
         },
         {
-            "Name": "Family and Friends",
-            "Description": "Strengthen relationships with family and friends.",
-            "Icon": "\uf5a9",
-            "Category": { "Title": "relationships", "Color": "#FF9900" },
+            "Name": "Chiến Dịch Mùa Hè Xanh",
+            "Description": "Hoạt động tình nguyện hè vì cộng đồng tại các địa bàn khó khăn.",
+            "Icon": "\uea28",
+            "Category": { "Title": "Tình nguyện & Xã hội", "Color": "#107C41" },
             "Tags": [
-                { "Title": "family", "Color": "#1E90FF" },
-                { "Title": "friends", "Color": "#FF69B4" }
+                { "Title": "Tình nguyện", "Color": "#107C41" },
+                { "Title": "Đoàn - Hội", "Color": "#3068DF" }
             ],
             "Tasks": [
-                { "Title": "Plan a Family Reunion", "IsCompleted": false },
-                { "Title": "Organize a Friends' Get-together", "IsCompleted": false },
-                { "Title": "Weekly Phone Calls", "IsCompleted": false }
+                { "Title": "Khảo sát địa bàn và lập kế hoạch hoạt động", "IsCompleted": false },
+                { "Title": "Vận động quyên góp sách vở và học bổng cho học sinh nghèo", "IsCompleted": false },
+                { "Title": "Xây dựng sân chơi thiếu nhi và lớp học hè", "IsCompleted": false }
+            ]
+        },
+        {
+            "Name": "Campus Tech Hackathon",
+            "Description": "Cuộc thi sáng tạo công nghệ và lập trình giải pháp dành cho sinh viên.",
+            "Icon": "\uf8fe",
+            "Category": { "Title": "Học thuật & NCKH", "Color": "#8800FF" },
+            "Tags": [
+                { "Title": "Công nghệ", "Color": "#8800FF" },
+                { "Title": "Học thuật", "Color": "#3068DF" }
+            ],
+            "Tasks": [
+                { "Title": "Công bố thể lệ và mở cổng đăng ký đề tài", "IsCompleted": false },
+                { "Title": "Tổ chức vòng sơ loại ý tưởng trực tuyến", "IsCompleted": false },
+                { "Title": "Vòng chung kết 24h Hackathon và Pitching trao giải", "IsCompleted": false }
+            ]
+        },
+        {
+            "Name": "Ngày Hội Việc Làm & Hướng Nghiệp",
+            "Description": "Kết nối sinh viên với hơn 50 doanh nghiệp hàng đầu trong và ngoài nước.",
+            "Icon": "\uf5a9",
+            "Category": { "Title": "Hướng nghiệp & Hợp tác", "Color": "#FF9900" },
+            "Tags": [
+                { "Title": "Doanh nghiệp", "Color": "#FF9900" },
+                { "Title": "Việc làm", "Color": "#3068DF" }
+            ],
+            "Tasks": [
+                { "Title": "Gửi thư mời và xác nhận các doanh nghiệp tham gia", "IsCompleted": false },
+                { "Title": "Thiết kế sơ đồ gian hàng và in ấn cẩm nang nghề nghiệp", "IsCompleted": false },
+                { "Title": "Tổ chức hội thảo CV Matching và phỏng vấn trực tiếp", "IsCompleted": false }
+            ]
+        },
+        {
+            "Name": "Đại Nhạc Hội Chào Tân Sinh Viên",
+            "Description": "Sự kiện văn nghệ đặc sắc chào đón khóa sinh viên mới nhập học.",
+            "Icon": "\uf6bf",
+            "Category": { "Title": "Văn hóa & Nghệ thuật", "Color": "#D600AA" },
+            "Tags": [
+                { "Title": "Văn nghệ", "Color": "#D600AA" },
+                { "Title": "Sự kiện lớn", "Color": "#FF3366" }
+            ],
+            "Tasks": [
+                { "Title": "Duyệt danh sách các tiết mục văn nghệ các câu lạc bộ", "IsCompleted": false },
+                { "Title": "Lắp đặt sân khấu, hệ thống âm thanh ánh sáng", "IsCompleted": false },
+                { "Title": "Tổng duyệt chương trình và đón tiếp khách mời", "IsCompleted": false }
             ]
         }
     ]

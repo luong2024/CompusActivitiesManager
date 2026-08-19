@@ -10,21 +10,25 @@ namespace CampusActivitiesManager.Data
         private readonly TaskRepository _taskRepository;
         private readonly TagRepository _tagRepository;
         private readonly CategoryRepository _categoryRepository;
+        private readonly UserRepository _userRepository;
         private readonly string _seedDataFilePath = "SeedData.json";
         private readonly ILogger<SeedDataService> _logger;
 
-        public SeedDataService(ProjectRepository projectRepository, TaskRepository taskRepository, TagRepository tagRepository, CategoryRepository categoryRepository, ILogger<SeedDataService> logger)
+        public SeedDataService(ProjectRepository projectRepository, TaskRepository taskRepository, TagRepository tagRepository, CategoryRepository categoryRepository, UserRepository userRepository, ILogger<SeedDataService> logger)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
             _tagRepository = tagRepository;
             _categoryRepository = categoryRepository;
+            _userRepository = userRepository;
             _logger = logger;
         }
 
         public async Task LoadSeedDataAsync()
         {
-            ClearTables();
+            await ClearTablesAsync();
+
+            await _userRepository.SeedDefaultUsersAsync();
 
             await using Stream templateStream = await FileSystem.OpenAppPackageFileAsync(_seedDataFilePath);
 
@@ -83,7 +87,7 @@ namespace CampusActivitiesManager.Data
             }
         }
 
-        private async void ClearTables()
+        public async Task ClearTablesAsync()
         {
             try
             {
@@ -91,7 +95,8 @@ namespace CampusActivitiesManager.Data
                     _projectRepository.DropTableAsync(),
                     _taskRepository.DropTableAsync(),
                     _tagRepository.DropTableAsync(),
-                    _categoryRepository.DropTableAsync());
+                    _categoryRepository.DropTableAsync(),
+                    _userRepository.DropTableAsync());
             }
             catch (Exception e)
             {

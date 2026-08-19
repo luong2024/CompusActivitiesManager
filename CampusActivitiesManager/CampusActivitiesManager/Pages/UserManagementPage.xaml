@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:f="clr-namespace:Fonts"
+             x:Class="CampusActivitiesManager.Pages.UserManagementPage"
+             x:DataType="pageModels:UserManagementPageModel"
+             x:Name="UserPage"
+             Title="Quản Lý Phân Quyền">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding Path=BindingContext, Source={x:Reference UserPage}, x:DataType=ContentPage}"
+            EventName="Appearing"
+            Command="{Binding AppearingCommand}" />
+    </ContentPage.Behaviors>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Làm mới" Command="{Binding RefreshCommand}" />
+        <ToolbarItem Text="+ Thêm user" Command="{Binding OpenAddUserDialogCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="*">
+        <!-- Main Content -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="16" Padding="{StaticResource LayoutPadding}">
+
+                <!-- Current User Session Header -->
+                <Border StrokeShape="RoundRectangle 12" 
+                        BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
+                        Padding="14" StrokeThickness="1">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                        <!-- User Avatar -->
+                        <Border Grid.Column="0" WidthRequest="44" HeightRequest="44" 
+                                StrokeShape="RoundRectangle 22" 
+                                BackgroundColor="{StaticResource Primary}"
+                                HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="{Binding CurrentUser.AvatarInitials}" 
+                                   TextColor="{StaticResource White}"
+                                   FontFamily="SegoeSemibold" FontSize="16"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+
+                        <!-- User Details -->
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <HorizontalStackLayout Spacing="6">
+                                <Label Text="Tài khoản hiện tại:" FontSize="12" 
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                <Label Text="{Binding CurrentUser.FullName}" FontFamily="SegoeSemibold" FontSize="14" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Border StrokeShape="RoundRectangle 6" 
+                                        BackgroundColor="{Binding CurrentUser.RoleBadgeBrush}" 
+                                        Padding="6,2" VerticalOptions="Center">
+                                    <Label Text="{Binding CurrentUser.Role}" 
+                                           TextColor="{StaticResource White}" 
+                                           FontSize="11" FontFamily="SegoeSemibold" />
+                                </Border>
+                                <Label Text="{Binding CurrentUser.Email}" FontSize="11" 
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                       VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+
+                        <!-- Admin Badge / Status -->
+                        <Border Grid.Column="2" StrokeShape="RoundRectangle 8"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                Padding="8,4" VerticalOptions="Center">
+                            <Label Text="{Binding IsAdmin, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Admin|Non-Admin'}"
+                                   FontSize="11" FontFamily="SegoeSemibold"
+                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Non-Admin Warning Banner -->
+                <Border IsVisible="{Binding IsAdmin, Converter={StaticResource InvertedBoolConverter}}"
+                        StrokeShape="RoundRectangle 8"
+                        Stroke="#FF9900"
+                        BackgroundColor="#20FF9900"
+                        Padding="12">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="&#xf114;" FontFamily="{x:Static f:FluentUI.FontFamily}" 
+                               FontSize="20" TextColor="#FF9900" VerticalOptions="Center" />
+                        <Label Grid.Column="1" 
+                               Text="Chế độ chỉ xem: Tài khoản hiện tại không có quyền Quản trị viên (Admin). Bạn chỉ có thể xem danh sách phân quyền."
+                               FontSize="12" TextColor="#FF9900" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Statistics Cards -->
+                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                    <!-- Total -->
+                    <Border Grid.Column="0" StrokeShape="RoundRectangle 8" 
+                            BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
+                            Padding="8" HorizontalOptions="Fill">
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="Tổng số" FontSize="11" 
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" 
+                                   HorizontalOptions="Center"/>
+                            <Label Text="{Binding TotalCount}" FontSize="18" FontFamily="SegoeSemibold" 
+                                   HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Admin Count -->
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 8" 
+                            BackgroundColor="#15FF3366" Stroke="#FF3366" StrokeThickness="1"
+                            Padding="8" HorizontalOptions="Fill">
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="Admin" FontSize="11" TextColor="#FF3366" HorizontalOptions="Center"/>
+                            <Label Text="{Binding AdminCount}" FontSize="18" FontFamily="SegoeSemibold" TextColor="#FF3366" HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Manager Count -->
+                    <Border Grid.Column="2" StrokeShape="RoundRectangle 8" 
+                            BackgroundColor="#153068DF" Stroke="#3068DF" StrokeThickness="1"
+                            Padding="8" HorizontalOptions="Fill">
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="Manager" FontSize="11" TextColor="#3068DF" HorizontalOptions="Center"/>
+                            <Label Text="{Binding ManagerCount}" FontSize="18" FontFamily="SegoeSemibold" TextColor="#3068DF" HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Student Count -->
+                    <Border Grid.Column="3" StrokeShape="RoundRectangle 8" 
+                            BackgroundColor="#15107C41" Stroke="#107C41" StrokeThickness="1"
+                            Padding="8" HorizontalOptions="Fill">
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                            <Label Text="Student" FontSize="11" TextColor="#107C41" HorizontalOptions="Center"/>
+                            <Label Text="{Binding StudentCount}" FontSize="18" FontFamily="SegoeSemibold" TextColor="#107C41" HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Search Entry & Filter -->
+                <VerticalStackLayout Spacing="8">
+                    <!-- Search Input -->
+                    <Border StrokeShape="RoundRectangle 8" 
+                            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                            Padding="8,2" StrokeThickness="1">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Grid.Column="0" Text="&#xf68a;" FontFamily="{x:Static f:FluentUI.FontFamily}" 
+                                   FontSize="18" VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                            <Entry Grid.Column="1" Placeholder="Tìm theo tên, username, email..." 
+                                   Text="{Binding SearchText}" FontSize="14"
+                                   VerticalOptions="Center" />
+                            <Button Grid.Column="2" Text="Xóa" FontSize="11" 
+                                    IsVisible="{Binding SearchText.Length, Converter={StaticResource IntToBoolConverter}}"
+                                    Padding="6,2" HeightRequest="28" BackgroundColor="Transparent"
+                                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
+                                    Command="{Binding ClearSearchCommand}" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Role Filter Chips -->
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Tất cả" FontSize="12" CornerRadius="16" HeightRequest="32" Padding="12,0"
+                                BackgroundColor="{Binding SelectedRoleFilter, Converter={StaticResource RoleFilterActiveConverter}, ConverterParameter='Tất cả'}"
+                                TextColor="{StaticResource White}"
+                                Command="{Binding SelectFilterRoleCommand}" CommandParameter="Tất cả" />
+                        <Button Text="Admin" FontSize="12" CornerRadius="16" HeightRequest="32" Padding="12,0"
+                                BackgroundColor="{Binding SelectedRoleFilter, Converter={StaticResource RoleFilterActiveConverter}, ConverterParameter='Admin'}"
+                                TextColor="{StaticResource White}"
+                                Command="{Binding SelectFilterRoleCommand}" CommandParameter="Admin" />
+                        <Button Text="Manager" FontSize="12" CornerRadius="16" HeightRequest="32" Padding="12,0"
+                                BackgroundColor="{Binding SelectedRoleFilter, Converter={StaticResource RoleFilterActiveConverter}, ConverterParameter='Manager'}"
+                                TextColor="{StaticResource White}"
+                                Command="{Binding SelectFilterRoleCommand}" CommandParameter="Manager" />
+                        <Button Text="Student" FontSize="12" CornerRadius="16" HeightRequest="32" Padding="12,0"
+                                BackgroundColor="{Binding SelectedRoleFilter, Converter={StaticResource RoleFilterActiveConverter}, ConverterParameter='Student'}"
+                                TextColor="{StaticResource White}"
+                                Command="{Binding SelectFilterRoleCommand}" CommandParameter="Student" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <!-- Section Header -->
+                <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                    <Label Grid.Column="0" Text="Danh Sách Tài Khoản &amp; Quyền Hạn" Style="{StaticResource Title2}" FontSize="16" />
+                    <Label Grid.Column="1" Text="{Binding FilteredUsers.Count, StringFormat='{0} tài khoản'}" 
+                           FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" 
+                           VerticalOptions="Center" />
+                </Grid>
+
+                <!-- User Cards List -->
+                <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding FilteredUsers}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:User">
+                            <Border StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                    Padding="14" StrokeThickness="1">
+                                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                                    <!-- Row 0: Avatar, Names, Role Badge -->
+                                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                        <!-- Avatar -->
+                                        <Border Grid.Column="0" WidthRequest="44" HeightRequest="44" 
+                                                StrokeShape="RoundRectangle 22" 
+                                                BackgroundColor="{Binding RoleBadgeBrush}"
+                                                HorizontalOptions="Center" VerticalOptions="Center">
+                                            <Label Text="{Binding AvatarInitials}" 
+                                                   TextColor="{StaticResource White}"
+                                                   FontFamily="SegoeSemibold" FontSize="16"
+                                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+
+                                        <!-- Name & Username -->
+                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                            <Label Text="{Binding FullName}" FontFamily="SegoeSemibold" FontSize="15" />
+                                            <Label Text="{Binding Username, StringFormat='@{0}'}" FontSize="12" 
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                        </VerticalStackLayout>
+
+                                        <!-- Role Badge -->
+                                        <Border Grid.Column="2" StrokeShape="RoundRectangle 8"
+                                                BackgroundColor="{Binding RoleBadgeBrush}" 
+                                                Padding="8,4" VerticalOptions="Center">
+                                            <Label Text="{Binding Role}" 
+                                                   TextColor="{StaticResource White}" 
+                                                   FontSize="12" FontFamily="SegoeSemibold" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Row 1: Contact Info / Department -->
+                                    <VerticalStackLayout Grid.Row="1" Spacing="3" Padding="4,0,0,0">
+                                        <HorizontalStackLayout Spacing="6" IsVisible="{Binding Email.Length, Converter={StaticResource IntToBoolConverter}}">
+                                            <Label Text="&#xf4bc;" FontFamily="{x:Static f:FluentUI.FontFamily}" FontSize="13" 
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" VerticalOptions="Center"/>
+                                            <Label Text="{Binding Email}" FontSize="12" 
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout Spacing="6" IsVisible="{Binding Department.Length, Converter={StaticResource IntToBoolConverter}}">
+                                            <Label Text="&#xf1bc;" FontFamily="{x:Static f:FluentUI.FontFamily}" FontSize="13" 
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" VerticalOptions="Center"/>
+                                            <Label Text="{Binding Department}" FontSize="12" 
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+
+                                    <!-- Row 2: Action Buttons -->
+                                    <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,4,0,0">
+                                        <!-- Role Assignment Button (Admin Only) -->
+                                        <Button Grid.Column="0" 
+                                                Text="⚡ Phân quyền" 
+                                                FontSize="12" FontFamily="SegoeSemibold"
+                                                HeightRequest="36" Padding="10,0"
+                                                BackgroundColor="{StaticResource Primary}"
+                                                TextColor="{StaticResource White}"
+                                                CornerRadius="8"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, Path=SelectUserForRoleAssignmentCommand, x:DataType=pageModels:UserManagementPageModel}"
+                                                CommandParameter="{Binding .}" />
+
+                                        <!-- Switch to this user (Test tool) -->
+                                        <Button Grid.Column="1" 
+                                                Text="Đăng nhập" 
+                                                FontSize="11" HeightRequest="36" Padding="10,0"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                                CornerRadius="8"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, Path=SwitchUserCommand, x:DataType=pageModels:UserManagementPageModel}"
+                                                CommandParameter="{Binding .}" />
+
+                                        <!-- Delete User -->
+                                        <Button Grid.Column="2" 
+                                                Text="&#xf34c;" FontFamily="{x:Static f:FluentUI.FontFamily}"
+                                                FontSize="16" HeightRequest="36" WidthRequest="36" Padding="0"
+                                                BackgroundColor="#15FF3300"
+                                                TextColor="#FF3300"
+                                                CornerRadius="8"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, Path=DeleteUserCommand, x:DataType=pageModels:UserManagementPageModel}"
+                                                CommandParameter="{Binding .}" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <BoxView HeightRequest="40" Color="Transparent" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- MODAL OVERLAY 1: ROLE ASSIGNMENT DIALOG -->
+        <Grid Grid.Row="0" IsVisible="{Binding IsEditingRole}" 
+              BackgroundColor="#80000000"
+              Padding="20">
+            <Border StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                    Padding="20"
+                    VerticalOptions="Center"
+                    MaximumWidthRequest="450"
+                    StrokeThickness="2" Stroke="{StaticResource Primary}">
+                <VerticalStackLayout Spacing="16">
+                    <!-- Modal Header -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label Text="Phân Quyền Tài Khoản" FontFamily="SegoeSemibold" FontSize="18" 
+                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                            <Label Text="Cập nhật vai trò &amp; quyền hạn truy cập" FontSize="12" 
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="1" Text="✕" FontSize="14" HeightRequest="30" WidthRequest="30" Padding="0"
+                                BackgroundColor="Transparent" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                Command="{Binding CancelRoleAssignmentCommand}" />
+                    </Grid>
+
+                    <!-- Selected User Info Card -->
+                    <Border StrokeShape="RoundRectangle 10" 
+                            BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkBackground}}"
+                            Padding="12">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Center">
+                            <Border Grid.Column="0" WidthRequest="40" HeightRequest="40" 
+                                    StrokeShape="RoundRectangle 20" 
+                                    BackgroundColor="{Binding SelectedUser.RoleBadgeBrush}">
+                                <Label Text="{Binding SelectedUser.AvatarInitials}" 
+                                       TextColor="{StaticResource White}"
+                                       FontFamily="SegoeSemibold" FontSize="14"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                <Label Text="{Binding SelectedUser.FullName}" FontFamily="SegoeSemibold" FontSize="14" />
+                                <Label Text="{Binding SelectedUser.Username, StringFormat='Username: {0}'}" FontSize="12" 
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                <Label Text="{Binding SelectedUser.Role, StringFormat='Vai trò hiện tại: {0}'}" FontSize="12" 
+                                       TextColor="{Binding SelectedUser.RoleBadgeBrush}" FontFamily="SegoeSemibold" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+
+                    <!-- Role Selection Section -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Chọn vai trò mới cho tài khoản:" FontFamily="SegoeSemibold" FontSize="13" />
+
+                        <!-- Role Option 1: Admin -->
+                        <Border StrokeShape="RoundRectangle 8" Padding="10"
+                                Stroke="{Binding SelectedRole, Converter={StaticResource RoleSelectedStrokeConverter}, ConverterParameter='Admin'}"
+                                StrokeThickness="2"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectRoleForEditCommand}" CommandParameter="Admin" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                                <RadioButton Content="" IsChecked="{Binding SelectedRole, Converter={StaticResource RoleEqualConverter}, ConverterParameter='Admin'}"
+                                             GroupName="RoleSelectionGroup" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="Quản trị viên (Admin)" FontFamily="SegoeSemibold" FontSize="14" TextColor="#FF3366" />
+                                        <Border StrokeShape="RoundRectangle 4" BackgroundColor="#FF3366" Padding="4,1">
+                                            <Label Text="Toàn quyền" FontSize="10" TextColor="{StaticResource White}" />
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                    <Label Text="Quản lý toàn bộ hệ thống, phân quyền người dùng, cấu hình danh mục &amp; dự án." 
+                                           FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+
+                        <!-- Role Option 2: Manager -->
+                        <Border StrokeShape="RoundRectangle 8" Padding="10"
+                                Stroke="{Binding SelectedRole, Converter={StaticResource RoleSelectedStrokeConverter}, ConverterParameter='Manager'}"
+                                StrokeThickness="2"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectRoleForEditCommand}" CommandParameter="Manager" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                                <RadioButton Content="" IsChecked="{Binding SelectedRole, Converter={StaticResource RoleEqualConverter}, ConverterParameter='Manager'}"
+                                             GroupName="RoleSelectionGroup" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="Quản lý (Manager)" FontFamily="SegoeSemibold" FontSize="14" TextColor="#3068DF" />
+                                        <Border StrokeShape="RoundRectangle 4" BackgroundColor="#3068DF" Padding="4,1">
+                                            <Label Text="Hoạt động" FontSize="10" TextColor="{StaticResource White}" />
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                    <Label Text="Quản lý tạo mới, chỉnh sửa, xóa dự án và nhiệm vụ. Không có quyền phân quyền." 
+                                           FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+
+                        <!-- Role Option 3: Student -->
+                        <Border StrokeShape="RoundRectangle 8" Padding="10"
+                                Stroke="{Binding SelectedRole, Converter={StaticResource RoleSelectedStrokeConverter}, ConverterParameter='Student'}"
+                                StrokeThickness="2"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectRoleForEditCommand}" CommandParameter="Student" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                                <RadioButton Content="" IsChecked="{Binding SelectedRole, Converter={StaticResource RoleEqualConverter}, ConverterParameter='Student'}"
+                                             GroupName="RoleSelectionGroup" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="Sinh viên (Student)" FontFamily="SegoeSemibold" FontSize="14" TextColor="#107C41" />
+                                        <Border StrokeShape="RoundRectangle 4" BackgroundColor="#107C41" Padding="4,1">
+                                            <Label Text="Thành viên" FontSize="10" TextColor="{StaticResource White}" />
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                    <Label Text="Xem danh sách hoạt động, dự án và đánh dấu hoàn thành nhiệm vụ cá nhân." 
+                                           FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Modal Actions -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                        <Button Grid.Column="0" Text="Hủy" 
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                Command="{Binding CancelRoleAssignmentCommand}" />
+                        
+                        <!-- Primary Save Button fulfilling Acceptance Criteria -->
+                        <Button Grid.Column="1" Text="Lưu phân quyền" 
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="{StaticResource White}"
+                                FontFamily="SegoeSemibold"
+                                Command="{Binding UpdateRoleCommand}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- MODAL OVERLAY 2: ADD USER DIALOG -->
+        <Grid Grid.Row="0" IsVisible="{Binding IsAddingUser}" 
+              BackgroundColor="#80000000"
+              Padding="20">
+            <Border StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                    Padding="20"
+                    VerticalOptions="Center"
+                    MaximumWidthRequest="450"
+                    StrokeThickness="2" Stroke="{StaticResource Primary}">
+                <ScrollView>
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Thêm Tài Khoản Mới" FontFamily="SegoeSemibold" FontSize="18" />
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Tên đăng nhập (Username)*" FontSize="12" />
+                            <Entry Text="{Binding NewUsername}" Placeholder="VD: user123" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Họ và tên*" FontSize="12" />
+                            <Entry Text="{Binding NewFullName}" Placeholder="VD: Nguyễn Văn Nam" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Email" FontSize="12" />
+                            <Entry Text="{Binding NewEmail}" Placeholder="VD: nam.nguyen@campus.edu.vn" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Vai trò phân quyền*" FontSize="12" />
+                            <Picker ItemsSource="{Binding AvailableRoles}" SelectedItem="{Binding NewRole}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Khoa / Đơn vị" FontSize="12" />
+                            <Entry Text="{Binding NewDepartment}" Placeholder="VD: Khoa Công Nghệ Thông Tin" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Số điện thoại" FontSize="12" />
+                            <Entry Text="{Binding NewPhoneNumber}" Placeholder="VD: 0912345678" />
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                            <Button Grid.Column="0" Text="Hủy" 
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                    TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                    Command="{Binding CancelAddUserCommand}" />
+                            <Button Grid.Column="1" Text="Thêm tài khoản" 
+                                    BackgroundColor="{StaticResource Primary}"
+                                    TextColor="{StaticResource White}"
+                                    FontFamily="SegoeSemibold"
+                                    Command="{Binding SaveNewUserCommand}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

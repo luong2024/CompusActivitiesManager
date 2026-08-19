@@ -10,18 +10,25 @@ namespace CampusActivitiesManager.PageModels
     public partial class ProjectListPageModel : ObservableObject
     {
         private readonly ProjectRepository _projectRepository;
+        private readonly IAuthService _authService;
 
         [ObservableProperty]
         private List<Project> _projects = [];
 
-        public ProjectListPageModel(ProjectRepository projectRepository)
+        [ObservableProperty]
+        private bool _canManageProjects;
+
+        public ProjectListPageModel(ProjectRepository projectRepository, IAuthService authService)
         {
             _projectRepository = projectRepository;
+            _authService = authService;
+            _canManageProjects = _authService.CanManageProjects;
         }
 
         [RelayCommand]
         private async Task Appearing()
         {
+            CanManageProjects = _authService.CanManageProjects;
             Projects = await _projectRepository.ListAsync();
         }
 
@@ -32,6 +39,12 @@ namespace CampusActivitiesManager.PageModels
         [RelayCommand]
         async Task AddProject()
         {
+            if (!_authService.CanManageProjects)
+            {
+                await AppShell.DisplaySnackbarAsync("Tài khoản Sinh viên (Student) không có quyền tạo mới dự án!");
+                return;
+            }
+
             await Shell.Current.GoToAsync($"project");
         }
     }

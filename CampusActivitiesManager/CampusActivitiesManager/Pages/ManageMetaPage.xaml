@@ -7,7 +7,7 @@
              x:DataType="pageModels:ManageMetaPageModel"
              x:Class="CampusActivitiesManager.Pages.ManageMetaPage"
              x:Name="MetaPage"
-             Title="Categories and Tags">
+             Title="Danh Mục &amp; Thẻ Phân Loại">
 
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior
@@ -44,12 +44,12 @@
     </ContentPage.Resources>
 
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Reset App" Command="{Binding ResetCommand}" />
+        <ToolbarItem Text="Đặt lại dữ liệu mẫu" Command="{Binding ResetCommand}" />
     </ContentPage.ToolbarItems>
 
     <ScrollView>
         <VerticalStackLayout Spacing="{StaticResource LayoutSpacing}" Padding="{StaticResource LayoutPadding}">
-            <Label Text="Categories" Style="{StaticResource Title2}"/>
+            <Label Text="Danh mục hoạt động sinh viên" Style="{StaticResource Title2}"/>
             <VerticalStackLayout Spacing="{StaticResource LayoutSpacing}"
                 BindableLayout.ItemsSource="{Binding Categories}">
                 <BindableLayout.ItemTemplate>
@@ -83,7 +83,7 @@
             </VerticalStackLayout>
 
             <Grid ColumnSpacing="{StaticResource LayoutSpacing}" ColumnDefinitions="*,Auto" Margin="0,10">
-                <Button Text="Save" Command="{Binding SaveCategoriesCommand}"
+                <Button Text="Lưu danh mục" Command="{Binding SaveCategoriesCommand}"
                     HeightRequest="{OnIdiom 44,Desktop=60}" Grid.Column="0" />
 
                 <Button ImageSource="{StaticResource IconAdd}"
@@ -91,7 +91,7 @@
                     SemanticProperties.Description="Add" />
             </Grid>
 
-            <Label Text="Tags" Style="{StaticResource Title2}" />
+            <Label Text="Thẻ phân loại hoạt động" Style="{StaticResource Title2}" />
             <VerticalStackLayout Spacing="{StaticResource LayoutSpacing}"
                 BindableLayout.ItemsSource="{Binding Tags}">
                 <BindableLayout.ItemTemplate>
@@ -124,7 +124,7 @@
             </VerticalStackLayout>
 
             <Grid ColumnSpacing="{StaticResource LayoutSpacing}" ColumnDefinitions="*,Auto" Margin="0,10">
-                <Button Text="Save" Command="{Binding SaveTagsCommand}"
+                <Button Text="Lưu thẻ phân loại" Command="{Binding SaveTagsCommand}"
                     HeightRequest="{OnIdiom 44,Desktop=60}" Grid.Column="0" />
 
                 <Button ImageSource="{StaticResource IconAdd}"

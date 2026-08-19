@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"             
@@ -39,8 +39,25 @@
             <pullToRefresh:SfPullToRefresh.PullableContent>
                 <ScrollView>
                     <VerticalStackLayout Spacing="{StaticResource LayoutSpacing}" Padding="{StaticResource LayoutPadding}">
+                        <!-- Current User Role Status Bar -->
+                        <Border StrokeShape="RoundRectangle 10" 
+                                BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
+                                Padding="12,8" Margin="0,0,0,4">
+                            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                    <Label Text="👋 Xin chào," FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" VerticalOptions="Center" />
+                                    <Label Text="{Binding CurrentUser.FullName}" FontFamily="SegoeSemibold" FontSize="13" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Border Grid.Column="1" StrokeShape="RoundRectangle 6" 
+                                        BackgroundColor="{Binding CurrentUser.RoleBadgeBrush}" 
+                                        Padding="8,2" VerticalOptions="Center">
+                                    <Label Text="{Binding CurrentUser.Role}" TextColor="{StaticResource White}" FontSize="11" FontFamily="SegoeSemibold" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
                         <controls:CategoryChart />
-                        <Label Text="Projects" Style="{StaticResource Title2}"/>
+                        <Label Text="Hoạt Động &amp; Dự Án Sinh Viên" Style="{StaticResource Title2}"/>
                         <ScrollView Orientation="Horizontal" Margin="-30,0">
                             <HorizontalStackLayout 
                                 Spacing="15" Padding="30,0"
@@ -57,7 +74,7 @@
                             </HorizontalStackLayout>
                         </ScrollView>
                         <Grid HeightRequest="44">
-                            <Label Text="Tasks" Style="{StaticResource Title2}" VerticalOptions="Center"/>
+                            <Label Text="Nhiệm Vụ Cần Thực Hiện" Style="{StaticResource Title2}" VerticalOptions="Center"/>
                             <ImageButton 
                                 Source="{StaticResource IconClean}"
                                 HorizontalOptions="End"
