@@ -12,16 +12,12 @@ var app = builder.Build();
 // Initialize Firebase App
 if (FirebaseApp.DefaultInstance == null)
 {
+    // Firebase Admin SDK will automatically look for the 
+    // GOOGLE_APPLICATION_CREDENTIALS environment variable.
     try 
     {
-        string credentialPath = @"D:\keys\campusacmanage-df24bcb494c7.json";
-        
-        FirebaseApp.Create(new AppOptions()
-        {
-            Credential = GoogleCredential.FromFile(credentialPath)
-        });
-        
-        Console.WriteLine("Firebase initialized successfully.");
+        FirebaseApp.Create();
+        Console.WriteLine("Firebase initialized successfully using Application Default Credentials.");
     }
     catch (Exception ex)
     {
