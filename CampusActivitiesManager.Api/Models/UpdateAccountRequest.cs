@@ -4,11 +4,14 @@ namespace CampusActivitiesManager.Api.Models
 {
     public class UpdateAccountRequest
     {
-        public string? DisplayName { get; set; }
-        
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
-        public string? Password { get; set; }
+        [RegularExpression(@"^(?!\s*$).+", ErrorMessage = "Full name cannot be blank")]
+        public string? FullName { get; set; }
         
         public string? PhoneNumber { get; set; }
+        
+        public string? AvatarUrl { get; set; }
+
+        [RegularExpression(@"^(Admin|Lecturer|Student)$", ErrorMessage = "Invalid user role specified")]
+        public string? Role { get; set; }
     }
 }

@@ -1,30 +1,40 @@
 using CampusActivitiesManager.Api.Models;
-using FirebaseAdmin;
 using FirebaseAdmin.Auth;
+using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace CampusActivitiesManager.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/accounts")]
     [ApiController]
     public class AccountsController : ControllerBase
     {
         private readonly FirebaseAuth _firebaseAuth;
+        private readonly FirestoreDb? _firestoreDb;
 
         public AccountsController()
         {
-            // Initialize FirebaseAuth if FirebaseApp is already configured
             _firebaseAuth = FirebaseAuth.DefaultInstance;
+            
+            try 
+            {
+                // In a real app, inject this or get the project ID dynamically
+                // Currently defaulting to a dummy project ID if environment variable is missing
+                string projectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT") ?? "campusacmanage";
+                _firestoreDb = FirestoreDb.Create(projectId);
+            }
+            catch
+            {
+                _firestoreDb = null; // Proceeding without Firestore if not configured properly yet
+            }
         }
 
-        // POST api/accounts
         [HttpPost]
         public async Task<IActionResult> CreateAccount([FromBody] CreateAccountRequest request)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { Message = "Validation failed", Errors = ModelState });
+                return CreateValidationErrorResponse();
             }
 
             try
@@ -33,58 +43,101 @@ namespace CampusActivitiesManager.Api.Controllers
                 {
                     Email = request.Email,
                     Password = request.Password,
-                    DisplayName = request.DisplayName
+                    DisplayName = request.FullName,
+                    PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber
                 };
 
                 UserRecord userRecord = await _firebaseAuth.CreateUserAsync(userArgs);
 
-                return CreatedAtAction(nameof(GetAccount), new { uid = userRecord.Uid }, 
-                    new { Message = "Account created successfully", Uid = userRecord.Uid });
+                // Store extended attributes in Firestore
+                if (_firestoreDb != null)
+                {
+                    DocumentReference docRef = _firestoreDb.Collection("users").Document(userRecord.Uid);
+                    await docRef.SetAsync(new
+                    {
+                        email = request.Email,
+                        fullName = request.FullName,
+                        role = request.Role,
+                        phoneNumber = request.PhoneNumber,
+                        studentCode = request.StudentCode,
+                        createdAt = DateTime.UtcNow
+                    });
+                }
+
+                var responseData = new
+                {
+                    id = userRecord.Uid,
+                    email = request.Email,
+                    fullName = request.FullName,
+                    role = request.Role,
+                    createdAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return StatusCode(201, new ApiResponse<object>
+                {
+                    Success = true,
+                    StatusCode = 201,
+                    Message = "Account created successfully",
+                    Data = responseData
+                });
             }
-            catch (FirebaseAuthException ex)
+            catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.EmailAlreadyExists)
             {
-                return BadRequest(new { Message = "Failed to create account in Firebase", Details = ex.Message });
+                return StatusCode(409, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 409,
+                    Error = "CONFLICT",
+                    Message = "Email is already registered"
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "An unexpected error occurred", Details = ex.Message });
+                return StatusCode(500, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    Error = "INTERNAL_SERVER_ERROR",
+                    Message = ex.Message
+                });
             }
         }
 
-        // PUT api/accounts/{uid}
-        [HttpPut("{uid}")]
-        public async Task<IActionResult> UpdateAccount(string uid, [FromBody] UpdateAccountRequest request)
+        [HttpPut("{id}")]
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateAccount(string id, [FromBody] UpdateAccountRequest request)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { Message = "Validation failed", Errors = ModelState });
+                return CreateValidationErrorResponse();
             }
 
             try
             {
-                // First verify if user exists
+                UserRecord? existingUser = null;
                 try
                 {
-                    await _firebaseAuth.GetUserAsync(uid);
+                    existingUser = await _firebaseAuth.GetUserAsync(id);
                 }
                 catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
                 {
-                    return NotFound(new { Message = "Account not found" });
+                    return NotFound(new ApiErrorResponse
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        Error = "NOT_FOUND",
+                        Message = $"Account with ID {id} not found"
+                    });
                 }
 
                 var userArgs = new UserRecordArgs
                 {
-                    Uid = uid
+                    Uid = id
                 };
 
-                if (!string.IsNullOrEmpty(request.DisplayName))
+                if (!string.IsNullOrEmpty(request.FullName))
                 {
-                    userArgs.DisplayName = request.DisplayName;
-                }
-
-                if (!string.IsNullOrEmpty(request.Password))
-                {
-                    userArgs.Password = request.Password;
+                    userArgs.DisplayName = request.FullName;
                 }
 
                 if (!string.IsNullOrEmpty(request.PhoneNumber))
@@ -94,41 +147,70 @@ namespace CampusActivitiesManager.Api.Controllers
 
                 UserRecord updatedUser = await _firebaseAuth.UpdateUserAsync(userArgs);
 
-                return Ok(new { Message = "Account updated successfully", Uid = updatedUser.Uid });
-            }
-            catch (FirebaseAuthException ex)
-            {
-                return BadRequest(new { Message = "Failed to update account in Firebase", Details = ex.Message });
+                // Update Firestore
+                if (_firestoreDb != null)
+                {
+                    DocumentReference docRef = _firestoreDb.Collection("users").Document(id);
+                    var updates = new Dictionary<string, object>();
+                    
+                    if (!string.IsNullOrEmpty(request.FullName)) updates["fullName"] = request.FullName;
+                    if (!string.IsNullOrEmpty(request.PhoneNumber)) updates["phoneNumber"] = request.PhoneNumber;
+                    if (!string.IsNullOrEmpty(request.AvatarUrl)) updates["avatarUrl"] = request.AvatarUrl;
+                    if (!string.IsNullOrEmpty(request.Role)) updates["role"] = request.Role;
+                    
+                    updates["updatedAt"] = DateTime.UtcNow;
+
+                    await docRef.SetAsync(updates, SetOptions.MergeAll);
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    StatusCode = 200,
+                    Message = "Account updated successfully",
+                    Data = new
+                    {
+                        id = updatedUser.Uid,
+                        email = updatedUser.Email,
+                        fullName = request.FullName ?? existingUser.DisplayName,
+                        role = request.Role ?? "Student", // In real app, fetch existing role from Firestore
+                        updatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                    }
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "An unexpected error occurred", Details = ex.Message });
+                return StatusCode(500, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    Error = "INTERNAL_SERVER_ERROR",
+                    Message = ex.Message
+                });
             }
         }
 
-        // GET api/accounts/{uid}
-        // Helper endpoint for CreatedAtAction
-        [HttpGet("{uid}")]
-        public async Task<IActionResult> GetAccount(string uid)
+        private IActionResult CreateValidationErrorResponse()
         {
-            try
-            {
-                UserRecord userRecord = await _firebaseAuth.GetUserAsync(uid);
-                return Ok(new
+            var errors = ModelState
+                .Where(ms => ms.Value!.Errors.Count > 0)
+                .Select(ms => new ApiErrorDetail
                 {
-                    Uid = userRecord.Uid,
-                    Email = userRecord.Email,
-                    DisplayName = userRecord.DisplayName
-                });
-            }
-            catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+                    Field = char.ToLowerInvariant(ms.Key[0]) + ms.Key.Substring(1), // camelCase
+                    Message = ms.Value!.Errors.First().ErrorMessage
+                })
+                .ToList();
+
+            var response = new ApiErrorResponse
             {
-                return NotFound(new { Message = "Account not found" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "An unexpected error occurred", Details = ex.Message });
-            }
+                Success = false,
+                StatusCode = 400,
+                Error = "BAD_REQUEST",
+                Message = "Validation failed",
+                Errors = errors
+            };
+
+            return BadRequest(response);
         }
     }
 }
