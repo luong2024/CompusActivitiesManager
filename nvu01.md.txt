@@ -1,0 +1,6 @@
+                                                                       NHIỆM VỤ
+                                            Kết nối giao diện quản lý tài khoản với API & xử lý thông báo lỗi
+
+
+Với nhiệm vụ này em sẽ dựa vào phần code giao diện mà bạn cương đã làm sau đó em sẽ thiết kế tầng gọi API bằng cách sử dụng HttpClient hoặc cấu hình thông qua Dependency Injection để gọi các endpoint RESTful API (GET, POST, PUT, DELETE) cho việc quản lý tài khoản.
+Sau đó em sẽ sử dụng cấu trúc MVVM để khai báo các thuộc tính và các lệnh trong viewmodel để tương tác với view, và cấu trúc Data binding để ràng buộc danh sách tài khoản hoặc thông tin chi tiết của tài khoản lên giao diện. Phần lỗi em sẽ sử dụng các khối try-catch bọc quanh API để bắt các lỗi và khi có lỗi sẽ trả về API.
