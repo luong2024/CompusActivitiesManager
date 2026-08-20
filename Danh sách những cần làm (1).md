@@ -1,63 +1,48 @@
-### 1\. Ở Backend & Cơ sở dữ liệu (Database) \- *Quan trọng nhất*
+T�i li?u y�u c?u nghi?p v? Business Requirement Document
 
-#### A. Đối tượng Người dùng (User Object / Entity / Record)
+Th�ng tin chung
+M� User Story US 05
+T�n t�nh n?ng Ph�t tri?n giao di?n qu?n l� t�i kho?n Danh s�ch T�m ki?m L?c
+N?n t?ng NET MAUI Cross platform Mobile Tablet Desktop
+Ki?n tr�c MVVM Model View ViewModel Shell Navigation
+??i t??ng s? d?ng Qu?n tr? vi�n Admin Qu?n l� h? th?ng
 
-Mỗi tài khoản được lưu trữ như một cấu trúc Bản ghi (Record) hoặc Dictionary / JSON Object chứa các trường dữ liệu:
+1 M?c ti�u v� t?ng quan Overview
+Cung c?p giao di?n qu?n l� danh s�ch t�i kho?n ng??i d�ng tr?c quan t?i ?u cho ?a n?n t?ng Responsive Adaptive UI h? th?ng h? tr? t�m ki?m nhanh l?c d? li?u ?a ti�u ch� v� x? l� t?i d? li?u l?n m??t m� Lazy loading Infinite Scroll
 
-#### B. Mảng / Danh sách (Array / List)
+2 Danh s�ch criteria ch?p nh?n Acceptance Criteria
 
-* Danh sách tài khoản (User List): Dùng để chứa danh sách trả về khi hiển thị Bảng quản lý người dùng ở trang Admin.  
-* Danh sách Quyền (Roles / Permissions List): Dùng lưu các quyền cụ thể của một Admin (ví dụ: `["READ_USER", "DELETE_USER", "EDIT_ROLE"]`).
+AC 1 1 Hi?n th? danh s�ch t�i kho?n
+Th? t�i kho?n Account Card bao g?m
+Avatar ng??i d�ng n?u kh�ng c� avatar th� hi?n th? ?nh m?c ??nh K� t? ??u t�n
+H? v� t�n Text Bold
+M� sinh vi�n MSV Email
+Tag tr?ng th�i Badge Chip Status ph�n bi?t r� m�u s?c
+?ang h?c M�u xanh l� Success
+B?o l?u M�u cam v�ng Warning
+B? kh�a M�u ?? Danger Error
+N�t Menu h�nh ??ng Ellipsis Icon m? ra c�c t�y ch?n nhanh Xem chi ti?t S?a Kh�a M? kh�a X�a
 
-#### C. Bảng băm / Mã băm (Hash Table / Hash Map / Key-Value)
+AC 1 2 T�m ki?m Search Bar
+Ph?m vi t�m ki?m H? t�n MSV Email
+C? ch? Debounce Ho�n g�
+T? ??ng trigger t�m ki?m sau 300ms 500ms t�nh t? l�c ng??i d�ng ng?ng g� nh?m gi?m thi?u request li�n t?c t?i API
+N�t x�a nhanh Clear Button Icon X cho ph�p x�a to�n b? t? kh�a trong � t�m ki?m v� reset danh s�ch v? tr?ng th�i ban ??u
 
-* Tra cứu nhanh theo ID hoặc Email: Trong Database (như SQL, MongoDB) hoặc Bộ nhớ đệm Cache (Redis), dữ liệu được lưu dưới dạng `Key-Value` (với Key là `User ID` hoặc `Session Token`, Value là `User Info`) để kiểm tra quyền truy cập và thông tin đăng nhập trong thời gian O(1).  
-* Lưu phiên đăng nhập (Session / Token Storage): Redis dùng Hash Map để lưu chuỗi JWT/SessionID kèm theo trạng thái đăng nhập của người dùng.
+AC 1 3 B? l?c Filter
+L?c nhanh Quick Filter
+Th�nh Chip tr?ng th�i ngang b�n d??i thanh t�m ki?m T?t c? ?ang h?c B?o l?u B? kh�a
+L?c n�ng cao Advanced Filter Popup
+M? Popup Modal ch?a c�c b? l?c
+L?p Class Dropdown Picker danh s�ch l?p
+Kh�a Batch Cohort Dropdown Picker kh�a h?c VD K14 K15
+Quy?n Role Dropdown Picker ph�n quy?n VD Sinh vi�n Gi?ng vi�n Admin
+N�t b?m �p d?ng v� X�a b? l?c
 
-#### D. Cây chỉ mục (B-Tree / B+ Tree)
-
-* Cấu trúc cơ sở dữ liệu ngầm định (Index) trên các trường như `email` hoặc `username`. Giúp hệ thống kiểm tra email trùng lặp khi Đăng ký cực kỳ nhanh chóng mà không cần duyệt toàn bộ cơ sở dữ liệu.
-
-### 2\. Ở Frontend (Giao diện người dùng)
-
-#### A. Đối tượng & Trạng thái (Object & State)
-
-* Form State (Object): Dùng lưu trữ dữ liệu người dùng đang nhập trên giao diện.  
-* JavaScript
-
-const formData \= {  
-  email: "user@example.com",  
-  password: "Password123\!",  
-  confirmPassword: "Password123\!"  
-};
-
-*   
-*   
-* Auth State / Global State (Object): Lưu thông tin người dùng đang đăng nhập hiện tại trên toàn ứng dụng (dùng trong React Context, Redux, Vuex...):  
-* JavaScript
-
-const authState \= {  
-  isAuthenticated: true,  
-  user: { id: "USR1002", role: "ADMIN", name: "Admin Manager" },  
-  token: "eyJhbGciOi..."  
-};
-
-*   
-* 
-
-#### B. Mảng (Array)
-
-* Render Bảng Admin: Dùng `Array` chứa danh sách người dùng thu thập từ API để duyệt qua (`.map()`) và hiển thị thành các hàng (Rows) trong Bảng quản lý.
-
-#### C. Tập hợp (Set)
-
-* Quản lý lựa chọn hàng loạt (Bulk Actions): Khi Admin chọn tích vào nhiều ô người dùng để "Xóa nhiều" hoặc "Duyệt nhiều", cấu trúc Set giúp lưu danh sách các `User ID` đã chọn để đảm bảo các ID không bị trùng lặp và thao tác thêm/xóa ID diễn ra nhanh chóng.
-
-### 3\. Cấu trúc dữ liệu cho các tính năng nâng cao (Tùy chọn)
-
-1. Thống kê & Phân trang trang Admin:  
-   * Phân trang (Pagination): Dùng tham số `Limit` và `Offset` (hoặc `Cursor-based`) khi truy vấn danh sách người dùng.  
-   * Hàng đợi (Queue): Dùng để gửi email xác thực đăng ký/quên mật khẩu (đẩy tác vụ gửi mail vào Queue để tránh làm treo ứng dụng).  
-2. Lịch sử hoạt động (Activity Logs / Audit Trail):  
-   * Ngăn xếp (Stack) hoặc Danh sách liên kết (Linked List): Lưu nhật ký thao tác của Admin (như: khoá tài khoản, sửa quyền) theo thứ tự thời gian gần nhất lên đầu.
-
+AC 1 4 Tr?i nghi?m ng??i d�ng UX UI v� Layout Adaptive
+Thao t�c c? ch? Gestures
+K�o ?? l�m m?i Pull to Refresh c?p nh?t danh s�ch m?i nh?t
+Cu?n t?i th�m Infinite Scroll Load More t? ??ng l?y trang d? li?u ti?p theo khi cu?n g?n t?i cu?i danh s�ch
+Responsive Grid Layout
+Mobile Phone hi?n th? 1 c?t ListView Vertical CollectionView
+Tablet Desktop hi?n th? Grid 2 3 c?t th�ch ?ng theo chi?u r?ng m�n h�nh
