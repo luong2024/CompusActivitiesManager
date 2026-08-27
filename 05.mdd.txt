@@ -1,0 +1,97 @@
+Nhiệm vụ xây dựng và kiểm thử chức năng quản lý tài khoản
+
+
+1. Binding Modes
+Binding Modes (TwoWay, OneWay, OneWayToSource): Đồng bộ thông tin tài khoản giữa giao diện View và ViewModel.
+TwoWay Binding: Cho phép Admin chỉnh sửa thông tin tài khoản và đồng bộ ngược lại ViewModel.
+OneWay Binding: Hiển thị thông tin tài khoản từ ViewModel lên giao diện.
+OneWayToSource: Truyền dữ liệu người dùng nhập từ View về ViewModel khi cần thiết.
+2. Khung Điều hướng (.NET MAUI Shell & Navigation)
+.NET MAUI Shell & Routing.RegisterRoute: Quản lý cấu trúc điều hướng trong chức năng quản lý tài khoản.
+Shell.Current.GoToAsync() & QueryPropertyAttribute: Điều hướng từ danh sách tài khoản đến trang thêm mới hoặc chỉnh sửa tài khoản, đồng thời truyền UserId qua tham số truy vấn.
+Navigation giữa các trang: Danh sách tài khoản → Thêm tài khoản / Chỉnh sửa tài khoản → Quay lại danh sách sau khi lưu hoặc hủy thao tác.
+3. Cơ chế Truy cập & Lưu Cơ sở dữ liệu
+Thư viện Data Model & Xử lý CSDL: Xây dựng Model Account/User để lưu trữ và thao tác với thông tin tài khoản.
+XAML (ContentPage, Layouts như Grid, StackLayout): Dùng để khai báo và định hình giao diện quản lý tài khoản.
+ListView / CollectionView: Dùng để hiển thị danh sách các tài khoản hiện có trong hệ thống.
+Context Actions (MenuItem trong ViewCell.ContextActions): Tạo menu tác vụ khi Admin tương tác với một tài khoản, ví dụ "Edit/Chỉnh sửa", "Delete/Xóa", "Reset Password/Đặt lại mật khẩu".
+Entry, Editor và Picker / Button: Cung cấp các ô nhập thông tin tài khoản, lựa chọn trạng thái hoặc vai trò và các nút "Save / Cập nhật / Hủy".
+DisplayActionSheet & DisplayAlert:
+DisplayActionSheet: Hiển thị bảng lựa chọn nhanh các thao tác như chỉnh sửa tài khoản, khóa/mở khóa hoặc xóa tài khoản.
+DisplayAlert: Hiển thị thông báo khi thêm, cập nhật, xóa tài khoản thành công hoặc cảnh báo khi dữ liệu không hợp lệ/có lỗi CSDL.
+4. Mô hình kiến trúc MVVM & Cơ chế Data Binding
+Mô hình MVVM (Model - View - ViewModel): Tách giao diện quản lý tài khoản khỏi logic xử lý nghiệp vụ.
+INotifyPropertyChanged / BaseViewModel (SetProperty): Đồng bộ các thuộc tính tài khoản giữa ViewModel và View khi thông tin được thay đổi.
+ObservableCollection<T>: Lưu danh sách tài khoản trong ViewModel và tự động cập nhật giao diện khi tài khoản được thêm, sửa hoặc xóa.
+Command / ICommand (kết hợp Validate qua CanExecute): Gắn các lệnh AddCommand, UpdateCommand, DeleteCommand, SearchCommand hoặc ResetPasswordCommand với các thao tác quản lý tài khoản.
+Validate dữ liệu: Kiểm tra Username, Email, Password, số điện thoại và các thông tin bắt buộc trước khi lưu vào CSDL.
+Binding Modes (TwoWay, OneWay, OneWayToSource): Đồng bộ dữ liệu tài khoản được nhập/chỉnh sửa giữa View và ViewModel.
+5. Dependency Injection & Service Layer
+Microsoft.Extensions.DependencyInjection (MS.DI) trong .NET Generic Host (MauiProgram.cs): Đăng ký các dịch vụ quản lý tài khoản và cơ sở dữ liệu dưới dạng Singleton/Scoped.
+Constructor Injection / ServiceHelper: Inject các service vào ViewModel để xử lý nghiệp vụ quản lý tài khoản.
+Giao diện Dịch vụ IUserService<T> & IDataStore<T> (CRUDL operations):
+GetUsersList() / GetItemsAsync(): Đọc danh sách tài khoản từ cơ sở dữ liệu.
+GetUserByIdAsync(): Lấy thông tin chi tiết của một tài khoản theo UserId.
+AddUserAsync / AddItemAsync(): Thêm tài khoản mới vào hệ thống.
+UpdateUserAsync / UpdateItemAsync(): Cập nhật thông tin tài khoản và lưu thay đổi xuống CSDL.
+DeleteUserAsync / DeleteItemAsync(): Xóa tài khoản khỏi hệ thống.
+SearchUserAsync / GetUsersByKeyword(): Tìm kiếm tài khoản theo Username, Email hoặc thông tin liên quan.
+LockUserAsync / UnlockUserAsync: Thực hiện khóa hoặc mở khóa tài khoản khi cần thiết.
+6. Khung Điều hướng (.NET MAUI Shell & Navigation)
+.NET MAUI Shell & Routing.RegisterRoute: Quản lý cấu trúc điều hướng toàn ứng dụng, đăng ký route đến trang thêm mới và chỉnh sửa tài khoản.
+Shell.Current.GoToAsync(): Điều hướng từ danh sách tài khoản sang trang Add/Edit Account.
+QueryPropertyAttribute: Nhận UserId từ tham số truy vấn để xác định tài khoản cần chỉnh sửa.
+Sau khi thao tác Add/Edit/Delete thành công: Quay lại trang danh sách và tải lại dữ liệu để hiển thị trạng thái tài khoản mới nhất.
+7. Xây dựng chức năng quản lý tài khoản
+Hiển thị danh sách toàn bộ tài khoản trong hệ thống.
+Tìm kiếm tài khoản theo Username, Email hoặc từ khóa.
+Thêm tài khoản mới với các thông tin cần thiết.
+Chỉnh sửa thông tin tài khoản đã tồn tại.
+Xóa tài khoản theo yêu cầu của Admin.
+Khóa/Mở khóa tài khoản.
+Đặt lại mật khẩu tài khoản khi cần thiết.
+Kiểm tra dữ liệu đầu vào trước khi thực hiện thao tác lưu.
+Hiển thị thông báo xác nhận trước các thao tác quan trọng như Xóa hoặc Khóa tài khoản.
+Đồng bộ dữ liệu sau mỗi thao tác để đảm bảo danh sách trên giao diện phản ánh đúng dữ liệu trong CSDL.
+8. Kiểm thử chức năng quản lý tài khoản
+Kiểm thử chức năng hiển thị danh sách tài khoản: Đảm bảo dữ liệu lấy từ CSDL được hiển thị đầy đủ và chính xác.
+Kiểm thử chức năng thêm tài khoản:
+Nhập đầy đủ thông tin hợp lệ → Tài khoản được tạo thành công.
+Bỏ trống trường bắt buộc → Hiển thị cảnh báo.
+Nhập Username/Email đã tồn tại → Không cho phép tạo tài khoản trùng.
+Nhập dữ liệu không đúng định dạng → Hiển thị thông báo lỗi phù hợp.
+Kiểm thử chức năng chỉnh sửa tài khoản:
+Thay đổi thông tin hợp lệ → Cập nhật thành công vào CSDL.
+Nhập dữ liệu không hợp lệ → Không thực hiện cập nhật.
+Kiểm tra dữ liệu sau khi quay lại danh sách.
+Kiểm thử chức năng xóa tài khoản:
+Chọn Delete → Hiển thị hộp thoại xác nhận.
+Chọn xác nhận → Tài khoản bị xóa khỏi CSDL và danh sách.
+Chọn Hủy → Dữ liệu tài khoản không thay đổi.
+Kiểm thử chức năng khóa/mở khóa tài khoản:
+Khóa tài khoản → Trạng thái chuyển sang Locked.
+Mở khóa → Trạng thái chuyển lại Active.
+Kiểm tra trạng thái được lưu chính xác trong CSDL.
+Kiểm thử chức năng tìm kiếm:
+Tìm kiếm bằng Username.
+Tìm kiếm bằng Email.
+Tìm kiếm với từ khóa không tồn tại → Hiển thị danh sách rỗng/thông báo phù hợp.
+Kiểm thử điều hướng:
+Từ danh sách → trang Add Account.
+Từ danh sách → trang Edit Account.
+Truyền đúng UserId qua QueryProperty.
+Sau khi lưu/hủy → Quay lại đúng trang danh sách.
+Kiểm thử Data Binding:
+Kiểm tra dữ liệu nhập trên View được cập nhật vào ViewModel.
+Kiểm tra dữ liệu thay đổi trong ViewModel được phản ánh lên View.
+Kiểm tra ObservableCollection tự cập nhật sau Add/Edit/Delete.
+Kiểm thử Service Layer:
+Kiểm tra GetUsersList/GetItemsAsync.
+Kiểm tra AddUserAsync.
+Kiểm tra UpdateUserAsync.
+Kiểm tra DeleteUserAsync.
+Kiểm tra xử lý lỗi khi CSDL không khả dụng.
+Kiểm thử giao diện và thông báo:
+Kiểm tra DisplayAlert khi thao tác thành công.
+Kiểm tra cảnh báo khi thao tác thất bại.
+Kiểm tra DisplayActionSheet đối với các thao tác quản lý tài khoản.
