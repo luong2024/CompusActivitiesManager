@@ -1,0 +1,32 @@
+ NHIỆM VỤ
+**Xây dựng và kiểm thử chức năng quản lý tài khoản**
+
+Đầu tiên xác định các ca kiểm thử (Test Cases) cho giao diện quản lý tài khoản:
+
+| Chức năng | Loại kiểm thử | Kịch bản kiểm thử | Kết quả mong đợi |
+| :--- | :--- | :--- | :--- |
+| Lấy danh sách | Integration | Tải dữ liệu khi mở màn hình | Hiển thị danh sách accounts hoặc thông báo trống |
+| Lấy 1 tài khoản | Unit Test | Truy vấn tài khoản theo ID tồn tại / không tồn tại | Trả về object account hoặc báo lỗi 404 |
+| Thêm | E2E / Form | Nhập thông tin hợp lệ / để trống trường bắt buộc | Thêm thành công / Hiển thị lỗi Validation |
+| Sửa | Integration | Cập nhật thông tin tài khoản hiện có | Dữ liệu được lưu và danh sách tự động làm mới |
+| Xóa | Integration | Xóa tài khoản có xác nhận / hủy bỏ | Báo thành công và xóa khỏi UI / Giữ nguyên |
+
+- Thiết lập môi trường kiểm thử: Dùng **Moq** để giả lập Service và **NUnit/XUnit** để viết Unit Test cho ViewModel
+- Định nghĩa Mock Interface: Tạo `Mock<IAccountService>` giả lập các dữ liệu trả về và trường hợp ngoại lệ
+- Xây dựng Test Suite cho AccountService và ViewModel
+- Thực hiện kiểm thử đầy đủ CRUD (lấy danh sách, lấy tài khoản, thêm, sửa, xóa)
+- Đăng ký Mock Service vào container Dependency Injection phục vụ UI Testing/Integration Testing
+- Kết nối ViewModel với Service: Kiểm thử xác minh ViewModel phản hồi chính xác khi Service trả về dữ liệu hoặc throw Exception
+- Kiểm thử chức năng load danh sách trong ViewModel: Viết test case kiểm tra trạng thái danh sách trước và sau khi gọi hàm Load
+- Kết nối ViewModel với giao diện (Data Binding)
+- Viết Unit Test cho các RelayCommand (thêm/sửa/xóa) sau đó làm các chức năng đó và kiểm tra điều kiện Executable (`CanExecute`)
+- Phân loại test case xử lý lỗi: Validation error, API error, Network error
+- Tạo ErrorMessage trong ViewModel
+- Hiển thị lỗi giao diện:
+  ```xml
+  <Label
+      Text="{Binding ErrorMessage}"
+      IsVisible="{Binding HasError}" />
+  ```
+- Xử lý lỗi API: Giả lập HTTP 400, 401, 500 từ Service và kiểm tra ViewModel xử lý mượt mà
+- Sử dụng IsBusy trong ViewModel và binding nó với ActivityIndicator để biểu diễn trạng thái đang xử lý. Viết test case xác nhận `IsBusy = true` khi bắt đầu tác vụ và `IsBusy = false` khi hoàn thành (kể cả khi gặp lỗi)
