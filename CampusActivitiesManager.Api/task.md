@@ -1,42 +1,50 @@
-# Chi Tiết Nhiệm Vụ: Quản lý tài khoản (API)
+# Nhiệm vụ: Xây dựng API Quản lý Tài khoản (Create & Update)
 
-**Mã Task**: T35.1 - Create Account + Update Account API
-**User Story**: US35 – Account Management API
-**Người thực hiện**: Nguyễn Đức Mạnh
-**Trạng thái**: Đã hoàn thành (Done)
+**Mã Task**: T35.1
+**User Story**: US35 – Account Management API (Phát triển API quản lý tài khoản: tạo, cập nhật, khóa/mở khóa tài khoản)
+**Người được giao (Assignee)**: Nguyễn Đức Mạnh
+**Trạng thái**: Cần thực hiện (To-Do)
+**Thời gian dự kiến (Estimate)**: 10 giờ
+
+---
 
 ## 1. Mục tiêu nhiệm vụ
-Xây dựng một hệ thống RESTful API an toàn, đáp ứng tiêu chuẩn để cho phép các đối tượng có thẩm quyền (như Quản trị viên) có thể tạo mới (Create) và cập nhật (Update) tài khoản người dùng, đồng thời tự động đồng bộ hóa xác thực với Firebase Authentication và lưu trữ siêu dữ liệu trên Cloud Firestore.
+Xây dựng các RESTful API endpoints an toàn cho phép quản trị viên hệ thống có thể tạo mới (Create) và cập nhật (Update) tài khoản người dùng.
+Yêu cầu bắt buộc: API phải được tích hợp và đồng bộ hóa với Firebase Authentication để quản lý đăng nhập, đồng thời lưu trữ siêu dữ liệu (metadata) trên Cloud Firestore/Realtime Database.
 
-## 2. Chi tiết các hạng mục công việc đã thực hiện
+## 2. Chi tiết các hạng mục cần thực hiện (Checklist)
 
 ### 2.1. Khởi tạo & Cấu hình Project
-- [x] Khởi tạo dự án `CampusActivitiesManager.Api` dưới dạng ASP.NET Core Web API (sử dụng .NET 9).
-- [x] Cài đặt các thư viện cần thiết: `FirebaseAdmin` và `Google.Cloud.Firestore`.
-- [x] Thiết lập cấu hình Middleware tại `Program.cs` (Đăng ký Swagger, tắt tự động trả lỗi HTTP 400 mặc định của Framework để tùy chỉnh cấu trúc trả lỗi).
-- [x] Tích hợp cơ chế xác thực an toàn thông qua biến môi trường `GOOGLE_APPLICATION_CREDENTIALS` (Firebase Service Account).
+- [ ] Khởi tạo hoặc cập nhật project `CampusActivitiesManager.Api` (ASP.NET Core Web API).
+- [ ] Cài đặt các thư viện/SDK cần thiết: `FirebaseAdmin`, `Google.Cloud.Firestore`.
+- [ ] Thiết lập cấu hình Middleware và Dependency Injection trong `Program.cs`.
+- [ ] Cấu hình xác thực Firebase thông qua Environment Variable `GOOGLE_APPLICATION_CREDENTIALS` để bảo mật.
 
-### 2.2. Chuẩn hóa Model & Kiểm duyệt dữ liệu (Validation)
-- [x] Thiết kế **CreateAccountRequest**: Áp dụng Data Annotations để validate tính hợp lệ của Email, cấu trúc Password mạnh (Regex yêu cầu chữ hoa, thường, số, ký tự đặc biệt, tối thiểu 8 ký tự), tính bắt buộc của FullName, và chỉ định Role cụ thể (Admin, Lecturer, Student).
-- [x] Thiết kế **UpdateAccountRequest**: Khai báo các trường dữ liệu tùy chọn (Nullable) nhưng yêu cầu tính hợp lệ nghiêm ngặt nếu Client có truyền dữ liệu lên.
-- [x] Thiết kế **Cấu trúc Response Chuẩn**: Xây dựng class `ApiResponse<T>` (cho phản hồi thành công) và `ApiErrorResponse` (cho các phản hồi lỗi theo chuẩn RFC 7807) để API luôn trả về cấu trúc đồng nhất có thuộc tính `success`, `statusCode`, `message` và `data/errors`.
+### 2.2. Xây dựng DTO Models & Xử lý Validation
+- [ ] **Tạo class `CreateAccountRequest`**: Thiết lập Data Annotations để validate (bắt buộc nhập, đúng định dạng Email, Password tối thiểu 8 ký tự, có đủ chữ hoa, thường, số, ký tự đặc biệt, Role chỉ nhận giá trị Admin/Lecturer/Student).
+- [ ] **Tạo class `UpdateAccountRequest`**: Thiết lập các trường cho phép tuỳ chọn (nullable) như FullName, PhoneNumber, AvatarUrl, Role nhưng nếu có gửi lên thì phải đúng định dạng.
+- [ ] **Tạo class Response chuẩn**: Xây dựng `ApiResponse<T>` và `ApiErrorResponse` theo chuẩn RFC 7807 đảm bảo JSON luôn trả về cấu trúc gồm `success`, `statusCode`, `message`, `data`/`errors`.
+- [ ] Cấu hình tùy chỉnh (SuppressModelStateInvalidFilter) để ASP.NET Core không tự trả về lỗi 400 mặc định mà trả về định dạng `ApiErrorResponse` do lập trình viên định nghĩa.
 
 ### 2.3. Triển khai API Endpoints (AccountsController)
-- [x] **API Tạo tài khoản (`POST /api/v1/accounts`)**:
-  - Phân tích và thực thi Validate Request Model.
-  - Sử dụng lệnh `FirebaseAuth.DefaultInstance.CreateUserAsync()` để cấp phát tài khoản trên Firebase.
-  - Sử dụng `FirestoreDb` để lưu trữ các thông tin mở rộng (vai trò, số điện thoại, mã sinh viên) vào collection `users` tương ứng với `UID` vừa tạo.
-  - Xử lý chặn lỗi Trùng Email (trả về mã HTTP `409 Conflict`) hoặc Lỗi không lường trước (`500 Internal Server Error`).
-- [x] **API Cập nhật tài khoản (`PUT/PATCH /api/v1/accounts/{id}`)**:
-  - Tra cứu sự tồn tại của người dùng bằng `GetUserAsync()`. Bắt lỗi và trả về HTTP `404 Not Found` nếu ID truyền lên không hợp lệ.
-  - Đồng bộ cập nhật thông tin trên Firebase Auth (`UpdateUserAsync`).
-  - Hợp nhất (Merge) các trường dữ liệu mới (nếu có) trên document của Firestore thông qua `SetOptions.MergeAll`.
-  - Phản hồi mã HTTP `200 OK` đi kèm thông tin cập nhật mới nhất cho Client.
+- [ ] **Tạo endpoint `POST /api/v1/accounts` (Tạo tài khoản)**:
+  - Lấy dữ liệu từ Request, kiểm tra tính hợp lệ (Validation).
+  - Gọi `FirebaseAuth.DefaultInstance.CreateUserAsync()` để tạo tài khoản trên Firebase.
+  - Sử dụng `FirestoreDb` để lưu thêm thông tin (role, số điện thoại, avatar...) vào collection `users` tương ứng với `UID` vừa tạo.
+  - Xử lý các ngoại lệ (Exception) như: Trùng Email -> Trả về `409 Conflict`.
+  - Trả về HTTP `201 Created` kèm dữ liệu tài khoản nếu thành công.
 
-## 3. Đối chiếu Acceptance Criteria (Kịch bản Nghiệm thu)
-- **[AC1]** Đã xử lý API cho phép tạo account với dữ liệu hợp lệ -> Trả về mã `201 Created`.
-- **[AC2]** Đã cài đặt cơ chế Validation chặn Request không đủ field, sai format -> Trả về mã `400 Bad Request` kèm theo chi tiết từng trường (field) bị lỗi.
-- **[AC3]** Đã xử lý API cập nhật thông tin cho account hiện có -> Trả về mã `200 OK` và lưu thành công.
-- **[AC4]** Đã chặn hoàn toàn trường hợp update account không tồn tại -> Trả về mã `404 Not Found`.
-- **[AC5]** Đã đảm bảo định dạng JSON Response đầu ra bám sát đặc tả của quy trình nghiệp vụ (Business Analysis).
-- **[AC6]** Đã làm chủ hoàn toàn các thao tác tích hợp SDK của Firebase.
+- [ ] **Tạo endpoint `PUT / PATCH /api/v1/accounts/{id}` (Cập nhật tài khoản)**:
+  - Kiểm tra xem user có tồn tại hay không bằng hàm `GetUserAsync()`. Nếu không, trả về `404 Not Found`.
+  - Nếu tồn tại, đồng bộ cập nhật trên Firebase Auth (`UpdateUserAsync`).
+  - Hợp nhất dữ liệu (Merge) các thay đổi vào document trên Firestore.
+  - Xử lý ngoại lệ bảo mật và hệ thống (500 Internal Server Error).
+  - Trả về HTTP `200 OK` kèm theo dữ liệu đã cập nhật.
+
+## 3. Tiêu chí nghiệm thu (Acceptance Criteria)
+- **AC1**: Trả về `201 Created` và lưu DB thành công khi Request payload (Tạo mới) hợp lệ.
+- **AC2**: Trả về `400 Bad Request` và thông báo lỗi rõ ràng của từng field nếu Validation thất bại.
+- **AC3**: Trả về `200 OK` và lưu thông tin thành công khi cập nhật account đang tồn tại.
+- **AC4**: Trả về `404 Not Found` nếu gọi API cập nhật cho một ID "ma" (không tồn tại trong Firebase).
+- **AC5**: Format Response trả về (khi thành công và khi lỗi) phải chính xác với chuẩn JSON được định nghĩa trong tài liệu `BA.md`.
+- **AC6**: Mã nguồn phải gọi đúng và đủ các phương thức tích hợp SDK của `FirebaseAdmin` và `Google.Cloud.Firestore`.
