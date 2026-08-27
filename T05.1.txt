@@ -1,0 +1,48 @@
+1. Kiến trúc & Công nghệ nền tảng (Core Framework)
+Cross-Platform Framework: .NET MAUI (trên nền .NET 6/7/8) giúp viết ứng dụng chạy trên đa nền tảng (Android, iOS, macOS, Windows) với một codebase duy nhất.
+Pattern kiến trúc: MVVM (Model-View-ViewModel) để tách biệt phần xử lý logic nghiệp vụ và giao diện người dùng.
+Dependency Injection (DI): Sử dụng .NET Generic Host (MauiProgram.cs) tích hợp sẵn thư viện Microsoft.Extensions.DependencyInjection để đăng ký và quản lý các Services và ViewModels.
+Ngôn ngữ: C# cho logic code-behind/ViewModel và XAML cho định nghĩa giao diện (UI).
+2. Các công nghệ & Component UI cho từng Acceptance Criteria (AC)
+AC 1.1: Hiển thị danh sách thẻ tài khoản
+XAML UI Controls:
+
+CollectionView: Sử dụng để hiển thị danh sách thẻ tài khoản linh hoạt, tối ưu hiệu năng cuộn/tải dữ liệu so với ListView truyền thống.
+DataTemplate: Định nghĩa giao diện cho từng "Thẻ tài khoản" (Card layout).
+Border / Frame: Tạo khung thẻ tài khoản,bo góc và đổ bóng cho từng item.
+Control hiển thị thông tin:
+
+Image / AvatarView: Hiển thị Avatar tài khoản (kết hợp FontImageSource hoặc đường dẫn ảnh).
+Label: Hiển thị Họ tên, MSV/Email.
+Label / Border (Tag trạng thái): Sử dụng Data Trigger / Style Trigger để đổi màu sắc tag tương ứng (Đang học, Bảo lưu, Bị khóa).
+SwipeView hoặc FlyoutBase.ContextFlyout / MenuFlyout: Cung cấp nút menu hành động (Edit, Delete, Block) khi tương tác với thẻ.
+AC 1.2: Tìm kiếm (Search) với hoãn gõ & xóa nhanh
+SearchBar Control:
+
+Đã tích hợp sẵn nút xóa nhanh (Clear button) mặc định.
+Cơ chế Hoãn gõ (Debounce):
+
+Sử dụng Reactive Extensions (Rx.NET) hoặc System.Timers.Timer / CancellationTokenSource kết hợp sự kiện TextChanged / SearchCommand của SearchBar để hoãn việc gọi API/Search khoảng 300-500ms sau khi người dùng dừng gõ.
+Property Binding: Data binding thuộc tính Text của SearchBar tới thuộc tính SearchQuery trong ViewModel.
+AC 1.3: Bộ lọc (Filter) qua Chip & Popup
+Lọc nhanh bằng Chip:
+
+Dùng FlexLayout hoặc HorizontalStackLayout kết hợp danh sách các nút dạng Chip (Button hoặc Border bo tròn) để lọc nhanh theo trạng thái.
+Lọc nâng cao qua Popup:
+
+Sử dụng thư viện CommunityToolkit.Maui.Views.Popup để tạo dialog/popup tùy chỉnh lọc nâng cao (Lớp, Khóa, Quyền).
+Picker / CollectionView (SelectionMode="Multiple"): Đặt bên trong Popup để người dùng chọn nhiều Lớp, Khóa, Quyền.
+AC 1.4: Trải nghiệm UX/UI (Pull-to-Refresh, Infinite Scroll, Responsive Layout)
+Kéo làm mới (Pull-to-Refresh):
+
+Bọc CollectionView bên trong một RefreshView Control.
+Bind thuộc tính IsRefreshing và Command (RefreshCommand) vào ViewModel.
+Cuộn tải thêm (Infinite Scroll / Load More):
+
+Sử dụng tính năng tích hợp sẵn của CollectionView: Thiết lập thuộc tính RemainingItemsThreshold (ví dụ: = 5) và bind lệnh RemainingItemsThresholdReachedCommand tới hàm lấy thêm trang dữ liệu tiếp theo trong ViewModel.
+Layout phản hồi đa thiết bị (1 cột Mobile, 2-3 cột Desktop/Tablet):
+
+GridItemsLayout của CollectionView:
+
+Bind thuộc tính Span với giá trị được tính toán dựa trên độ rộng màn hình.
+OnIdiom / OnPlatform Markup Extension: Thiết lập số cột linh hoạt trên XAML:
