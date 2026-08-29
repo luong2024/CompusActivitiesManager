@@ -1,12 +1,14 @@
 using CampusActivitiesManager.Api.Models;
 using FirebaseAdmin.Auth;
 using Google.Cloud.Firestore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CampusActivitiesManager.Api.Controllers
 {
     [Route("api/v1/accounts")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class AccountsController : ControllerBase
     {
         private readonly FirebaseAuth _firebaseAuth;

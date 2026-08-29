@@ -1,6 +1,9 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -9,6 +12,24 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options 
 {
     options.SuppressModelStateInvalidFilter = true;
 });
+
+// Configure Firebase JWT Authentication
+string firebaseProjectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT") ?? "campusacmanage";
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+            ValidateAudience = true,
+            ValidAudience = firebaseProjectId,
+            ValidateLifetime = true,
+            RoleClaimType = "role" // Map Firebase custom claim "role" to .NET Role
+        };
+    });
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -37,6 +58,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
