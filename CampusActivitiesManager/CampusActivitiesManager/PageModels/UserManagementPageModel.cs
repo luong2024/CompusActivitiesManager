@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,14 +6,17 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CampusActivitiesManager.PageModels
 {
-    public partial class UserManagementPageModel : ObservableObject
+    /// <summary>
+    /// ViewModel quản lý người dùng và thực thi nghiệp vụ phân quyền truy cập (RBAC).
+    /// </summary>
+    public partial class UserManagementPageModel : BaseViewModel
     {
-        private readonly UserRepository _userRepository;
-        private readonly IAuthService _authService;
+        private readonly IUserService<User> _userService;
+        private readonly IAuthenticationService _authService;
         private readonly ModalErrorHandler _errorHandler;
 
         [ObservableProperty]
-        private ObservableCollection<User> _users = [];
+        private ObservableCollection<User> _usersList = [];
 
         [ObservableProperty]
         private ObservableCollection<User> _filteredUsers = [];
@@ -23,40 +25,10 @@ namespace CampusActivitiesManager.PageModels
         private string _searchText = string.Empty;
 
         [ObservableProperty]
-        private string _selectedRoleFilter = "Tất cả";
+        private string _selectedFilterRole = "All";
 
         [ObservableProperty]
-        private List<string> _filterRoles = ["Tất cả", UserRoles.Admin, UserRoles.Manager, UserRoles.Student];
-
-        [ObservableProperty]
-        private List<string> _availableRoles = [UserRoles.Admin, UserRoles.Manager, UserRoles.Student];
-
-        [ObservableProperty]
-        private User? _selectedUser;
-
-        [ObservableProperty]
-        private string _selectedRole = UserRoles.Student;
-
-        [ObservableProperty]
-        private bool _isEditingRole;
-
-        [ObservableProperty]
-        private bool _isAddingUser;
-
-        [ObservableProperty]
-        private bool _isBusy;
-
-        [ObservableProperty]
-        private bool _isRefreshing;
-
-        [ObservableProperty]
-        private User? _currentUser;
-
-        [ObservableProperty]
-        private bool _isAdmin;
-
-        [ObservableProperty]
-        private int _totalCount;
+        private int _totalUsersCount;
 
         [ObservableProperty]
         private int _adminCount;
@@ -65,87 +37,82 @@ namespace CampusActivitiesManager.PageModels
         private int _managerCount;
 
         [ObservableProperty]
-        private int _studentCount;
-
-        // Form fields for adding new user
-        [ObservableProperty]
-        private string _newUsername = string.Empty;
+        private int _userCount;
 
         [ObservableProperty]
-        private string _newFullName = string.Empty;
+        private int _guestCount;
 
         [ObservableProperty]
-        private string _newEmail = string.Empty;
+        private bool _isAdmin;
 
         [ObservableProperty]
-        private string _newRole = UserRoles.Student;
+        private string _currentUserName = string.Empty;
 
         [ObservableProperty]
-        private string _newPhoneNumber = string.Empty;
+        private string _currentUserRoleName = string.Empty;
 
         [ObservableProperty]
-        private string _newDepartment = string.Empty;
+        private User? _selectedUser;
 
-        public UserManagementPageModel(UserRepository userRepository, IAuthService authService, ModalErrorHandler errorHandler)
+        [ObservableProperty]
+        private Role _selectedNewRole = Role.User;
+
+        [ObservableProperty]
+        private bool _isRoleModalVisible;
+
+        public UserManagementPageModel(
+            IUserService<User> userService,
+            IAuthenticationService authService,
+            ModalErrorHandler errorHandler)
         {
-            _userRepository = userRepository;
+            _userService = userService;
             _authService = authService;
             _errorHandler = errorHandler;
 
+            Title = "Quản lý & Phân quyền";
             _authService.CurrentUserChanged += OnCurrentUserChanged;
-            UpdateAuthStatus();
+            SyncCurrentUserState();
         }
 
         private void OnCurrentUserChanged(object? sender, EventArgs e)
         {
-            UpdateAuthStatus();
+            SyncCurrentUserState();
+            ApplyFilter();
         }
 
-        private void UpdateAuthStatus()
+        private void SyncCurrentUserState()
         {
-            CurrentUser = _authService.CurrentUser;
             IsAdmin = _authService.IsAdmin;
+            CurrentUserName = _authService.CurrentUser?.FullName ?? "Chưa đăng nhập";
+            CurrentUserRoleName = _authService.CurrentRole.GetDisplayName();
         }
 
         [RelayCommand]
         private async Task Appearing()
         {
-            await _authService.InitializeAsync();
-            UpdateAuthStatus();
-            await LoadData();
+            await LoadUsersAsync();
         }
 
         [RelayCommand]
-        private async Task Refresh()
+        public async Task LoadUsersAsync()
         {
-            try
-            {
-                IsRefreshing = true;
-                await LoadData();
-            }
-            catch (Exception e)
-            {
-                _errorHandler.HandleError(e);
-            }
-            finally
-            {
-                IsRefreshing = false;
-            }
-        }
+            if (IsBusy)
+                return;
 
-        public async Task LoadData()
-        {
             try
             {
                 IsBusy = true;
-                var userList = await _userRepository.ListAsync();
-                Users = new ObservableCollection<User>(userList);
-                UpdateCounts();
+                SyncCurrentUserState();
+
+                var users = await _userService.GetUsersListAsync();
+                UsersList = new ObservableCollection<User>(users);
+
+                UpdateStatistics();
                 ApplyFilter();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                _errorHandler.HandleError(e);
+                _errorHandler.HandleError(ex);
             }
             finally
             {
@@ -153,12 +120,13 @@ namespace CampusActivitiesManager.PageModels
             }
         }
 
-        private void UpdateCounts()
+        private void UpdateStatistics()
         {
-            TotalCount = Users.Count;
-            AdminCount = Users.Count(u => u.Role == UserRoles.Admin);
-            ManagerCount = Users.Count(u => u.Role == UserRoles.Manager);
-            StudentCount = Users.Count(u => u.Role == UserRoles.Student);
+            TotalUsersCount = UsersList.Count;
+            AdminCount = UsersList.Count(u => u.Role == Role.Admin);
+            ManagerCount = UsersList.Count(u => u.Role == Role.Manager);
+            UserCount = UsersList.Count(u => u.Role == Role.User);
+            GuestCount = UsersList.Count(u => u.Role == Role.Guest);
         }
 
         partial void OnSearchTextChanged(string value)
@@ -166,125 +134,121 @@ namespace CampusActivitiesManager.PageModels
             ApplyFilter();
         }
 
-        partial void OnSelectedRoleFilterChanged(string value)
+        [RelayCommand]
+        private void SetFilterRole(string role)
         {
+            SelectedFilterRole = role;
             ApplyFilter();
         }
 
         private void ApplyFilter()
         {
-            var query = Users.AsEnumerable();
+            var query = UsersList.AsEnumerable();
 
-            if (!string.IsNullOrWhiteSpace(SelectedRoleFilter) && SelectedRoleFilter != "Tất cả")
+            if (!string.IsNullOrWhiteSpace(SelectedFilterRole) && SelectedFilterRole != "All")
             {
-                query = query.Where(u => u.Role.Equals(SelectedRoleFilter, StringComparison.OrdinalIgnoreCase));
+                if (Enum.TryParse<Role>(SelectedFilterRole, true, out var role))
+                {
+                    query = query.Where(u => u.Role == role);
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                string search = SearchText.Trim().ToLowerInvariant();
+                var keyword = SearchText.Trim().ToLowerInvariant();
                 query = query.Where(u =>
-                    (u.FullName?.ToLowerInvariant().Contains(search) ?? false) ||
-                    (u.Username?.ToLowerInvariant().Contains(search) ?? false) ||
-                    (u.Email?.ToLowerInvariant().Contains(search) ?? false) ||
-                    (u.Department?.ToLowerInvariant().Contains(search) ?? false));
+                    (!string.IsNullOrEmpty(u.FullName) && u.FullName.ToLowerInvariant().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.Username) && u.Username.ToLowerInvariant().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.Email) && u.Email.ToLowerInvariant().Contains(keyword)) ||
+                    (!string.IsNullOrEmpty(u.Department) && u.Department.ToLowerInvariant().Contains(keyword)));
             }
 
-            FilteredUsers = new ObservableCollection<User>(query.ToList());
+            FilteredUsers = new ObservableCollection<User>(query);
         }
 
+        /// <summary>
+        /// Mở Modal phân quyền cho tài khoản được chọn (kèm Authorization Guard kiểm tra quyền Admin).
+        /// </summary>
         [RelayCommand]
-        private void SelectFilterRole(string role)
+        public async Task SelectUserForRoleAssignment(User user)
         {
-            SelectedRoleFilter = role;
-        }
+            if (user == null)
+                return;
 
-        [RelayCommand]
-        private void ClearSearch()
-        {
-            SearchText = string.Empty;
-        }
-
-        [RelayCommand]
-        private void SelectRoleForEdit(string role)
-        {
-            SelectedRole = role;
-        }
-
-        [RelayCommand]
-        private async Task SelectUserForRoleAssignment(User user)
-        {
-            if (user == null) return;
-
-            if (!IsAdmin)
+            // Authorization Guard: Nếu không phải Admin, chặn hành động và hiển thị cảnh báo
+            if (!_authService.IsAdmin)
             {
-                await AppShell.DisplaySnackbarAsync("Bạn không có quyền thực hiện. Chỉ tài khoản Admin mới có thể phân quyền!");
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Quyền truy cập bị từ chối",
+                        "Chỉ tài khoản Quản trị viên (Admin) mới có quyền phân quyền người dùng!",
+                        "Đóng");
+                }
                 return;
             }
 
             SelectedUser = user;
-            SelectedRole = user.Role;
-            IsEditingRole = true;
+            SelectedNewRole = user.Role;
+            IsRoleModalVisible = true;
         }
 
         [RelayCommand]
-        private void CancelRoleAssignment()
+        private void CloseRoleModal()
         {
-            IsEditingRole = false;
-            SelectedUser = null;
+            IsRoleModalVisible = false;
+        }
+
+        [RelayCommand]
+        private void SelectRole(string roleString)
+        {
+            if (Enum.TryParse<Role>(roleString, true, out var role))
+            {
+                SelectedNewRole = role;
+            }
         }
 
         /// <summary>
-        /// Acceptance Criteria: Hệ thống cho phép tài khoản Admin cập nhật vai trò/quyền hạn cho tài khoản khác và lưu thành công vào CSDL (Phân quyền thành công).
+        /// Lưu vai trò phân quyền mới vào SQLite Database (Trọng tâm AC 05.3.1).
         /// </summary>
         [RelayCommand]
-        private async Task UpdateRole()
+        public async Task SaveRoleAssignment()
         {
             if (SelectedUser == null)
-            {
-                await AppShell.DisplaySnackbarAsync("Vui lòng chọn tài khoản cần phân quyền!");
                 return;
-            }
-
-            if (!IsAdmin)
-            {
-                await AppShell.DisplaySnackbarAsync("Quyền truy cập bị từ chối: Chỉ tài khoản Admin mới có quyền phân quyền!");
-                IsEditingRole = false;
-                return;
-            }
 
             try
             {
                 IsBusy = true;
-                string oldRole = SelectedUser.Role;
-                string newRole = SelectedRole;
+                var userId = SelectedUser.Id;
+                var userName = SelectedUser.FullName;
+                var targetRole = SelectedNewRole;
 
-                // 1. Lưu thay đổi trực tiếp vào CSDL SQLite
-                bool isSuccess = await _userRepository.UpdateRoleAsync(SelectedUser.ID, newRole);
-
-                if (isSuccess)
+                var success = await _userService.UpdateUserRoleAsync(userId, targetRole);
+                if (success)
                 {
-                    SelectedUser.Role = newRole;
+                    SelectedUser.Role = targetRole;
 
-                    // Nếu Admin đang phân quyền lại chính tài khoản của mình
-                    if (CurrentUser != null && CurrentUser.ID == SelectedUser.ID)
+                    // Nếu Admin tự phân quyền lại chính mình, đồng bộ phiên làm việc tức thì
+                    if (_authService.CurrentUser?.Id == userId)
                     {
                         await _authService.RefreshCurrentUserAsync();
-                        UpdateAuthStatus();
+                        SyncCurrentUserState();
                     }
 
-                    // Reload & Refresh danh sách
-                    await LoadData();
-                    IsEditingRole = false;
+                    UpdateStatistics();
+                    ApplyFilter();
+                    IsRoleModalVisible = false;
 
-                    // 2. Hiển thị thông báo thành công (Acceptance Criteria)
-                    string successMsg = $"Phân quyền thành công!\nTài khoản '{SelectedUser.FullName}' đã được cập nhật vai trò: {newRole}.";
-                    await AppShell.DisplaySnackbarAsync(successMsg);
-                    await AppShell.DisplayToastAsync("Phân quyền thành công!");
+                    await AppShell.DisplayToastAsync(
+                        $"Phân quyền thành công! Tài khoản {userName} đã được cập nhật vai trò: {targetRole.GetShortName()}");
                 }
                 else
                 {
-                    await AppShell.DisplaySnackbarAsync("Cập nhật vai trò thất bại. Vui lòng thử lại!");
+                    if (Shell.Current != null)
+                    {
+                        await Shell.Current.DisplayAlert("Lỗi", "Không thể cập nhật vai trò vào cơ sở dữ liệu. Vui lòng thử lại!", "Đóng");
+                    }
                 }
             }
             catch (Exception ex)
@@ -297,111 +261,195 @@ namespace CampusActivitiesManager.PageModels
             }
         }
 
+        /// <summary>
+        /// Menu tác vụ nhanh DisplayActionSheet cho phép đổi quyền trực tiếp từ bảng chọn.
+        /// </summary>
         [RelayCommand]
-        private async Task OpenAddUserDialog()
+        public async Task QuickChangeRoleActionSheet(User user)
         {
-            if (!IsAdmin)
-            {
-                await AppShell.DisplaySnackbarAsync("Chỉ Admin mới có quyền thêm tài khoản mới!");
+            if (user == null)
                 return;
-            }
 
-            NewUsername = string.Empty;
-            NewFullName = string.Empty;
-            NewEmail = string.Empty;
-            NewRole = UserRoles.Student;
-            NewPhoneNumber = string.Empty;
-            NewDepartment = string.Empty;
-            IsAddingUser = true;
-        }
-
-        [RelayCommand]
-        private void CancelAddUser()
-        {
-            IsAddingUser = false;
-        }
-
-        [RelayCommand]
-        private async Task SaveNewUser()
-        {
-            if (string.IsNullOrWhiteSpace(NewUsername) || string.IsNullOrWhiteSpace(NewFullName))
+            if (!_authService.IsAdmin)
             {
-                await AppShell.DisplaySnackbarAsync("Vui lòng nhập tên đăng nhập và họ tên!");
-                return;
-            }
-
-            try
-            {
-                IsBusy = true;
-                var existing = await _userRepository.GetByUsernameAsync(NewUsername.Trim());
-                if (existing != null)
+                if (Shell.Current != null)
                 {
-                    await AppShell.DisplaySnackbarAsync($"Tên đăng nhập '{NewUsername}' đã tồn tại!");
-                    return;
+                    await Shell.Current.DisplayAlert(
+                        "Quyền truy cập bị từ chối",
+                        "Chỉ tài khoản Quản trị viên (Admin) mới có quyền phân quyền!",
+                        "Đóng");
+                }
+                return;
+            }
+
+            if (Shell.Current == null)
+                return;
+
+            var action = await Shell.Current.DisplayActionSheet(
+                $"⚡ Đổi vai trò: {user.FullName} (@{user.Username})",
+                "Hủy",
+                null,
+                "Admin (Quản trị viên)",
+                "Manager (Quản lý hoạt động)",
+                "User (Sinh viên / Thành viên)",
+                "Guest (Khách vãng lai)");
+
+            if (string.IsNullOrEmpty(action) || action == "Hủy")
+                return;
+
+            Role chosenRole = action switch
+            {
+                "Admin (Quản trị viên)" => Role.Admin,
+                "Manager (Quản lý hoạt động)" => Role.Manager,
+                "User (Sinh viên / Thành viên)" => Role.User,
+                "Guest (Khách vãng lai)" => Role.Guest,
+                _ => user.Role
+            };
+
+            if (chosenRole == user.Role)
+                return;
+
+            var success = await _userService.UpdateUserRoleAsync(user.Id, chosenRole);
+            if (success)
+            {
+                user.Role = chosenRole;
+
+                if (_authService.CurrentUser?.Id == user.Id)
+                {
+                    await _authService.RefreshCurrentUserAsync();
+                    SyncCurrentUserState();
                 }
 
-                var newUser = new User
+                UpdateStatistics();
+                ApplyFilter();
+
+                await AppShell.DisplayToastAsync(
+                    $"Phân quyền thành công! Tài khoản {user.FullName} đã chuyển sang vai trò: {chosenRole.GetShortName()}");
+            }
+        }
+
+        /// <summary>
+        /// Xóa người dùng (Ngăn chặn Admin tự xóa chính mình qua canExecute / validation).
+        /// </summary>
+        [RelayCommand]
+        public async Task DeleteUser(User user)
+        {
+            if (user == null)
+                return;
+
+            if (!_authService.IsAdmin)
+            {
+                if (Shell.Current != null)
                 {
-                    Username = NewUsername.Trim(),
-                    FullName = NewFullName.Trim(),
-                    Email = NewEmail.Trim(),
-                    Role = NewRole,
-                    PhoneNumber = NewPhoneNumber.Trim(),
-                    Department = NewDepartment.Trim()
-                };
-
-                await _userRepository.SaveItemAsync(newUser);
-                await LoadData();
-                IsAddingUser = false;
-                await AppShell.DisplayToastAsync("Thêm tài khoản thành công!");
-            }
-            catch (Exception ex)
-            {
-                _errorHandler.HandleError(ex);
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        [RelayCommand]
-        private async Task DeleteUser(User user)
-        {
-            if (user == null) return;
-
-            if (!IsAdmin)
-            {
-                await AppShell.DisplaySnackbarAsync("Chỉ Admin mới có quyền xóa tài khoản!");
+                    await Shell.Current.DisplayAlert("Quyền bị từ chối", "Chỉ Admin mới có quyền xóa người dùng!", "Đóng");
+                }
                 return;
             }
 
-            if (CurrentUser != null && CurrentUser.ID == user.ID)
+            // Ngăn chặn Admin tự xóa chính mình
+            if (_authService.CurrentUser?.Id == user.Id)
             {
-                await AppShell.DisplaySnackbarAsync("Không thể xóa tài khoản đang đăng nhập hiện tại!");
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Cảnh báo",
+                        "Bạn không thể tự xóa tài khoản Quản trị viên đang đăng nhập!",
+                        "Đóng");
+                }
                 return;
             }
 
-            try
+            if (Shell.Current == null)
+                return;
+
+            var confirm = await Shell.Current.DisplayAlert(
+                "Xác nhận xóa tài khoản",
+                $"Bạn có chắc chắn muốn xóa vĩnh viễn người dùng '{user.FullName}' (@{user.Username}) khỏi hệ thống?",
+                "Xóa",
+                "Hủy");
+
+            if (!confirm)
+                return;
+
+            var success = await _userService.DeleteUserAsync(user.Id);
+            if (success)
             {
-                await _userRepository.DeleteItemAsync(user);
-                await LoadData();
-                await AppShell.DisplayToastAsync($"Đã xóa tài khoản {user.Username}!");
-            }
-            catch (Exception ex)
-            {
-                _errorHandler.HandleError(ex);
+                UsersList.Remove(user);
+                UpdateStatistics();
+                ApplyFilter();
+                await AppShell.DisplayToastAsync($"Đã xóa tài khoản {user.FullName}");
             }
         }
 
+        /// <summary>
+        /// Khóa hoặc Mở khóa tài khoản người dùng.
+        /// </summary>
         [RelayCommand]
-        private async Task SwitchUser(User user)
+        public async Task ToggleUserStatus(User user)
         {
-            if (user == null) return;
-            await _authService.SwitchUserAsync(user);
-            UpdateAuthStatus();
-            ApplyFilter();
-            await AppShell.DisplayToastAsync($"Đã chuyển sang tài khoản: {user.FullName} ({user.Role})");
+            if (user == null)
+                return;
+
+            if (!_authService.IsAdmin)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Quyền bị từ chối", "Chỉ Admin mới có quyền khóa/mở tài khoản!", "Đóng");
+                }
+                return;
+            }
+
+            if (_authService.CurrentUser?.Id == user.Id)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Cảnh báo", "Không thể tự khóa tài khoản của chính mình!", "Đóng");
+                }
+                return;
+            }
+
+            var success = await _userService.ToggleUserStatusAsync(user.Id);
+            if (success)
+            {
+                user.IsActive = !user.IsActive;
+                await AppShell.DisplayToastAsync(
+                    user.IsActive ? $"Đã kích hoạt tài khoản {user.FullName}" : $"Đã khóa tài khoản {user.FullName}");
+            }
+        }
+
+        /// <summary>
+        /// Điều hướng sang trang chỉnh sửa phân quyền EditUserRolePage qua Shell và QueryProperty.
+        /// </summary>
+        [RelayCommand]
+        public async Task NavigateToEditRolePage(User user)
+        {
+            if (user == null)
+                return;
+
+            if (!_authService.IsAdmin)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Quyền bị từ chối", "Chỉ Admin mới có quyền truy cập trang phân quyền!", "Đóng");
+                }
+                return;
+            }
+
+            await Shell.Current.GoToAsync($"editrole?UserId={user.Id}");
+        }
+    }
+
+    /// <summary>
+    /// Alias UserManagementViewModel tương thích với định danh trong Task.md
+    /// </summary>
+    public class UserManagementViewModel : UserManagementPageModel
+    {
+        public UserManagementViewModel(
+            IUserService<User> userService,
+            IAuthenticationService authService,
+            ModalErrorHandler errorHandler)
+            : base(userService, authService, errorHandler)
+        {
         }
     }
 }

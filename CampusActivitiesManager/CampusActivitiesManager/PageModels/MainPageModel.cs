@@ -13,13 +13,6 @@ namespace CampusActivitiesManager.PageModels
         private readonly CategoryRepository _categoryRepository;
         private readonly ModalErrorHandler _errorHandler;
         private readonly SeedDataService _seedDataService;
-        private readonly IAuthService _authService;
-
-        [ObservableProperty]
-        private User? _currentUser;
-
-        [ObservableProperty]
-        private bool _canManageProjects;
 
         [ObservableProperty]
         private List<CategoryChartData> _todoCategoryData = [];
@@ -46,12 +39,11 @@ namespace CampusActivitiesManager.PageModels
             => Tasks?.Any(t => t.IsCompleted) ?? false;
 
         public MainPageModel(SeedDataService seedDataService, ProjectRepository projectRepository,
-            TaskRepository taskRepository, CategoryRepository categoryRepository, IAuthService authService, ModalErrorHandler errorHandler)
+            TaskRepository taskRepository, CategoryRepository categoryRepository, ModalErrorHandler errorHandler)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
             _categoryRepository = categoryRepository;
-            _authService = authService;
             _errorHandler = errorHandler;
             _seedDataService = seedDataService;
         }
@@ -92,15 +84,14 @@ namespace CampusActivitiesManager.PageModels
 
         private async Task InitData(SeedDataService seedDataService)
         {
-            const string seedKey = "is_campus_activities_seeded_v3";
-            bool isSeeded = Preferences.Default.ContainsKey(seedKey);
+            bool isSeeded = Preferences.Default.ContainsKey("is_seeded");
 
             if (!isSeeded)
             {
                 await seedDataService.LoadSeedDataAsync();
-                Preferences.Default.Set(seedKey, true);
             }
 
+            Preferences.Default.Set("is_seeded", true);
             await Refresh();
         }
 
@@ -133,10 +124,6 @@ namespace CampusActivitiesManager.PageModels
         [RelayCommand]
         private async Task Appearing()
         {
-            await _authService.InitializeAsync();
-            CurrentUser = _authService.CurrentUser;
-            CanManageProjects = _authService.CanManageProjects;
-
             if (!_dataLoaded)
             {
                 await InitData(_seedDataService);

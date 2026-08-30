@@ -14,7 +14,13 @@ namespace CampusActivitiesManager.Data
         private readonly string _seedDataFilePath = "SeedData.json";
         private readonly ILogger<SeedDataService> _logger;
 
-        public SeedDataService(ProjectRepository projectRepository, TaskRepository taskRepository, TagRepository tagRepository, CategoryRepository categoryRepository, UserRepository userRepository, ILogger<SeedDataService> logger)
+        public SeedDataService(
+            ProjectRepository projectRepository,
+            TaskRepository taskRepository,
+            TagRepository tagRepository,
+            CategoryRepository categoryRepository,
+            UserRepository userRepository,
+            ILogger<SeedDataService> logger)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
@@ -26,9 +32,7 @@ namespace CampusActivitiesManager.Data
 
         public async Task LoadSeedDataAsync()
         {
-            await ClearTablesAsync();
-
-            await _userRepository.SeedDefaultUsersAsync();
+            ClearTables();
 
             await using Stream templateStream = await FileSystem.OpenAppPackageFileAsync(_seedDataFilePath);
 
@@ -79,6 +83,8 @@ namespace CampusActivitiesManager.Data
                         }
                     }
                 }
+
+                await _userRepository.SeedDefaultUsersAsync();
             }
             catch (Exception e)
             {
@@ -87,7 +93,7 @@ namespace CampusActivitiesManager.Data
             }
         }
 
-        public async Task ClearTablesAsync()
+        private async void ClearTables()
         {
             try
             {

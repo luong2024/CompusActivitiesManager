@@ -8,22 +8,6 @@
     Shell.FlyoutBehavior="Flyout"
     Title="CampusActivitiesManager">
 
-    <Shell.FlyoutHeader>
-        <Grid BackgroundColor="{StaticResource Primary}" Padding="20,30,20,20">
-            <VerticalStackLayout Spacing="6">
-                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                    <Border WidthRequest="42" HeightRequest="42" StrokeShape="RoundRectangle 21" BackgroundColor="{StaticResource White}">
-                        <Label Text="🎓" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center" />
-                    </Border>
-                    <VerticalStackLayout VerticalOptions="Center" Spacing="1">
-                        <Label Text="Campus Activities" TextColor="{StaticResource White}" FontFamily="SegoeSemibold" FontSize="16" />
-                        <Label Text="Quản lý hoạt động" TextColor="{StaticResource Secondary}" FontSize="12" />
-                    </VerticalStackLayout>
-                </HorizontalStackLayout>
-            </VerticalStackLayout>
-        </Grid>
-    </Shell.FlyoutHeader>
-
     <ShellContent
         Title="Dashboard"
         Icon="{StaticResource IconDashboard}"
@@ -37,8 +21,8 @@
         Route="projects" />
 
     <ShellContent
-        Title="Phân quyền (RBAC)"
-        Icon="{StaticResource IconUserManagement}"
+        Title="Quản lý Phân quyền"
+        Icon="{StaticResource IconUsers}"
         ContentTemplate="{DataTemplate pages:UserManagementPage}"
         Route="users" />
 
@@ -47,6 +31,12 @@
         Icon="{StaticResource IconMeta}"
         ContentTemplate="{DataTemplate pages:ManageMetaPage}"
         Route="manage" />
+
+    <ShellContent
+        Title="Tài khoản &amp; Đăng nhập"
+        Icon="{StaticResource IconAccount}"
+        ContentTemplate="{DataTemplate pages:LoginPage}"
+        Route="login" />
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">

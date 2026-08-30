@@ -1,72 +1,91 @@
 using System.Text.Json.Serialization;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CampusActivitiesManager.Models
 {
-    public static class UserRoles
+    /// <summary>
+    /// Model User đại diện cho thực thể người dùng trong hệ thống.
+    /// Kế thừa ObservableObject (INotifyPropertyChanged) để tự động kích hoạt cập nhật giao diện
+    /// khi trường Role, IsActive hoặc các trường thông tin khác bị thay đổi.
+    /// </summary>
+    public partial class User : ObservableObject
     {
-        public const string Admin = "Admin";
-        public const string Manager = "Manager";
-        public const string Student = "Student";
+        [ObservableProperty]
+        private string _id = string.Empty;
 
-        public static readonly List<string> AllRoles = [Admin, Manager, Student];
-    }
+        [ObservableProperty]
+        private string _username = string.Empty;
 
-    public class User
-    {
-        public int ID { get; set; }
-        public string Username { get; set; } = string.Empty;
-        public string FullName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Role { get; set; } = UserRoles.Student;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public string Department { get; set; } = string.Empty;
+        [ObservableProperty]
+        private string _passwordHash = string.Empty;
 
+        [ObservableProperty]
+        private string _fullName = string.Empty;
+
+        [ObservableProperty]
+        private string _email = string.Empty;
+
+        [ObservableProperty]
+        private string _phoneNumber = string.Empty;
+
+        [ObservableProperty]
+        private string _department = string.Empty;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(RoleDisplayName))]
+        [NotifyPropertyChangedFor(nameof(RoleShortName))]
+        [NotifyPropertyChangedFor(nameof(RoleBadgeColor))]
+        [NotifyPropertyChangedFor(nameof(RoleDescription))]
+        [NotifyPropertyChangedFor(nameof(IsAdminRole))]
+        private Role _role = Role.User;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(StatusText))]
+        [NotifyPropertyChangedFor(nameof(StatusColorHex))]
+        private bool _isActive = true;
+
+        /// <summary>
+        /// ID dạng số nguyên tương thích với cấu trúc khóa chính SQLite AUTOINCREMENT nếu có.
+        /// </summary>
         [JsonIgnore]
-        public bool IsAdmin => Role == UserRoles.Admin;
-
-        [JsonIgnore]
-        public bool IsManager => Role == UserRoles.Manager;
-
-        [JsonIgnore]
-        public bool IsStudent => Role == UserRoles.Student;
-
-        [JsonIgnore]
-        public string RoleDisplayName => Role switch
+        public int IntId
         {
-            UserRoles.Admin => "Quản trị viên (Admin)",
-            UserRoles.Manager => "Quản lý hoạt động (Manager)",
-            UserRoles.Student => "Sinh viên (Student)",
-            _ => Role
-        };
+            get => int.TryParse(Id, out var result) ? result : 0;
+            set => Id = value.ToString();
+        }
 
-        [JsonIgnore]
-        public string RoleBadgeColor => Role switch
-        {
-            UserRoles.Admin => "#FF3366", // Đỏ tím nổi bật cho Admin
-            UserRoles.Manager => "#3068DF", // Xanh dương cho Manager
-            UserRoles.Student => "#107C41", // Xanh lá cho Student
-            _ => "#6E6E6E"
-        };
+        public string RoleDisplayName => Role.GetDisplayName();
 
-        [JsonIgnore]
-        public Brush RoleBadgeBrush => new SolidColorBrush(Microsoft.Maui.Graphics.Color.FromArgb(RoleBadgeColor));
+        public string RoleShortName => Role.GetShortName();
 
-        [JsonIgnore]
+        public string RoleBadgeColor => Role.GetBadgeColorHex();
+
+        public string RoleDescription => Role.GetDescription();
+
+        public bool IsAdminRole => Role == Role.Admin;
+
+        public string StatusText => IsActive ? "Đang hoạt động" : "Đã khóa";
+
+        public string StatusColorHex => IsActive ? "#16A34A" : "#DC2626";
+
         public string AvatarInitials
         {
             get
             {
                 if (string.IsNullOrWhiteSpace(FullName))
-                    return Username.Length > 0 ? Username[..1].ToUpperInvariant() : "U";
+                {
+                    return string.IsNullOrWhiteSpace(Username) ? "?" : Username[..1].ToUpper();
+                }
 
                 var parts = FullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length == 1)
-                    return parts[0][..1].ToUpperInvariant();
+                    return parts[0][..1].ToUpper();
 
-                return $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant();
+                return $"{parts[0][..1]}{parts[^1][..1]}".ToUpper();
             }
         }
 
-        public override string ToString() => $"{FullName} ({Role})";
+        public override string ToString() => $"{FullName} (@{Username}) - {Role}";
     }
 }
+
