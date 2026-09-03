@@ -93,6 +93,16 @@ namespace CampusActivitiesManager.Api.Controllers
                     Message = "Email is already registered"
                 });
             }
+            catch (FirebaseAuthException ex)
+            {
+                return StatusCode(400, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Error = "BAD_REQUEST",
+                    Message = ex.Message
+                });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new ApiErrorResponse
@@ -178,6 +188,16 @@ namespace CampusActivitiesManager.Api.Controllers
                         role = request.Role ?? "Student", // In real app, fetch existing role from Firestore
                         updatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
                     }
+                });
+            }
+            catch (FirebaseAuthException ex)
+            {
+                return StatusCode(400, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Error = "BAD_REQUEST",
+                    Message = ex.Message
                 });
             }
             catch (Exception ex)
