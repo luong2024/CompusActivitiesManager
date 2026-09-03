@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <?xaml-comp compile="true" ?>
 <ResourceDictionary 
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -64,6 +64,18 @@
 
     <FontImageSource x:Key="IconMeta"
                      Glyph="{x:Static f:FluentUI.info_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconUsers"
+                     Glyph="{x:Static f:FluentUI.accessibility_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconAccount"
+                     Glyph="{x:Static f:FluentUI.approvals_app_24_regular}"
                      FontFamily="{x:Static f:FluentUI.FontFamily}"
                      Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
                      Size="{StaticResource IconSize}" />

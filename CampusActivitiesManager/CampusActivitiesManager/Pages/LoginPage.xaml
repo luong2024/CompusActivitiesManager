@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="pageModels:LoginViewModel"
+             x:Class="CampusActivitiesManager.Pages.LoginPage"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="24" Padding="{StaticResource LayoutPadding}" MaximumWidthRequest="480" HorizontalOptions="Center" VerticalOptions="Center">
+
+            <!-- Logo & Title Header -->
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Border HeightRequest="64" WidthRequest="64" StrokeShape="RoundRectangle 32" Stroke="Transparent" BackgroundColor="#4F46E5" HorizontalOptions="Center">
+                    <Label Text="🎓" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label Text="Campus Activities Manager" Style="{StaticResource Title2}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                <Label Text="Hệ thống Quản lý Hoạt động &amp; Phân quyền RBAC" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- Trạng thái phiên hiện tại -->
+            <Border StrokeShape="RoundRectangle 12"
+                    Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                    Padding="14"
+                    IsVisible="{Binding CurrentUser, Converter={toolkit:IsNotNullConverter}}">
+                <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label Text="Đang đăng nhập với:" FontSize="11" TextColor="{AppThemeBinding Light=#6366F1, Dark=#818CF8}" />
+                        <Label Text="{Binding CurrentUser.FullName}" FontAttributes="Bold" FontSize="14" />
+                        <Label Text="{Binding CurrentRoleDisplay}" FontSize="12" FontAttributes="Italic" TextColor="{AppThemeBinding Light=#4F46E5, Dark=#A5B4FC}" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1"
+                            Text="Đăng xuất"
+                            Command="{Binding LogoutCommand}"
+                            FontSize="12"
+                            HeightRequest="36"
+                            BackgroundColor="{AppThemeBinding Light=#FEE2E2, Dark=#7F1D1D}"
+                            TextColor="{AppThemeBinding Light=#991B1B, Dark=#FECACA}" />
+                </Grid>
+            </Border>
+
+            <!-- Form Đăng nhập -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
+                    Padding="24">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="Đăng nhập Hệ thống" Style="{StaticResource Title3}" />
+
+                    <!-- Error Alert -->
+                    <Border StrokeShape="RoundRectangle 8"
+                            Stroke="#EF4444"
+                            BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#450A0A}"
+                            Padding="10"
+                            IsVisible="{Binding HasError}">
+                        <Label Text="{Binding ErrorMessage}" TextColor="#DC2626" FontSize="12" />
+                    </Border>
+
+                    <!-- Username -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Tên đăng nhập / Username" FontSize="13" FontAttributes="Bold" />
+                        <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
+                            <Entry Text="{Binding Username}" Placeholder="Nhập username (admin, manager, student1...)" HeightRequest="44" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Password -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Mật khẩu" FontSize="13" FontAttributes="Bold" />
+                        <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
+                            <Entry Text="{Binding Password}" IsPassword="True" Placeholder="Nhập mật khẩu (123)" HeightRequest="44" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Login Button -->
+                    <Button Text="Đăng nhập"
+                            Command="{Binding LoginCommand}"
+                            BackgroundColor="#4F46E5"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            HeightRequest="48"
+                            Margin="0,8,0,0" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Quick Profile Switch for Multi-Role Testing (AC 05.3.1 Matrix) -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
+                    Padding="20">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="⚡ Chọn nhanh vai trò để kiểm thử RBAC:" FontAttributes="Bold" FontSize="13" />
+
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                        <!-- Admin -->
+                        <Button Grid.Row="0" Grid.Column="0"
+                                Text="👑 Admin"
+                                Command="{Binding QuickLoginCommand}" CommandParameter="admin"
+                                BackgroundColor="#DC2626" TextColor="White" HeightRequest="40" FontSize="12" />
+
+                        <!-- Manager -->
+                        <Button Grid.Row="0" Grid.Column="1"
+                                Text="💼 Manager"
+                                Command="{Binding QuickLoginCommand}" CommandParameter="manager"
+                                BackgroundColor="#2563EB" TextColor="White" HeightRequest="40" FontSize="12" />
+
+                        <!-- Student 1 -->
+                        <Button Grid.Row="1" Grid.Column="0"
+                                Text="🎓 Student 1"
+                                Command="{Binding QuickLoginCommand}" CommandParameter="student1"
+                                BackgroundColor="#16A34A" TextColor="White" HeightRequest="40" FontSize="12" />
+
+                        <!-- Guest -->
+                        <Button Grid.Row="1" Grid.Column="1"
+                                Text="👤 Guest"
+                                Command="{Binding QuickLoginCommand}" CommandParameter="guest"
+                                BackgroundColor="#6B7280" TextColor="White" HeightRequest="40" FontSize="12" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
