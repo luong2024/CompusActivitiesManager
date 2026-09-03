@@ -1,4 +1,4 @@
-using CampusActivitiesManager.Models;
+﻿using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -36,7 +36,7 @@ namespace CampusActivitiesManager.PageModels
             _authService = authService;
             _errorHandler = errorHandler;
 
-            Title = "Ch?nh s?a T�i kho?n";
+            Title = "Chỉnh sửa Tài khoản";
         }
 
         async partial void OnUserIdChanged(string value)
@@ -84,7 +84,7 @@ namespace CampusActivitiesManager.PageModels
             {
                 if (Shell.Current != null)
                 {
-                    await Shell.Current.DisplayAlert("L?i", "Vui l�ng nh?p H? t�n.", "��ng");
+                    await Shell.Current.DisplayAlert("Lỗi", "Vui lòng nhập Họ tên.", "Đóng");
                 }
                 return;
             }
@@ -93,7 +93,7 @@ namespace CampusActivitiesManager.PageModels
             {
                 if (Shell.Current != null)
                 {
-                    await Shell.Current.DisplayAlert("T? ch?i truy c?p", "Ch? t�i kho?n Admin m?i c� quy?n s?a th�ng tin!", "��ng");
+                    await Shell.Current.DisplayAlert("Từ chối truy cập", "Chỉ tài khoản Admin mới có quyền sửa thông tin!", "Đóng");
                 }
                 return;
             }
@@ -110,14 +110,14 @@ namespace CampusActivitiesManager.PageModels
                         await _authService.RefreshCurrentUserAsync();
                     }
 
-                    await AppShell.DisplayToastAsync($"�� c?p nh?t th�ng tin t�i kho?n: {User.FullName}");
+                    await AppShell.DisplayToastAsync($"Đã cập nhật thông tin tài khoản: {User.FullName}");
                     await Shell.Current.GoToAsync("..");
                 }
                 else
                 {
                     if (Shell.Current != null)
                     {
-                        await Shell.Current.DisplayAlert("L?i", "Kh�ng th? luu c?p nh?t v�o CSDL.", "��ng");
+                        await Shell.Current.DisplayAlert("Lỗi", "Không thể lưu cập nhật vào CSDL.", "Đóng");
                     }
                 }
             }

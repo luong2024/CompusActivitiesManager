@@ -1,4 +1,4 @@
-using CampusActivitiesManager.Models;
+﻿using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -32,7 +32,7 @@ namespace CampusActivitiesManager.PageModels
         {
             _userService = userService;
             _errorHandler = errorHandler;
-            Title = "Th�m t�i kho?n";
+            Title = "Thêm tài khoản";
         }
 
         [RelayCommand]
@@ -42,7 +42,7 @@ namespace CampusActivitiesManager.PageModels
             {
                 if (Shell.Current != null)
                 {
-                    await Shell.Current.DisplayAlert("L?i", "Vui l�ng nh?p d?y d? Email v� H? t�n.", "��ng");
+                    await Shell.Current.DisplayAlert("Lỗi", "Vui lòng nhập đầy đủ Email và Họ tên.", "Đóng");
                 }
                 return;
             }
@@ -62,14 +62,14 @@ namespace CampusActivitiesManager.PageModels
                 var result = await _userService.SaveUserAsync(user);
                 if (result > 0)
                 {
-                    await AppShell.DisplayToastAsync("T�i kho?n d� du?c t?o th�nh c�ng.");
+                    await AppShell.DisplayToastAsync("Tài khoản đã được tạo thành công.");
                     await Shell.Current.GoToAsync("..");
                 }
                 else
                 {
                     if (Shell.Current != null)
                     {
-                        await Shell.Current.DisplayAlert("L?i", "Kh�ng th? t?o t�i kho?n. C� th? Email d� t?n t?i ho?c Role kh�ng h?p l?.", "��ng");
+                        await Shell.Current.DisplayAlert("Lỗi", "Không thể tạo tài khoản. Có thể Email đã tồn tại hoặc Role không hợp lệ.", "Đóng");
                     }
                 }
             }

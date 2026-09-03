@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
@@ -15,51 +15,51 @@
                     BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
                     Padding="20">
                 <VerticalStackLayout Spacing="16">
-                    <Label Text="Th�ng tin t�i kho?n m?i" FontAttributes="Bold" FontSize="18" />
+                    <Label Text="Thông tin tài khoản mới" FontAttributes="Bold" FontSize="18" />
 
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Email (*)" FontAttributes="Bold" FontSize="14" />
-                        <Entry Text="{Binding Email}" Placeholder="V� d?: sinhvien@gmail.com" />
+                        <Entry Text="{Binding Email}" Placeholder="Ví dụ: sinhvien@gmail.com" />
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="H? v� t�n (*)" FontAttributes="Bold" FontSize="14" />
-                        <Entry Text="{Binding FullName}" Placeholder="Nh?p h? t�n d?y d?" />
+                        <Label Text="Họ và tên (*)" FontAttributes="Bold" FontSize="14" />
+                        <Entry Text="{Binding FullName}" Placeholder="Nhập họ tên đầy đủ" />
                     </VerticalStackLayout>
                     
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="M� sinh vi�n / Username" FontAttributes="Bold" FontSize="14" />
-                        <Entry Text="{Binding Username}" Placeholder="�? tr?ng s? t? t?o t? Email" />
+                        <Label Text="Mã sinh viên / Username" FontAttributes="Bold" FontSize="14" />
+                        <Entry Text="{Binding Username}" Placeholder="Để trống sẽ tự tạo từ Email" />
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="S? di?n tho?i" FontAttributes="Bold" FontSize="14" />
-                        <Entry Text="{Binding PhoneNumber}" Placeholder="Nh?p s? di?n tho?i" Keyboard="Telephone" />
+                        <Label Text="Số điện thoại" FontAttributes="Bold" FontSize="14" />
+                        <Entry Text="{Binding PhoneNumber}" Placeholder="Nhập số điện thoại" Keyboard="Telephone" />
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Vai tr� (Role):" FontAttributes="Bold" FontSize="14" />
+                        <Label Text="Vai trò (Role):" FontAttributes="Bold" FontSize="14" />
                         <Border StrokeShape="RoundRectangle 8"
                                 Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
                                 Padding="8,2"
                                 BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
                             <Picker ItemsSource="{Binding AvailableRoles}"
                                     SelectedItem="{Binding SelectedRole, Mode=TwoWay}"
-                                    Title="-- Ch?n vai tr� --"
+                                    Title="-- Chọn vai trò --"
                                     HeightRequest="44" />
                         </Border>
                     </VerticalStackLayout>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,10,0,0">
                         <Button Grid.Column="0"
-                                Text="H?y b?"
+                                Text="Hủy bỏ"
                                 Command="{Binding CancelCommand}"
                                 BackgroundColor="{AppThemeBinding Light=#F3F4F6, Dark=#374151}"
                                 TextColor="{AppThemeBinding Light=#374151, Dark=#F9FAFB}"
                                 HeightRequest="48" />
 
                         <Button Grid.Column="1"
-                                Text="Luu t�i kho?n"
+                                Text="Lưu tài khoản"
                                 Command="{Binding SaveCommand}"
                                 BackgroundColor="#4F46E5"
                                 TextColor="White"
