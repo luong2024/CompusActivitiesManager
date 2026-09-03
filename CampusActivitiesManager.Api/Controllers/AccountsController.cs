@@ -8,7 +8,7 @@ namespace CampusActivitiesManager.Api.Controllers
 {
     [Route("api/v1/accounts")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public class AccountsController : ControllerBase
     {
         private readonly FirebaseAuth _firebaseAuth;
