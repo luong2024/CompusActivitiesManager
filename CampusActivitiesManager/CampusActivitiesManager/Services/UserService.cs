@@ -67,28 +67,6 @@ namespace CampusActivitiesManager.Services
             return users.FirstOrDefault(u => u.Email == username || u.Username == username);
         }
 
-        public async Task<bool> UpdateUserAsync(User user)
-        {
-            try
-            {
-                var payload = new
-                {
-                    fullName = user.FullName,
-                    phoneNumber = user.PhoneNumber,
-                    role = user.Role.ToString()
-                };
-
-                var response = await _httpClient.PutAsJsonAsync($"{_baseUrl}/{user.Id}", payload);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi cập nhật người dùng qua API");
-                _errorHandler.HandleError(ex);
-                return false;
-            }
-        }
-
         public async Task<bool> UpdateUserRoleAsync(string id, Role newRole)
         {
             try

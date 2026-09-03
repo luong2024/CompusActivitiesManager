@@ -14,4 +14,8 @@ namespace CampusActivitiesManager.Services
         Task<bool> ToggleUserStatusAsync(string id);
         Task SeedDefaultUsersAsync();
     }
+
+    public interface IUserService : IUserService<User>
+    {
+    }
 }
