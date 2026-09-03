@@ -11,7 +11,7 @@ namespace CampusActivitiesManager.Api.Models
         
         public string? AvatarUrl { get; set; }
 
-        [RegularExpression(@"^(Admin|Lecturer|Student)$", ErrorMessage = "Invalid user role specified")]
+        [RegularExpression(@"^(Admin|Manager|User|Guest|Lecturer|Student)$", ErrorMessage = "Invalid user role specified")]
         public string? Role { get; set; }
     }
 }

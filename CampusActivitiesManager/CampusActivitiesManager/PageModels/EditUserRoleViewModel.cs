@@ -1,15 +1,11 @@
-using CampusActivitiesManager.Models;
+﻿using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace CampusActivitiesManager.PageModels
 {
-    /// <summary>
-    /// ViewModel chỉnh sửa phân quyền người dùng độc lập.
-    /// Nhận tham số UserId qua Shell QueryProperty.
-    /// </summary>
-    [QueryProperty(nameof(UserId), "UserId")]
+    [QueryProperty(nameof(UserId), ""UserId"")]
     public partial class EditUserRoleViewModel : BaseViewModel
     {
         private readonly IUserService<User> _userService;
@@ -40,7 +36,7 @@ namespace CampusActivitiesManager.PageModels
             _authService = authService;
             _errorHandler = errorHandler;
 
-            Title = "Chỉnh sửa Phân quyền";
+            Title = ""Chỉnh sửa Tài khoản"";
         }
 
         async partial void OnUserIdChanged(string value)
@@ -84,12 +80,20 @@ namespace CampusActivitiesManager.PageModels
             if (User == null || string.IsNullOrEmpty(UserId))
                 return;
 
-            // Kiểm tra quyền Admin
+            if (string.IsNullOrWhiteSpace(User.FullName))
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert(""Lỗi"", ""Vui lòng nhập Họ tên."", ""Đóng"");
+                }
+                return;
+            }
+
             if (!_authService.IsAdmin)
             {
                 if (Shell.Current != null)
                 {
-                    await Shell.Current.DisplayAlert("Từ chối truy cập", "Chỉ tài khoản Admin mới có quyền đổi vai trò!", "Đóng");
+                    await Shell.Current.DisplayAlert(""Từ chối truy cập"", ""Chỉ tài khoản Admin mới có quyền sửa thông tin!"", ""Đóng"");
                 }
                 return;
             }
@@ -97,26 +101,23 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 IsBusy = true;
-                var success = await _userService.UpdateUserRoleAsync(UserId, SelectedRole);
+                User.Role = SelectedRole;
+                var success = await _userService.UpdateUserAsync(User);
                 if (success)
                 {
-                    User.Role = SelectedRole;
-
                     if (_authService.CurrentUser?.Id == UserId)
                     {
                         await _authService.RefreshCurrentUserAsync();
                     }
 
-                    await AppShell.DisplayToastAsync($"Đã cập nhật vai trò cho {User.FullName}: {SelectedRole.GetShortName()}");
-
-                    // Quay lại trang trước
-                    await Shell.Current.GoToAsync("..");
+                    await AppShell.DisplayToastAsync($""Đã cập nhật thông tin tài khoản: {User.FullName}"");
+                    await Shell.Current.GoToAsync("".."");
                 }
                 else
                 {
                     if (Shell.Current != null)
                     {
-                        await Shell.Current.DisplayAlert("Lỗi", "Không thể lưu cập nhật vào CSDL.", "Đóng");
+                        await Shell.Current.DisplayAlert(""Lỗi"", ""Không thể lưu cập nhật vào CSDL."", ""Đóng"");
                     }
                 }
             }
@@ -133,7 +134,7 @@ namespace CampusActivitiesManager.PageModels
         [RelayCommand]
         private async Task Cancel()
         {
-            await Shell.Current.GoToAsync("..");
+            await Shell.Current.GoToAsync("".."");
         }
     }
 }

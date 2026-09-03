@@ -115,6 +115,62 @@ namespace CampusActivitiesManager.Api.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAccounts()
+        {
+            try
+            {
+                if (_firestoreDb == null)
+                {
+                    return StatusCode(500, new ApiErrorResponse
+                    {
+                        Success = false,
+                        StatusCode = 500,
+                        Error = "INTERNAL_SERVER_ERROR",
+                        Message = "Firestore is not configured properly."
+                    });
+                }
+
+                CollectionReference usersRef = _firestoreDb.Collection("users");
+                QuerySnapshot snapshot = await usersRef.GetSnapshotAsync();
+                
+                var users = snapshot.Documents.Select(doc => 
+                {
+                    var dict = doc.ToDictionary();
+                    return new
+                    {
+                        id = doc.Id,
+                        email = dict.ContainsKey("email") ? dict["email"] : "",
+                        fullName = dict.ContainsKey("fullName") ? dict["fullName"] : "",
+                        role = dict.ContainsKey("role") ? dict["role"] : "Student",
+                        phoneNumber = dict.ContainsKey("phoneNumber") ? dict["phoneNumber"] : null,
+                        studentCode = dict.ContainsKey("studentCode") ? dict["studentCode"] : null,
+                        avatarUrl = dict.ContainsKey("avatarUrl") ? dict["avatarUrl"] : null,
+                        createdAt = dict.ContainsKey("createdAt") ? dict["createdAt"] : null,
+                        isActive = dict.ContainsKey("isActive") ? dict["isActive"] : true
+                    };
+                }).ToList();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    StatusCode = 200,
+                    Message = "Accounts retrieved successfully",
+                    Data = users
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    Error = "INTERNAL_SERVER_ERROR",
+                    Message = ex.Message
+                });
+            }
+        }
+
         [HttpPut("{id}")]
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateAccount(string id, [FromBody] UpdateAccountRequest request)
@@ -198,6 +254,62 @@ namespace CampusActivitiesManager.Api.Controllers
                     StatusCode = 400,
                     Error = "BAD_REQUEST",
                     Message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    Error = "INTERNAL_SERVER_ERROR",
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("{id}/toggle-status")]
+        public async Task<IActionResult> ToggleAccountStatus(string id)
+        {
+            try
+            {
+                UserRecord existingUser = await _firebaseAuth.GetUserAsync(id);
+                bool newStatus = !existingUser.Disabled;
+
+                var userArgs = new UserRecordArgs
+                {
+                    Uid = id,
+                    Disabled = newStatus
+                };
+
+                UserRecord updatedUser = await _firebaseAuth.UpdateUserAsync(userArgs);
+
+                if (_firestoreDb != null)
+                {
+                    DocumentReference docRef = _firestoreDb.Collection("users").Document(id);
+                    await docRef.SetAsync(new { isActive = !newStatus, updatedAt = DateTime.UtcNow }, SetOptions.MergeAll);
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    StatusCode = 200,
+                    Message = newStatus ? "Account locked successfully" : "Account unlocked successfully",
+                    Data = new
+                    {
+                        id = updatedUser.Uid,
+                        isActive = !updatedUser.Disabled
+                    }
+                });
+            }
+            catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+            {
+                return NotFound(new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    Error = "NOT_FOUND",
+                    Message = $"Account with ID {id} not found"
                 });
             }
             catch (Exception ex)

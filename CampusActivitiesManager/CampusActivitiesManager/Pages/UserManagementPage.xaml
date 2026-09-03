@@ -122,6 +122,17 @@
                                 Command="{Binding SetFilterRoleCommand}" CommandParameter="User"
                                 HeightRequest="36" Padding="12,0" FontSize="12"
                                 BackgroundColor="#16A34A" TextColor="White" />
+                        
+                        <!-- Add Account Button -->
+                        <Button Text="+ Thêm tài khoản"
+                                Command="{Binding NavigateToCreateUserPageCommand}"
+                                BackgroundColor="#10B981"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                Padding="16,0"
+                                HeightRequest="44"
+                                CornerRadius="8"
+                                VerticalOptions="Center" />
                     </HorizontalStackLayout>
                 </Grid>
 

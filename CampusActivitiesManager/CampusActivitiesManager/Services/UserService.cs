@@ -1,21 +1,24 @@
-using CampusActivitiesManager.Data;
+using System.Net.Http.Json;
+using System.Text.Json;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
 namespace CampusActivitiesManager.Services
 {
-    /// <summary>
-    /// Service hiện thực hóa IUserService, IDataStore phục vụ quản lý người dùng và phân quyền RBAC.
-    /// </summary>
     public class UserService : IUserService, IDataStore<User>
     {
-        private readonly UserRepository _userRepository;
+        private readonly HttpClient _httpClient;
         private readonly ModalErrorHandler _errorHandler;
         private readonly ILogger<UserService> _logger;
+        
+        // Use 10.0.2.2 for Android Emulator, localhost for Windows
+        private readonly string _baseUrl = DeviceInfo.Platform == DevicePlatform.Android 
+            ? "http://10.0.2.2:5073/api/v1/accounts" 
+            : "http://localhost:5073/api/v1/accounts";
 
-        public UserService(UserRepository userRepository, ModalErrorHandler errorHandler, ILogger<UserService> logger)
+        public UserService(ModalErrorHandler errorHandler, ILogger<UserService> logger)
         {
-            _userRepository = userRepository;
+            _httpClient = new HttpClient();
             _errorHandler = errorHandler;
             _logger = logger;
         }
@@ -24,13 +27,27 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                return await _userRepository.ListAsync();
+                var response = await _httpClient.GetAsync(_baseUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+                    };
+                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<User>>>(options);
+                    if (result != null && result.Success && result.Data != null)
+                    {
+                        return result.Data;
+                    }
+                }
+                return new List<User>();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi lấy danh sách người dùng");
+                _logger.LogError(ex, "Lỗi khi gọi API lấy danh sách người dùng");
                 _errorHandler.HandleError(ex);
-                return [];
+                return new List<User>();
             }
         }
 
@@ -38,35 +55,37 @@ namespace CampusActivitiesManager.Services
 
         public async Task<User?> GetUserByIdAsync(string id)
         {
-            try
-            {
-                if (int.TryParse(id, out var intId))
-                {
-                    return await _userRepository.GetAsync(intId);
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi lấy thông tin người dùng {Id}", id);
-                _errorHandler.HandleError(ex);
-                return null;
-            }
+            var users = await GetUsersListAsync();
+            return users.FirstOrDefault(u => u.Id == id);
         }
 
         public async Task<User?> GetItemAsync(string id) => await GetUserByIdAsync(id);
 
         public async Task<User?> GetUserByUsernameAsync(string username)
         {
+            var users = await GetUsersListAsync();
+            return users.FirstOrDefault(u => u.Email == username || u.Username == username);
+        }
+
+        public async Task<bool> UpdateUserAsync(User user)
+        {
             try
             {
-                return await _userRepository.GetByUsernameAsync(username);
+                var payload = new
+                {
+                    fullName = user.FullName,
+                    phoneNumber = user.PhoneNumber,
+                    role = user.Role.ToString()
+                };
+
+                var response = await _httpClient.PutAsJsonAsync($"{_baseUrl}/{user.Id}", payload);
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi tìm người dùng theo username {Username}", username);
+                _logger.LogError(ex, "Lỗi khi cập nhật người dùng qua API");
                 _errorHandler.HandleError(ex);
-                return null;
+                return false;
             }
         }
 
@@ -74,15 +93,13 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                if (int.TryParse(id, out var intId))
-                {
-                    return await _userRepository.UpdateRoleAsync(intId, newRole);
-                }
-                return false;
+                var payload = new { role = newRole.ToString() };
+                var response = await _httpClient.PutAsJsonAsync($"{_baseUrl}/{id}", payload);
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi cập nhật vai trò cho người dùng {Id}", id);
+                _logger.LogError(ex, "Lỗi khi cập nhật vai trò người dùng");
                 _errorHandler.HandleError(ex);
                 return false;
             }
@@ -90,20 +107,8 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> DeleteUserAsync(string id)
         {
-            try
-            {
-                if (int.TryParse(id, out var intId))
-                {
-                    return await _userRepository.DeleteItemAsync(intId);
-                }
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi xóa người dùng {Id}", id);
-                _errorHandler.HandleError(ex);
-                return false;
-            }
+            // API doesn't have delete yet, just return false
+            return await Task.FromResult(false);
         }
 
         public async Task<bool> DeleteItemAsync(string id) => await DeleteUserAsync(id);
@@ -112,11 +117,22 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                return await _userRepository.SaveItemAsync(user);
+                var payload = new 
+                {
+                    email = user.Email,
+                    password = "Password@123", // Default password for new users if not set
+                    fullName = user.FullName,
+                    role = user.Role.ToString(),
+                    phoneNumber = user.PhoneNumber,
+                    studentCode = user.Username
+                };
+                
+                var response = await _httpClient.PostAsJsonAsync(_baseUrl, payload);
+                return response.IsSuccessStatusCode ? 1 : 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi lưu người dùng {Username}", user?.Username);
+                _logger.LogError(ex, "Lỗi khi lưu người dùng qua API");
                 _errorHandler.HandleError(ex);
                 return 0;
             }
@@ -128,12 +144,18 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                var id = await _userRepository.SaveItemAsync(user);
-                return id > 0;
+                var payload = new 
+                {
+                    fullName = user.FullName,
+                    phoneNumber = user.PhoneNumber,
+                    role = user.Role.ToString()
+                };
+                var response = await _httpClient.PutAsJsonAsync($"{_baseUrl}/{user.Id}", payload);
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi cập nhật người dùng {Username}", user?.Username);
+                _logger.LogError(ex, "Lỗi khi cập nhật người dùng qua API");
                 _errorHandler.HandleError(ex);
                 return false;
             }
@@ -145,15 +167,13 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                if (int.TryParse(id, out var intId))
-                {
-                    return await _userRepository.ToggleStatusAsync(intId);
-                }
-                return false;
+                // Gọi POST /api/v1/accounts/{id}/toggle-status
+                var response = await _httpClient.PostAsync($"{_baseUrl}/{id}/toggle-status", null);
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi đổi trạng thái người dùng {Id}", id);
+                _logger.LogError(ex, "Lỗi khi đổi trạng thái người dùng qua API");
                 _errorHandler.HandleError(ex);
                 return false;
             }
@@ -161,15 +181,16 @@ namespace CampusActivitiesManager.Services
 
         public async Task SeedDefaultUsersAsync()
         {
-            try
-            {
-                await _userRepository.SeedDefaultUsersAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi nạp dữ liệu người dùng mẫu");
-                _errorHandler.HandleError(ex);
-            }
+            // Do nothing, data is on Firebase
+            await Task.CompletedTask;
         }
+    }
+
+    public class ApiResponse<T>
+    {
+        public bool Success { get; set; }
+        public int StatusCode { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public T? Data { get; set; }
     }
 }

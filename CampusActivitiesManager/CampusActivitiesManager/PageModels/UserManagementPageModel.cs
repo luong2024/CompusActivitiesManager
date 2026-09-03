@@ -418,6 +418,24 @@ namespace CampusActivitiesManager.PageModels
         }
 
         /// <summary>
+        /// Điều hướng sang trang tạo người dùng CreateUserPage.
+        /// </summary>
+        [RelayCommand]
+        public async Task NavigateToCreateUserPage()
+        {
+            if (!_authService.IsAdmin)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Quyền bị từ chối", "Chỉ Admin mới có quyền tạo người dùng mới!", "Đóng");
+                }
+                return;
+            }
+
+            await Shell.Current.GoToAsync("createuser");
+        }
+
+        /// <summary>
         /// Điều hướng sang trang chỉnh sửa phân quyền EditUserRolePage qua Shell và QueryProperty.
         /// </summary>
         [RelayCommand]
