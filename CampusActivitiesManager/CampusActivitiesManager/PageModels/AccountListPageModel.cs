@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
+using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.Controls;

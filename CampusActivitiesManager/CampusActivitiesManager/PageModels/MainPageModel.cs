@@ -1,12 +1,6 @@
-#nullable disable
-using System.Collections.ObjectModel;
-using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
-using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Graphics;
 
 namespace CampusActivitiesManager.PageModels
 {
@@ -19,31 +13,6 @@ namespace CampusActivitiesManager.PageModels
         private readonly CategoryRepository _categoryRepository;
         private readonly ModalErrorHandler _errorHandler;
         private readonly SeedDataService _seedDataService;
-        private readonly AuthService _authService;
-
-        [ObservableProperty]
-        private Account _currentStudent;
-
-        [ObservableProperty]
-        private string _studentGreeting = "Xin chào Sinh viên 👋";
-
-        [ObservableProperty]
-        private int _upcomingActivitiesCount = 4;
-
-        [ObservableProperty]
-        private int _registeredActivitiesCount = 2;
-
-        [ObservableProperty]
-        private int _completedTasksCount = 0;
-
-        [ObservableProperty]
-        private bool _isQrModalVisible = false;
-
-        [ObservableProperty]
-        private string _selectedActivityForQr = "Hội thảo Công nghệ Thông tin 2026";
-
-        [ObservableProperty]
-        private string _qrTicketCode = "CAMPUS-TICKET-2026-B20DCCN001";
 
         [ObservableProperty]
         private List<CategoryChartData> _todoCategoryData = [];
@@ -58,59 +27,25 @@ namespace CampusActivitiesManager.PageModels
         private List<Project> _projects = [];
 
         [ObservableProperty]
-        private bool _isBusy;
+        bool _isBusy;
 
         [ObservableProperty]
-        private bool _isRefreshing;
+        bool _isRefreshing;
 
         [ObservableProperty]
-        private string _today = DateTime.Now.ToString("dddd, dd/MM/yyyy");
+        private string _today = DateTime.Now.ToString("dddd, MMM d");
 
-        public bool HasCompletedTasks => Tasks?.Any(t => t.IsCompleted) ?? false;
+        public bool HasCompletedTasks
+            => Tasks?.Any(t => t.IsCompleted) ?? false;
 
-        public MainPageModel(
-            SeedDataService seedDataService,
-            ProjectRepository projectRepository,
-            TaskRepository taskRepository,
-            CategoryRepository categoryRepository,
-            ModalErrorHandler errorHandler,
-            AuthService authService)
+        public MainPageModel(SeedDataService seedDataService, ProjectRepository projectRepository,
+            TaskRepository taskRepository, CategoryRepository categoryRepository, ModalErrorHandler errorHandler)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
             _categoryRepository = categoryRepository;
             _errorHandler = errorHandler;
             _seedDataService = seedDataService;
-            _authService = authService;
-
-            UpdateStudentProfile();
-        }
-
-        private void UpdateStudentProfile()
-        {
-            if (_authService.CurrentUser != null)
-            {
-                CurrentStudent = _authService.CurrentUser;
-            }
-            else
-            {
-                // Default fallback student account
-                CurrentStudent = new Account
-                {
-                    FullName = "Nguyễn An Cương",
-                    StudentCode = "B20DCCN001",
-                    Email = "cuong.na@campus.edu.vn",
-                    PhoneNumber = "0987123456",
-                    ClassName = "D20CNTT1",
-                    AcademicYear = "K20",
-                    Role = AccountRole.LopTruong,
-                    Status = AccountStatus.DangHoc,
-                    TrainingPoints = 92
-                };
-            }
-
-            StudentGreeting = $"Xin chào, {CurrentStudent.FullName} 👋";
-            QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-{(DateTime.Now.Ticks % 100000):D5}";
         }
 
         private async Task LoadData()
@@ -118,10 +53,8 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 IsBusy = true;
-                UpdateStudentProfile();
 
                 Projects = await _projectRepository.ListAsync();
-                UpcomingActivitiesCount = Projects.Count;
 
                 var chartData = new List<CategoryChartData>();
                 var chartColors = new List<Brush>();
@@ -130,8 +63,10 @@ namespace CampusActivitiesManager.PageModels
                 foreach (var category in categories)
                 {
                     chartColors.Add(category.ColorBrush);
+
                     var ps = Projects.Where(p => p.CategoryID == category.ID).ToList();
                     int tasksCount = ps.SelectMany(p => p.Tasks).Count();
+
                     chartData.Add(new(category.Title, tasksCount));
                 }
 
@@ -139,7 +74,6 @@ namespace CampusActivitiesManager.PageModels
                 TodoCategoryColors = chartColors;
 
                 Tasks = await _taskRepository.ListAsync();
-                CompletedTasksCount = Tasks.Count(t => t.IsCompleted);
             }
             finally
             {
@@ -150,12 +84,14 @@ namespace CampusActivitiesManager.PageModels
 
         private async Task InitData(SeedDataService seedDataService)
         {
-            bool isSeeded = Preferences.Default.ContainsKey("is_seeded_v4");
+            bool isSeeded = Preferences.Default.ContainsKey("is_seeded");
+
             if (!isSeeded)
             {
                 await seedDataService.LoadSeedDataAsync();
-                Preferences.Default.Set("is_seeded_v4", true);
             }
+
+            Preferences.Default.Set("is_seeded", true);
             await Refresh();
         }
 
@@ -178,10 +114,12 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
-        private void NavigatedTo() => _isNavigatedTo = true;
+        private void NavigatedTo() =>
+            _isNavigatedTo = true;
 
         [RelayCommand]
-        private void NavigatedFrom() => _isNavigatedTo = false;
+        private void NavigatedFrom() =>
+            _isNavigatedTo = false;
 
         [RelayCommand]
         private async Task Appearing()
@@ -192,6 +130,7 @@ namespace CampusActivitiesManager.PageModels
                 _dataLoaded = true;
                 await Refresh();
             }
+            // This means we are being navigated to
             else if (!_isNavigatedTo)
             {
                 await Refresh();
@@ -202,61 +141,20 @@ namespace CampusActivitiesManager.PageModels
         private Task TaskCompleted(ProjectTask task)
         {
             OnPropertyChanged(nameof(HasCompletedTasks));
-            CompletedTasksCount = Tasks.Count(t => t.IsCompleted);
             return _taskRepository.SaveItemAsync(task);
         }
 
         [RelayCommand]
-        private Task AddTask() => Shell.Current.GoToAsync("task");
+        private Task AddTask()
+            => Shell.Current.GoToAsync($"task");
 
         [RelayCommand]
-        private Task NavigateToProject(Project project) => Shell.Current.GoToAsync($"project?id={project.ID}");
+        private Task NavigateToProject(Project project)
+            => Shell.Current.GoToAsync($"project?id={project.ID}");
 
         [RelayCommand]
-        private Task NavigateToTask(ProjectTask task) => Shell.Current.GoToAsync($"task?id={task.ID}");
-
-        // US 17 & US 01: Quick Register for Campus Activity
-        [RelayCommand]
-        private async Task RegisterActivity(Project project)
-        {
-            if (project == null) return;
-
-            RegisteredActivitiesCount++;
-            await Shell.Current.DisplayAlert(
-                "Đăng ký thành công 🎉",
-                $"Bạn đã đăng ký tham gia sự kiện: {project.Name}.\n" +
-                $"Thời gian: Sắp diễn ra\n" +
-                $"Vé điện tử QR của bạn đã sẵn sàng trong mục 'Vé QR'!",
-                "Xem vé ngay"
-            );
-            SelectedActivityForQr = project.Name;
-            ShowQrTicket();
-        }
-
-        // Show QR Attendance Ticket Modal (US 17)
-        [RelayCommand]
-        private void ShowQrTicket()
-        {
-            IsQrModalVisible = true;
-        }
-
-        [RelayCommand]
-        private void CloseQrTicket()
-        {
-            IsQrModalVisible = false;
-        }
-
-        // Student Logout
-        [RelayCommand]
-        private async Task Logout()
-        {
-            bool confirm = await Shell.Current.DisplayAlert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Sinh viên?", "Đăng xuất", "Hủy");
-            if (confirm)
-            {
-                await _authService.LogoutAsync();
-                await Shell.Current.GoToAsync("//login");
-            }
-        }
+        private Task NavigateToTask(ProjectTask task)
+            => Shell.Current.GoToAsync($"task?id={task.ID}");
 
         [RelayCommand]
         private async Task CleanTasks()
@@ -270,8 +168,7 @@ namespace CampusActivitiesManager.PageModels
 
             OnPropertyChanged(nameof(HasCompletedTasks));
             Tasks = new(Tasks);
-            CompletedTasksCount = 0;
-            await AppShell.DisplayToastAsync("Đã dọn dẹp các nhiệm vụ hoàn thành!");
+            await AppShell.DisplayToastAsync("All cleaned up!");
         }
     }
 }
