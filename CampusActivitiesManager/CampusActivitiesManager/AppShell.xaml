@@ -21,10 +21,22 @@
         Route="projects" />
 
     <ShellContent
+        Title="Quản lý Phân quyền"
+        Icon="{StaticResource IconUsers}"
+        ContentTemplate="{DataTemplate pages:UserManagementPage}"
+        Route="users" />
+
+    <ShellContent
         Title="Manage Meta"
         Icon="{StaticResource IconMeta}"
         ContentTemplate="{DataTemplate pages:ManageMetaPage}"
         Route="manage" />
+
+    <ShellContent
+        Title="Tài khoản &amp; Đăng nhập"
+        Icon="{StaticResource IconAccount}"
+        ContentTemplate="{DataTemplate pages:LoginPage}"
+        Route="login" />
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">
