@@ -1,6 +1,10 @@
-﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
+using CampusActivitiesManager.Data;
+using CampusActivitiesManager.PageModels;
+using CampusActivitiesManager.Pages;
+using CampusActivitiesManager.Services;
 
 namespace CampusActivitiesManager
 {
@@ -32,18 +36,32 @@ namespace CampusActivitiesManager
     		builder.Services.AddLogging(configure => configure.AddDebug());
 #endif
 
+            builder.Services.AddSingleton<AccountRepository>();
+            builder.Services.AddSingleton<AuthService>();
             builder.Services.AddSingleton<ProjectRepository>();
             builder.Services.AddSingleton<TaskRepository>();
             builder.Services.AddSingleton<CategoryRepository>();
             builder.Services.AddSingleton<TagRepository>();
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
+
+            // PageModels
             builder.Services.AddSingleton<MainPageModel>();
+            builder.Services.AddSingleton<AccountListPageModel>();
+            builder.Services.AddSingleton<LoginPageModel>();
+            builder.Services.AddSingleton<RegisterPageModel>();
             builder.Services.AddSingleton<ProjectListPageModel>();
             builder.Services.AddSingleton<ManageMetaPageModel>();
 
+            // Pages
+            builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<AccountListPage>();
+            builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<RegisterPage>();
+
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
+            builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterPageModel>("register");
 
             return builder.Build();
         }

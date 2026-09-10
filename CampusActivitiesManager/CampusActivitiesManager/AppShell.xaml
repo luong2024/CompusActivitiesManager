@@ -8,19 +8,19 @@
     Shell.FlyoutBehavior="Flyout"
     Title="Campus Activities Manager">
 
-    <!-- 1. Màn hình Quản trị Tài khoản Admin (US 05) - MÀN HÌNH MẶC ĐỊNH MỞ ĐẦU -->
-    <ShellContent
-        Title="Quản trị Tài khoản (Admin)"
-        Icon="{StaticResource IconAccounts}"
-        ContentTemplate="{DataTemplate pages:AccountListPage}"
-        Route="accounts" />
-
-    <!-- 2. Màn hình Cổng Sinh Viên (Student Dashboard) -->
+    <!-- 1. Màn hình Cổng Sinh Viên (Student Dashboard) - MÀN HÌNH MẶC ĐỊNH MỞ ĐẦU -->
     <ShellContent
         Title="Cổng Sinh Viên"
         Icon="{StaticResource IconDashboard}"
         ContentTemplate="{DataTemplate pages:MainPage}"
         Route="main" />
+
+    <!-- 2. Màn hình Quản trị Tài khoản Admin (US 05) -->
+    <ShellContent
+        Title="Quản trị Tài khoản (Admin)"
+        Icon="{StaticResource IconAccounts}"
+        ContentTemplate="{DataTemplate pages:AccountListPage}"
+        Route="accounts" />
 
     <!-- 3. Màn hình Đăng nhập (Login) -->
     <ShellContent

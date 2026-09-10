@@ -55,6 +55,44 @@
                 <ScrollView>
                     <VerticalStackLayout Spacing="16" Padding="{StaticResource LayoutPadding}">
 
+                        <!-- TOP QUICK NAVIGATION BAR -->
+                        <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="8" Margin="0,0,0,4">
+                            <!-- Tab 1: Cổng Sinh Viên (Active) -->
+                            <Border Grid.Column="0" StrokeShape="RoundRectangle 14"
+                                    Background="{StaticResource PrimaryGradientBrush}"
+                                    StrokeThickness="0" Padding="10,8">
+                                <HorizontalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="🎓" FontSize="13" VerticalOptions="Center" />
+                                    <Label Text="Sinh Viên" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource White}" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
+
+                            <!-- Tab 2: Quản Trị Admin -->
+                            <Border Grid.Column="1" StrokeShape="RoundRectangle 14"
+                                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                    StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                    Padding="10,8">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding NavigateToAdminCommand}" />
+                                </Border.GestureRecognizers>
+                                <HorizontalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="👥" FontSize="13" VerticalOptions="Center" />
+                                    <Label Text="Quản Trị" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
+
+                            <!-- Tab 3: Đăng Nhập / Profile -->
+                            <Border Grid.Column="2" StrokeShape="RoundRectangle 14"
+                                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                    StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                    Padding="10,8">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding NavigateToLoginCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="🔑" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                        </Grid>
+
                         <!-- 1. VIP Student Profile Pass Card (Thẻ thông tin sinh viên cao cấp) -->
                         <Border StrokeShape="RoundRectangle 24"
                                 Background="{StaticResource StudentCardGradient}"
@@ -75,37 +113,51 @@
                                     <Border Grid.Column="0"
                                             WidthRequest="56" HeightRequest="56"
                                             StrokeShape="RoundRectangle 28"
-                                            Background="#FFFFFF"
-                                            StrokeThickness="0"
+                                            Background="#25FFFFFF"
+                                            StrokeThickness="1"
+                                            Stroke="#50FFFFFF"
                                             VerticalOptions="Center">
                                         <Label Text="{Binding CurrentStudent.Initials}"
                                                FontSize="22"
                                                FontAttributes="Bold"
-                                               TextColor="{StaticResource Primary}"
+                                               TextColor="{StaticResource White}"
                                                HorizontalOptions="Center"
                                                VerticalOptions="Center" />
                                     </Border>
 
                                     <!-- Name, Student Code, Class -->
                                     <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
-                                        <Label Text="{Binding StudentGreeting}"
-                                               FontSize="18"
-                                               FontAttributes="Bold"
-                                               TextColor="{StaticResource White}"
-                                               LineBreakMode="TailTruncation" />
+                                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                            <Label Text="{Binding CurrentStudent.FullName}"
+                                                   FontSize="18"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource White}"
+                                                   LineBreakMode="TailTruncation" />
+                                            <Border StrokeShape="RoundRectangle 8"
+                                                    Background="#2010B981"
+                                                    StrokeThickness="1"
+                                                    Stroke="#4010B981"
+                                                    Padding="6,2"
+                                                    VerticalOptions="Center">
+                                                <Label Text="Lớp Trưởng"
+                                                       FontSize="10"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#34D399" />
+                                            </Border>
+                                        </HorizontalStackLayout>
                                         
                                         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                                            <Label Text="{Binding CurrentStudent.StudentCode}"
-                                                   FontSize="12"
+                                            <Label Text="{Binding CurrentStudent.StudentCode, StringFormat='MSV: {0}'}"
+                                                   FontSize="11"
                                                    FontAttributes="Bold"
                                                    TextColor="#E0E7FF" />
-                                            <Label Text="•" TextColor="#E0E7FF" FontSize="12" />
-                                            <Label Text="{Binding CurrentStudent.ClassName}"
-                                                   FontSize="12"
+                                            <Label Text="•" TextColor="#E0E7FF" FontSize="11" />
+                                            <Label Text="{Binding CurrentStudent.ClassName, StringFormat='Lớp: {0}'}"
+                                                   FontSize="11"
                                                    TextColor="#E0E7FF" />
-                                            <Label Text="•" TextColor="#E0E7FF" FontSize="12" />
-                                            <Label Text="{Binding CurrentStudent.AcademicYear}"
-                                                   FontSize="12"
+                                            <Label Text="•" TextColor="#E0E7FF" FontSize="11" />
+                                            <Label Text="Khóa: K20"
+                                                   FontSize="11"
                                                    TextColor="#E0E7FF" />
                                         </HorizontalStackLayout>
                                     </VerticalStackLayout>
@@ -223,7 +275,10 @@
 
                         <!-- 3. Upcoming Activities (Hoạt động ngoại khóa sinh viên) -->
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Text="Hoạt động ngoại khóa sắp tới" FontSize="18" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" VerticalOptions="Center"/>
+                            <Label Text="🔥 Hoạt động ngoại khóa đang mở" FontSize="16" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" VerticalOptions="Center"/>
+                            <Border Grid.Column="1" StrokeShape="RoundRectangle 10" Padding="8,4" Background="#154F46E5" StrokeThickness="0" VerticalOptions="Center">
+                                <Label Text="4 Sự kiện" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                            </Border>
                         </Grid>
 
                         <ScrollView Orientation="Horizontal" Margin="-16,0" HorizontalScrollBarVisibility="Never">

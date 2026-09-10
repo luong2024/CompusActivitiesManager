@@ -276,5 +276,11 @@ namespace CampusActivitiesManager.PageModels
             CompletedTasksCount = 0;
             await Shell.Current.DisplayAlert("Thông báo", "Đã dọn dẹp các nhiệm vụ hoàn thành!", "Đóng");
         }
+
+        [RelayCommand]
+        private Task NavigateToAdmin() => Shell.Current.GoToAsync("//accounts");
+
+        [RelayCommand]
+        private Task NavigateToLogin() => Shell.Current.GoToAsync("//login");
     }
 }
