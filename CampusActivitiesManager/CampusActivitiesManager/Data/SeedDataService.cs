@@ -32,7 +32,7 @@ namespace CampusActivitiesManager.Data
 
         public async Task LoadSeedDataAsync()
         {
-            ClearTables();
+            await ClearTablesAsync();
 
             await using Stream templateStream = await FileSystem.OpenAppPackageFileAsync(_seedDataFilePath);
 
@@ -93,20 +93,19 @@ namespace CampusActivitiesManager.Data
             }
         }
 
-        private async void ClearTables()
+        private async Task ClearTablesAsync()
         {
             try
             {
-                await Task.WhenAll(
-                    _projectRepository.DropTableAsync(),
-                    _taskRepository.DropTableAsync(),
-                    _tagRepository.DropTableAsync(),
-                    _categoryRepository.DropTableAsync(),
-                    _userRepository.DropTableAsync());
+                await _projectRepository.DropTableAsync();
+                await _taskRepository.DropTableAsync();
+                await _tagRepository.DropTableAsync();
+                await _categoryRepository.DropTableAsync();
+                await _userRepository.DropTableAsync();
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogWarning(e, "Warning during ClearTablesAsync");
             }
         }
     }
