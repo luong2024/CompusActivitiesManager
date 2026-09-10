@@ -98,7 +98,7 @@ namespace CampusActivitiesManager.PageModels
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
                     ClassName = "D20CNTT1",
-                    AcademicYear = "K20",
+                    AcademicYear = "K20 (2020–2025)",
                     Role = u.IsAdminRole ? AccountRole.Admin : AccountRole.SinhVien,
                     Status = AccountStatus.DangHoc,
                     TrainingPoints = 92
@@ -114,7 +114,7 @@ namespace CampusActivitiesManager.PageModels
                     Email = "cuong.na@campus.edu.vn",
                     PhoneNumber = "0987123456",
                     ClassName = "D20CNTT1",
-                    AcademicYear = "K20",
+                    AcademicYear = "K20 (2020–2025)",
                     Role = AccountRole.LopTruong,
                     Status = AccountStatus.DangHoc,
                     TrainingPoints = 92
@@ -134,6 +134,16 @@ namespace CampusActivitiesManager.PageModels
 
                 Projects = await _projectRepository.ListAsync();
                 UpcomingActivitiesCount = Projects.Count;
+
+                // Set initial registration for the first 2 events
+                for (int i = 0; i < Projects.Count; i++)
+                {
+                    if (i == 0 || i == 1)
+                    {
+                        Projects[i].IsRegistered = true;
+                    }
+                }
+                RegisteredActivitiesCount = Projects.Count(p => p.IsRegistered);
 
                 var chartData = new List<CategoryChartData>();
                 var chartColors = new List<Brush>();
@@ -233,13 +243,23 @@ namespace CampusActivitiesManager.PageModels
         [RelayCommand]
         private Task NavigateToTask(ProjectTask task) => Shell.Current.GoToAsync($"task?id={task.ID}");
 
-        // US 17 & US 01: Quick Register for Campus Activity
+        // US 17 & US 01: Quick Register or View QR Ticket for Campus Activity
         [RelayCommand]
         private async Task RegisterActivity(Project project)
         {
             if (project == null) return;
 
-            RegisteredActivitiesCount++;
+            if (project.IsRegistered)
+            {
+                SelectedActivityForQr = project.Name;
+                ShowQrTicket();
+                return;
+            }
+
+            project.IsRegistered = true;
+            RegisteredActivitiesCount = Projects.Count(p => p.IsRegistered);
+            Projects = new(Projects); // refresh binding
+
             await Shell.Current.DisplayAlert(
                 "Đăng ký thành công 🎉",
                 $"Bạn đã đăng ký tham gia sự kiện: {project.Name}.\n" +

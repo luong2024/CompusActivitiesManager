@@ -17,6 +17,12 @@ namespace CampusActivitiesManager.Models
         public List<ProjectTask> Tasks { get; set; } = [];
 
         public List<Tag> Tags { get; set; } = [];
+        
+        [JsonIgnore]
+        public bool IsRegistered { get; set; } = false;
+
+        [JsonIgnore]
+        public string RegisterButtonText => IsRegistered ? "🎫 Xem Vé QR" : "Đăng Ký Tham Gia";
 
         public override string ToString() => $"{Name}";
     }
