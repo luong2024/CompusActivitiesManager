@@ -98,9 +98,6 @@ namespace CampusActivitiesManager.Data
         public async Task SeedDefaultUsersAsync()
         {
             await Init();
-            await using var connection = new SqliteConnection(Constants.DatabasePath);
-            await connection.OpenAsync();
-            await SeedDefaultUsersInternalAsync(connection);
         }
 
         /// <summary>
