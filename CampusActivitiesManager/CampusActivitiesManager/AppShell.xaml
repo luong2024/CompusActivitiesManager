@@ -6,25 +6,28 @@
     xmlns:sf="clr-namespace:Syncfusion.Maui.Toolkit.SegmentedControl;assembly=Syncfusion.Maui.Toolkit"
     xmlns:pages="clr-namespace:CampusActivitiesManager.Pages"
     Shell.FlyoutBehavior="Flyout"
-    Title="CampusActivitiesManager">
+    Title="Campus Activities Manager">
 
+    <!-- 1. Màn hình Cổng Sinh Viên (Student Dashboard) -->
     <ShellContent
-        Title="Dashboard"
+        Title="Cổng Sinh Viên"
         Icon="{StaticResource IconDashboard}"
         ContentTemplate="{DataTemplate pages:MainPage}"
         Route="main" />
 
+    <!-- 2. Màn hình Quản trị Tài khoản Admin (US 05) -->
     <ShellContent
-        Title="Projects"
-        Icon="{StaticResource IconProjects}"
-        ContentTemplate="{DataTemplate pages:ProjectListPage}"
-        Route="projects" />
+        Title="Quản trị Tài khoản (Admin)"
+        Icon="{StaticResource IconAccounts}"
+        ContentTemplate="{DataTemplate pages:AccountListPage}"
+        Route="accounts" />
 
+    <!-- 3. Màn hình Đăng nhập (Login) -->
     <ShellContent
-        Title="Manage Meta"
-        Icon="{StaticResource IconMeta}"
-        ContentTemplate="{DataTemplate pages:ManageMetaPage}"
-        Route="manage" />
+        Title="Đăng nhập / Chuyển tài khoản"
+        Icon="{StaticResource IconPerson}"
+        ContentTemplate="{DataTemplate pages:LoginPage}"
+        Route="login" />
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">
