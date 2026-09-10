@@ -52,6 +52,8 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<LoginPage>();
 
+            builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
+
             builder.Services.AddTransientWithShellRoute<CreateUserPage, CreateUserViewModel>("createuser");
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");

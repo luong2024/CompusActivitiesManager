@@ -82,6 +82,23 @@
                             FontAttributes="Bold"
                             HeightRequest="48"
                             Margin="0,8,0,0" />
+
+                    <!-- Register & Forgot Password -->
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="16" Margin="0,8,0,0">
+                        <Button Text="Đăng ký tài khoản" 
+                                Command="{Binding GoToRegisterCommand}" 
+                                BackgroundColor="Transparent" 
+                                TextColor="#4F46E5" 
+                                FontSize="13" 
+                                Padding="0" />
+                        <Label Text="|" VerticalOptions="Center" TextColor="{StaticResource Gray400}" />
+                        <Button Text="Quên mật khẩu?" 
+                                Command="{Binding ForgotPasswordCommand}" 
+                                BackgroundColor="Transparent" 
+                                TextColor="#4F46E5" 
+                                FontSize="13" 
+                                Padding="0" />
+                    </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Border>
 

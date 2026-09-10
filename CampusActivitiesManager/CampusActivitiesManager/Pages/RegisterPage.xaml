@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="pageModels:RegisterViewModel"
+             x:Class="CampusActivitiesManager.Pages.RegisterPage"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="24" Padding="{StaticResource LayoutPadding}" MaximumWidthRequest="480" HorizontalOptions="Center" VerticalOptions="Center">
+
+            <!-- Logo & Title Header -->
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Border HeightRequest="64" WidthRequest="64" StrokeShape="RoundRectangle 32" Stroke="Transparent" BackgroundColor="#16A34A" HorizontalOptions="Center">
+                    <Label Text="📝" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label Text="Tạo Tài Khoản Mới" Style="{StaticResource Title2}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                <Label Text="Đăng ký để tham gia quản lý hoạt động" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- Form Đăng ký -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
+                    Padding="24">
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- Error Alert -->
+                    <Border StrokeShape="RoundRectangle 8"
+                            Stroke="#EF4444"
+                            BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#450A0A}"
+                            Padding="10"
+                            IsVisible="{Binding HasError}">
+                        <Label Text="{Binding ErrorMessage}" TextColor="#DC2626" FontSize="12" />
+                    </Border>
+
+                    <!-- Full Name -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Họ và Tên" FontSize="13" FontAttributes="Bold" />
+                        <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
+                            <Entry Text="{Binding FullName}" Placeholder="Nguyễn Văn A" HeightRequest="44" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Email -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Email" FontSize="13" FontAttributes="Bold" />
+                        <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
+                            <Entry Text="{Binding Email}" Placeholder="email@truong.edu.vn" Keyboard="Email" HeightRequest="44" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Username -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Tên đăng nhập" FontSize="13" FontAttributes="Bold" />
+                        <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
+                            <Entry Text="{Binding Username}" Placeholder="Nhập tên đăng nhập" HeightRequest="44" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Password -->
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                            <Label Text="Mật khẩu" FontSize="13" FontAttributes="Bold" />
+                            <Label Text="{Binding PasswordStrength}" TextColor="{Binding PasswordStrengthColor}" FontSize="12" />
+                        </HorizontalStackLayout>
+                        <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
+                            <Entry Text="{Binding Password}" IsPassword="True" Placeholder="Mật khẩu (ít nhất 6 ký tự)" HeightRequest="44" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Confirm Password -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Xác nhận Mật khẩu" FontSize="13" FontAttributes="Bold" />
+                        <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
+                            <Entry Text="{Binding ConfirmPassword}" IsPassword="True" Placeholder="Nhập lại mật khẩu" HeightRequest="44" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Register Button -->
+                    <Button Text="Đăng ký"
+                            Command="{Binding RegisterCommand}"
+                            BackgroundColor="#16A34A"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            HeightRequest="48"
+                            Margin="0,8,0,0" />
+
+                    <!-- Go back to login -->
+                    <Button Text="Đã có tài khoản? Đăng nhập"
+                            Command="{Binding GoBackCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="#4F46E5"
+                            FontSize="13"
+                            Margin="0,4,0,0" />
+                            
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
+

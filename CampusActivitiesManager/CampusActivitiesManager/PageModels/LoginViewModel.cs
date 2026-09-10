@@ -48,6 +48,18 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
+        private async Task GoToRegisterAsync()
+        {
+            await Shell.Current.GoToAsync("register");
+        }
+
+        [RelayCommand]
+        private async Task ForgotPasswordAsync()
+        {
+            await Shell.Current.DisplayAlert("Quên mật khẩu", "Tính năng đang được phát triển.", "OK");
+        }
+
+        [RelayCommand]
         public async Task Login()
         {
             if (IsBusy)
@@ -69,6 +81,9 @@ namespace CampusActivitiesManager.PageModels
                 var success = await _authService.LoginAsync(Username.Trim(), Password?.Trim() ?? string.Empty);
                 if (success)
                 {
+                    // T28.3: Lưu trữ token an toàn trên thiết bị (SecureStorage)
+                    await SecureStorage.Default.SetAsync("auth_token", "dummy_secure_token_" + _authService.CurrentUser?.Id);
+
                     UpdateCurrentSessionInfo();
                     await AppShell.DisplayToastAsync($"Xin chào, {_authService.CurrentUser?.FullName} ({_authService.CurrentRole.GetShortName()})");
 
@@ -112,6 +127,7 @@ namespace CampusActivitiesManager.PageModels
         public async Task Logout()
         {
             _authService.Logout();
+            SecureStorage.Default.Remove("auth_token");
             UpdateCurrentSessionInfo();
             await AppShell.DisplayToastAsync("Đã đăng xuất");
         }
