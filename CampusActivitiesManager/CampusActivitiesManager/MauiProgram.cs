@@ -1,6 +1,11 @@
-﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
+using CampusActivitiesManager.Data;
+using CampusActivitiesManager.Models;
+using CampusActivitiesManager.PageModels;
+using CampusActivitiesManager.Pages;
+using CampusActivitiesManager.Services;
 
 namespace CampusActivitiesManager
 {
@@ -42,8 +47,27 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<ProjectListPageModel>();
             builder.Services.AddSingleton<ManageMetaPageModel>();
 
+            // 5. Đăng ký Service bằng Dependency Injection (MS.DI & HttpClient)
+            builder.Services.AddHttpClient<IUserService<Account>, AccountService>(client =>
+            {
+                client.BaseAddress = new Uri(Constants.ApiBaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
+
+            builder.Services.AddSingleton<AccountRepository>();
+            builder.Services.AddSingleton<AuthService>();
+            builder.Services.AddSingleton<AccountListPageModel>();
+            builder.Services.AddSingleton<AccountListPage>();
+            builder.Services.AddTransient<LoginPageModel>();
+            builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<RegisterPageModel>();
+            builder.Services.AddTransient<RegisterPage>();
+
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
+            builder.Services.AddTransientWithShellRoute<AccountListPage, AccountListPageModel>("accounts");
+            builder.Services.AddTransientWithShellRoute<LoginPage, LoginPageModel>("login");
+            builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterPageModel>("register");
 
             return builder.Build();
         }

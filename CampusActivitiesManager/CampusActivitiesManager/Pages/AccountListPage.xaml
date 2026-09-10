@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
+             xmlns:controls="clr-namespace:CampusActivitiesManager.Pages.Controls"
+             xmlns:pullToRefresh="clr-namespace:Syncfusion.Maui.Toolkit.PullToRefresh;assembly=Syncfusion.Maui.Toolkit"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:f="clr-namespace:Fonts"
+             x:Class="CampusActivitiesManager.Pages.AccountListPage"
+             x:DataType="pageModels:AccountListPageModel"
+             x:Name="AccountsPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
+             Title="Quản trị tài khoản">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding Path=BindingContext, Source={x:Reference AccountsPage}, x:DataType=ContentPage}"
+            EventName="Appearing"
+            Command="{Binding AppearingCommand}" />
+    </ContentPage.Behaviors>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Đăng xuất"
+                     Command="{Binding LogoutCommand}"
+                     Order="Primary"
+                     Priority="0"
+                     IconImageSource="{StaticResource IconDismiss}" />
+    </ContentPage.ToolbarItems>
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="12" Padding="{StaticResource LayoutPadding}">
+
+            <!-- 1. Summary Metric Statistics Header Cards -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                <!-- Card: Tổng số -->
+                <Border Grid.Column="0" StrokeShape="RoundRectangle 16"
+                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        Padding="8,10">
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Black}}" Offset="0,3" Radius="8" Opacity="0.08" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                        <Label Text="👥 Tổng số" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                        <Label Text="{Binding TotalCount}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Primary}" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Card: Đang học -->
+                <Border Grid.Column="1" StrokeShape="RoundRectangle 16"
+                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        Padding="8,10">
+                    <Border.Shadow>
+                        <Shadow Brush="#10B981" Offset="0,3" Radius="8" Opacity="0.08" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                        <Label Text="🎓 Đang học" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                        <Label Text="{Binding DangHocCount}" FontSize="18" FontAttributes="Bold" TextColor="#10B981" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Card: Bảo lưu -->
+                <Border Grid.Column="2" StrokeShape="RoundRectangle 16"
+                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        Padding="8,10">
+                    <Border.Shadow>
+                        <Shadow Brush="#F59E0B" Offset="0,3" Radius="8" Opacity="0.08" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                        <Label Text="⏸️ Bảo lưu" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                        <Label Text="{Binding BaoLuuCount}" FontSize="18" FontAttributes="Bold" TextColor="#F59E0B" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Card: Bị khóa -->
+                <Border Grid.Column="3" StrokeShape="RoundRectangle 16"
+                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        Padding="8,10">
+                    <Border.Shadow>
+                        <Shadow Brush="#EF4444" Offset="0,3" Radius="8" Opacity="0.08" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                        <Label Text="🔒 Bị khóa" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                        <Label Text="{Binding BiKhoaCount}" FontSize="18" FontAttributes="Bold" TextColor="#EF4444" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Error Notification Banner (Validation error, API error, Network error) -->
+            <Border Grid.Row="1"
+                    IsVisible="{Binding HasError}"
+                    StrokeShape="RoundRectangle 14"
+                    Background="{AppThemeBinding Light=#FFF1F2, Dark=#451A1A}"
+                    Stroke="#F43F5E"
+                    StrokeThickness="1"
+                    Padding="14,10">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                    <Label Text="⚠️" FontSize="18" VerticalOptions="Center" />
+                    
+                    <Label Grid.Column="1"
+                           Text="{Binding ErrorMessage}"
+                           IsVisible="{Binding HasError}"
+                           TextColor="{AppThemeBinding Light=#BE123C, Dark=#FDA4AF}"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           LineBreakMode="WordWrap"
+                           VerticalOptions="Center" />
+                           
+                    <Button Grid.Column="2"
+                            Text="✕"
+                            Background="Transparent"
+                            TextColor="{AppThemeBinding Light=#BE123C, Dark=#FDA4AF}"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            WidthRequest="32"
+                            HeightRequest="32"
+                            Padding="0"
+                            Command="{Binding ClearErrorCommand}"
+                            SemanticProperties.Description="Đóng thông báo lỗi" />
+                </Grid>
+            </Border>
+
+            <!-- 2. AC 1.2: Search Bar & Action Buttons -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+
+                <!-- Search Input Container with Instant Clear Button -->
+                <Border Grid.Column="0"
+                        StrokeShape="RoundRectangle 18"
+                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        Padding="14,0"
+                        HeightRequest="48">
+                    <Border.Shadow>
+                        <Shadow Brush="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Black}}" Offset="0,2" Radius="8" Opacity="0.06" />
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                        <!-- Search Icon -->
+                        <Image Grid.Column="0"
+                               Source="{StaticResource IconSearch}"
+                               WidthRequest="20" HeightRequest="20"
+                               VerticalOptions="Center" />
+
+                        <!-- Search Text Entry with 350ms Debounce -->
+                        <Entry Grid.Column="1"
+                               Text="{Binding SearchText, Mode=TwoWay}"
+                               Placeholder="Tìm theo Họ tên, MSV, Email, Lớp..."
+                               PlaceholderColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                               FontSize="14"
+                               VerticalOptions="Center"
+                               ClearButtonVisibility="Never" />
+
+                        <!-- Instant Clear Button (AC 1.2) -->
+                        <Button Grid.Column="2"
+                                ImageSource="{StaticResource IconDismiss}"
+                                Background="Transparent"
+                                WidthRequest="32" HeightRequest="32"
+                                Padding="0"
+                                IsVisible="{Binding HasSearchText}"
+                                Command="{Binding ClearSearchCommand}"
+                                SemanticProperties.Description="Xóa từ khóa tìm kiếm" />
+                    </Grid>
+                </Border>
+
+                <!-- AC 1.3: Advanced Filter Button with Badge Indicator -->
+                <Grid Grid.Column="1" WidthRequest="48" HeightRequest="48">
+                    <Border StrokeShape="RoundRectangle 18"
+                            Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                        <Border.Shadow>
+                            <Shadow Brush="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Black}}" Offset="0,2" Radius="8" Opacity="0.06" />
+                        </Border.Shadow>
+                        <Button ImageSource="{StaticResource IconFilter}"
+                                Background="Transparent"
+                                Padding="0"
+                                Command="{Binding OpenFilterPopupCommand}"
+                                SemanticProperties.Description="Mở bộ lọc nâng cao" />
+                    </Border>
+
+                    <!-- Active Filter Badge Counter -->
+                    <Border StrokeShape="RoundRectangle 9"
+                            WidthRequest="18" HeightRequest="18"
+                            Background="{StaticResource Primary}"
+                            StrokeThickness="0"
+                            HorizontalOptions="End"
+                            VerticalOptions="Start"
+                            Margin="0,-2,-2,0"
+                            IsVisible="{Binding HasActiveFilter}">
+                        <Label Text="{Binding ActiveFilterCount}"
+                               FontSize="10"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource White}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+                </Grid>
+
+                <!-- Add Account Button -->
+                <Button Grid.Column="2"
+                        ImageSource="{StaticResource IconAdd}"
+                        Background="{StaticResource PrimaryGradientBrush}"
+                        CornerRadius="18"
+                        WidthRequest="48" HeightRequest="48"
+                        Padding="0"
+                        Command="{Binding AddAccountCommand}"
+                        SemanticProperties.Description="Thêm tài khoản mới">
+                    <Button.Shadow>
+                        <Shadow Brush="{StaticResource Primary}" Offset="0,4" Radius="10" Opacity="0.3" />
+                    </Button.Shadow>
+                </Button>
+            </Grid>
+
+            <!-- 3. AC 1.3: Quick Status Filter Chips (Tất cả, Đang học, Bảo lưu, Bị khóa) -->
+            <ScrollView Grid.Row="3" Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                <HorizontalStackLayout Spacing="8">
+
+                    <!-- Chip: Tất cả -->
+                    <Border StrokeShape="RoundRectangle 20"
+                            Padding="14,7"
+                            StrokeThickness="1"
+                            Background="{Binding ChipAllBg}"
+                            Stroke="{Binding ChipAllBorder}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding FilterByStatusCommand}" CommandParameter="All" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <Label Text="Tất cả"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{Binding ChipAllText}" />
+                            <Border StrokeShape="RoundRectangle 10" Padding="6,1" StrokeThickness="0"
+                                    Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                                <Label Text="{Binding TotalCount}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray200}}" />
+                            </Border>
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- Chip: Đang học -->
+                    <Border StrokeShape="RoundRectangle 20"
+                            Padding="14,7"
+                            StrokeThickness="1"
+                            Background="{Binding ChipDangHocBg}"
+                            Stroke="{Binding ChipDangHocBorder}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding FilterByStatusCommand}" CommandParameter="DangHoc" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4" Color="#10B981"
+                                     IsVisible="{Binding IsDangHocSelected, Converter={toolkit:InvertedBoolConverter}}" VerticalOptions="Center"/>
+                            <Label Text="Đang học"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{Binding ChipDangHocText}" />
+                            <Border StrokeShape="RoundRectangle 10" Padding="6,1" StrokeThickness="0"
+                                    Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                                <Label Text="{Binding DangHocCount}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray200}}" />
+                            </Border>
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- Chip: Bảo lưu -->
+                    <Border StrokeShape="RoundRectangle 20"
+                            Padding="14,7"
+                            StrokeThickness="1"
+                            Background="{Binding ChipBaoLuuBg}"
+                            Stroke="{Binding ChipBaoLuuBorder}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding FilterByStatusCommand}" CommandParameter="BaoLuu" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4" Color="#F59E0B"
+                                     IsVisible="{Binding IsBaoLuuSelected, Converter={toolkit:InvertedBoolConverter}}" VerticalOptions="Center"/>
+                            <Label Text="Bảo lưu"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{Binding ChipBaoLuuText}" />
+                            <Border StrokeShape="RoundRectangle 10" Padding="6,1" StrokeThickness="0"
+                                    Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                                <Label Text="{Binding BaoLuuCount}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray200}}" />
+                            </Border>
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- Chip: Bị khóa -->
+                    <Border StrokeShape="RoundRectangle 20"
+                            Padding="14,7"
+                            StrokeThickness="1"
+                            Background="{Binding ChipBiKhoaBg}"
+                            Stroke="{Binding ChipBiKhoaBorder}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding FilterByStatusCommand}" CommandParameter="BiKhoa" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4" Color="#EF4444"
+                                     IsVisible="{Binding IsBiKhoaSelected, Converter={toolkit:InvertedBoolConverter}}" VerticalOptions="Center"/>
+                            <Label Text="Bị khóa"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{Binding ChipBiKhoaText}" />
+                            <Border StrokeShape="RoundRectangle 10" Padding="6,1" StrokeThickness="0"
+                                    Background="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                                <Label Text="{Binding BiKhoaCount}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray200}}" />
+                            </Border>
+                        </HorizontalStackLayout>
+                    </Border>
+
+                </HorizontalStackLayout>
+            </ScrollView>
+
+            <!-- 4. AC 1.4: Pull-to-Refresh & Responsive Grid CollectionView -->
+            <pullToRefresh:SfPullToRefresh
+                Grid.Row="4"
+                IsRefreshing="{Binding IsRefreshing}"
+                RefreshCommand="{Binding RefreshCommand}">
+                <pullToRefresh:SfPullToRefresh.PullableContent>
+                    <CollectionView
+                        ItemsSource="{Binding Accounts}"
+                        RemainingItemsThreshold="{Binding RemainingItemsThreshold}"
+                        RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
+
+                        <!-- AC 1.4: Adaptive Responsive Grid: 1 col on mobile, 2-3 on tablet/desktop -->
+                        <CollectionView.ItemsLayout>
+                            <GridItemsLayout Orientation="Vertical"
+                                             Span="{Binding ColumnSpan}"
+                                             HorizontalItemSpacing="12"
+                                             VerticalItemSpacing="12" />
+                        </CollectionView.ItemsLayout>
+
+                        <!-- AC 1.1: Account Card Item Template -->
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Account">
+                                <controls:AccountCardView />
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+
+                        <!-- AC 1.4: Loading More Footer Indicator -->
+                        <CollectionView.Footer>
+                            <Grid HeightRequest="60" IsVisible="{Binding IsLoadingMore}">
+                                <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
+                                    <ActivityIndicator IsRunning="{Binding IsLoadingMore}"
+                                                       Color="{StaticResource Primary}"
+                                                       WidthRequest="24" HeightRequest="24" />
+                                    <Label Text="Đang tải thêm danh sách..."
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Grid>
+                        </CollectionView.Footer>
+
+                        <!-- Empty State View when no accounts match filter -->
+                        <CollectionView.EmptyView>
+                            <Grid HeightRequest="300" VerticalOptions="Center" HorizontalOptions="Center">
+                                <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Image Source="{StaticResource IconSearch}"
+                                           WidthRequest="48" HeightRequest="48"
+                                           Opacity="0.4"
+                                           HorizontalOptions="Center" />
+                                    <Label Text="Không tìm thấy tài khoản phù hợp"
+                                           FontSize="15"
+                                           FontAttributes="Bold"
+                                           HorizontalOptions="Center" />
+                                    <Label Text="Thử thay đổi từ khóa tìm kiếm hoặc đặt lại bộ lọc"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                           HorizontalOptions="Center" />
+                                    <Button Text="Đặt lại tìm kiếm và bộ lọc"
+                                            Background="Transparent"
+                                            TextColor="{StaticResource Primary}"
+                                            FontAttributes="Bold"
+                                            Command="{Binding ResetAdvancedFilterCommand}"
+                                            HorizontalOptions="Center"
+                                            Margin="0,8,0,0" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </CollectionView.EmptyView>
+
+                    </CollectionView>
+                </pullToRefresh:SfPullToRefresh.PullableContent>
+            </pullToRefresh:SfPullToRefresh>
+
+        </Grid>
+
+        <!-- AC 1.3: Advanced Filter Popup Modal Overlay -->
+        <controls:AccountFilterPopup />
+
+        <!-- Global Busy Loading Overlay with ActivityIndicator -->
+        <Grid BackgroundColor="#50000000"
+              IsVisible="{Binding IsBusy}"
+              HorizontalOptions="Fill"
+              VerticalOptions="Fill">
+            <Border Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="24,18"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center">
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       Color="{StaticResource Primary}"
+                                       WidthRequest="36"
+                                       HeightRequest="36" />
+                    <Label Text="Đang xử lý kết nối API..."
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </Grid>
+
+</ContentPage>

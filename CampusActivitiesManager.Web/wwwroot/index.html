@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Activities Manager - Cổng Quản Lý Hoạt Động & Tài Khoản Sinh Viên</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#EEF2FF',
+                            100: '#E0E7FF',
+                            500: '#6366F1',
+                            600: '#4F46E5',
+                            700: '#4338CA',
+                            800: '#3730A3',
+                            900: '#312E81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .gradient-brand { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); }
+        .gradient-student { background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%); }
+        .gradient-blue { background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('student')">
+                <div class="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center text-white shadow-md shadow-indigo-200">
+                    <i class="fa-solid fa-graduation-cap text-lg"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-lg text-slate-900 tracking-tight">Campus Activities</span>
+                    <span class="hidden sm:inline-block ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">v2.0 Web Edition</span>
+                </div>
+            </div>
+
+            <!-- Nav Tabs -->
+            <nav class="flex items-center space-x-1 sm:space-x-2">
+                <button id="nav-student" onclick="switchView('student')" class="px-3 py-2 rounded-xl text-sm font-semibold text-indigo-600 bg-indigo-50 transition flex items-center space-x-2">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>Cổng Sinh Viên</span>
+                </button>
+                <button id="nav-admin" onclick="switchView('admin')" class="px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center space-x-2">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>Quản Trị (Admin)</span>
+                </button>
+                <button id="nav-login" onclick="switchView('login')" class="px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center space-x-2">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>Đăng Nhập</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: CỔNG SINH VIÊN (STUDENT PORTAL) -->
+        <!-- ========================================== -->
+        <section id="view-student" class="space-y-6">
+            <!-- 1. VIP Student Pass Hero Card -->
+            <div class="rounded-3xl gradient-student p-6 sm:p-8 text-white shadow-xl shadow-indigo-950/20 relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center text-2xl font-bold text-white shadow-inner">
+                            NC
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h1 class="text-2xl font-extrabold tracking-tight">Nguyễn An Cương</h1>
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Lớp Trưởng</span>
+                            </div>
+                            <p class="text-indigo-200 text-sm mt-1 flex items-center space-x-2">
+                                <span class="font-bold text-white">MSV: B20DCCN001</span>
+                                <span>•</span>
+                                <span>Lớp: D20CNTT1</span>
+                                <span>•</span>
+                                <span>Khóa: K20 (2020-2025)</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Right Action: Open QR Ticket -->
+                    <div class="flex items-center space-x-3">
+                        <button onclick="openQrModal('Hội Thảo AI & Chuyển Đổi Số 2026')" class="px-5 py-3 rounded-2xl bg-white text-indigo-900 font-bold text-sm shadow-lg hover:bg-indigo-50 transition flex items-center space-x-2 active:scale-95">
+                            <i class="fa-solid fa-qrcode text-base text-indigo-600"></i>
+                            <span>Vé Điểm Danh QR</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Training Points Progress Bar -->
+                <div class="mt-6 pt-6 border-t border-white/10">
+                    <div class="flex justify-between items-center text-sm mb-2">
+                        <span class="text-indigo-200 font-medium">⭐ Điểm rèn luyện tích lũy học kỳ</span>
+                        <span class="font-extrabold text-white text-base">92/100 Điểm <span class="text-emerald-400 font-bold ml-1">(Xuất sắc)</span></span>
+                    </div>
+                    <div class="w-full h-3 bg-white/10 rounded-full overflow-hidden p-0.5">
+                        <div class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full" style="width: 92%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Student Activity Metric Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+                        <i class="fa-regular fa-calendar-days"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-500 uppercase">Sự kiện sắp tới</div>
+                        <div class="text-2xl font-extrabold text-slate-900" id="stat-upcoming">4</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-500 uppercase">Đã đăng ký</div>
+                        <div class="text-2xl font-extrabold text-emerald-600" id="stat-registered">2</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-500 uppercase">Nhiệm vụ xong</div>
+                        <div class="text-2xl font-extrabold text-amber-600" id="stat-completed">2</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-500 uppercase">Điểm rèn luyện</div>
+                        <div class="text-2xl font-extrabold text-purple-600">92 ⭐</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Upcoming Activities Section -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                        <span>🔥 Hoạt động ngoại khóa đang mở đăng ký</span>
+                    </h2>
+                    <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">4 Sự kiện khả dụng</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" id="activities-container">
+                    <!-- Events will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- 4. Student Checklist Tasks -->
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
+                        <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
+                        <span>Nhiệm vụ chuẩn bị &amp; Checklist cá nhân</span>
+                    </h3>
+                    <button onclick="cleanCompletedTasks()" class="text-xs font-bold text-slate-500 hover:text-indigo-600 bg-slate-100 hover:bg-indigo-50 px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-broom"></i>
+                        <span>Dọn dẹp nhiệm vụ đã xong</span>
+                    </button>
+                </div>
+
+                <div class="space-y-2.5" id="tasks-container">
+                    <!-- Tasks will be populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: QUẢN TRỊ TÀI KHOẢN ADMIN (US 05) -->
+        <!-- ========================================== -->
+        <section id="view-admin" class="hidden space-y-6">
+            <!-- Header & Metrics -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-slate-900">Quản trị Hệ thống Tài khoản</h1>
+                    <p class="text-slate-500 text-sm">Danh sách tài khoản sinh viên, giảng viên và phân quyền truy cập (US 05)</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="openAddAccountModal()" class="px-4 py-2.5 rounded-xl gradient-brand text-white font-bold text-sm shadow-md shadow-indigo-200 hover:opacity-95 transition flex items-center space-x-2">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Thêm tài khoản</span>
+                    </button>
+                    <button onclick="switchView('login')" class="px-3.5 py-2.5 rounded-xl bg-slate-100 text-slate-600 hover:text-red-600 hover:bg-red-50 font-bold text-sm transition">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4 Summary Stat Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="text-xs font-bold text-slate-500 uppercase">Tổng số tài khoản</div>
+                    <div class="text-2xl font-extrabold text-indigo-600 mt-1" id="admin-total-count">12</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="text-xs font-bold text-emerald-600 uppercase">🎓 Đang học</div>
+                    <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="admin-danghoc-count">9</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="text-xs font-bold text-amber-600 uppercase">⏸️ Bảo lưu</div>
+                    <div class="text-2xl font-extrabold text-amber-600 mt-1" id="admin-baoluu-count">2</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="text-xs font-bold text-rose-600 uppercase">🔒 Bị khóa</div>
+                    <div class="text-2xl font-extrabold text-rose-600 mt-1" id="admin-bikhoa-count">1</div>
+                </div>
+            </div>
+
+            <!-- Search, Clear 'X' and Quick Status Chips (AC 1.2 & AC 1.3) -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <!-- Search Input with Debounce & Clear 'X' -->
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <input type="text" id="admin-search-input" oninput="handleSearch(this.value)" placeholder="Tìm kiếm theo Họ tên, MSV, Email, Lớp..." class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                        <button id="admin-clear-btn" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Filter Modal Trigger Button -->
+                    <button onclick="openFilterPopup()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100 text-sm font-semibold flex items-center space-x-2 transition">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>Bộ lọc nâng cao</span>
+                        <span id="active-filter-badge" class="hidden w-5 h-5 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center">1</span>
+                    </button>
+                </div>
+
+                <!-- Quick Status Chips (AC 1.3) -->
+                <div class="flex items-center space-x-2 overflow-x-auto pb-1 hide-scrollbar">
+                    <button onclick="setFilterStatus('All')" id="chip-All" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition">Tất cả</button>
+                    <button onclick="setFilterStatus('DangHoc')" id="chip-DangHoc" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">🎓 Đang học</button>
+                    <button onclick="setFilterStatus('BaoLuu')" id="chip-BaoLuu" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">⏸️ Bảo lưu</button>
+                    <button onclick="setFilterStatus('BiKhoa')" id="chip-BiKhoa" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">🔒 Bị khóa</button>
+                </div>
+            </div>
+
+            <!-- Responsive Account Cards Grid (AC 1.1 & AC 1.4: 1 col on mobile, 2-3 on tablet/desktop) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="accounts-grid">
+                <!-- Populated dynamically by JS -->
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: ĐĂNG NHẬP (LOGIN - US 28) -->
+        <!-- ========================================== -->
+        <section id="view-login" class="hidden flex items-center justify-center py-6">
+            <div class="w-full max-w-md bg-white p-8 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 space-y-6">
+                <!-- Branding -->
+                <div class="text-center space-y-2">
+                    <div class="w-16 h-16 rounded-2xl gradient-brand mx-auto flex items-center justify-center text-white text-2xl shadow-lg shadow-indigo-200">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Campus Activities</h2>
+                    <p class="text-xs text-slate-500">Cổng thông tin &amp; Quản trị hoạt động sinh viên</p>
+                </div>
+
+                <!-- 1-Click Demo Roles -->
+                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold text-slate-500">⚡ Đăng nhập nhanh 1 chạm (Demo):</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="demoLogin('admin')" class="py-2 px-3 rounded-xl gradient-brand text-white text-xs font-bold shadow hover:opacity-95 transition">👑 Admin Quản trị</button>
+                        <button onclick="demoLogin('student')" class="py-2 px-3 rounded-xl gradient-blue text-white text-xs font-bold shadow hover:opacity-95 transition">🎓 Sinh viên</button>
+                    </div>
+                </div>
+
+                <!-- Error Alert Banner -->
+                <div id="login-error-banner" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-exclamation text-sm"></i>
+                    <span id="login-error-text">Tên đăng nhập hoặc mật khẩu không chính xác</span>
+                </div>
+
+                <!-- Form -->
+                <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-700">Tên đăng nhập / Email</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-regular fa-user"></i>
+                            </div>
+                            <input type="text" id="login-username" value="cuong.na@campus.edu.vn" placeholder="Mã sinh viên hoặc email..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-700">Mật khẩu</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <input type="password" id="login-password" value="password123" placeholder="Nhập mật khẩu..." class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                            <button type="button" onclick="togglePasswordVisibility('login-password', 'eye-login')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+                                <i id="eye-login" class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs">
+                        <label class="flex items-center space-x-2 text-slate-600 cursor-pointer">
+                            <input type="checkbox" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+                            <span>Ghi nhớ đăng nhập</span>
+                        </label>
+                        <a href="#" onclick="alert('Vui lòng liên hệ phòng Công tác sinh viên để cấp lại mật khẩu.'); return false;" class="font-bold text-indigo-600 hover:underline">Quên mật khẩu?</a>
+                    </div>
+
+                    <button type="submit" id="btn-login-submit" class="w-full py-3 rounded-2xl gradient-brand text-white font-bold text-sm shadow-lg shadow-indigo-200 hover:opacity-95 transition">
+                        Đăng Nhập
+                    </button>
+                </form>
+
+                <!-- Biometric -->
+                <button onclick="demoLogin('student')" class="w-full py-2.5 rounded-2xl border border-indigo-200 text-indigo-700 font-bold text-xs hover:bg-indigo-50 transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-fingerprint text-base"></i>
+                    <span>Đăng nhập bằng Sinh trắc học (Fingerprint)</span>
+                </button>
+
+                <div class="text-center text-xs text-slate-500">
+                    Chưa có tài khoản? <a href="#" onclick="switchView('register'); return false;" class="font-bold text-indigo-600 hover:underline">Đăng ký ngay</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 4: ĐĂNG KÝ TÀI KHOẢN (REGISTER - US 26) -->
+        <!-- ========================================== -->
+        <section id="view-register" class="hidden flex items-center justify-center py-6">
+            <div class="w-full max-w-lg bg-white p-8 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 space-y-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Tạo tài khoản sinh viên</h2>
+                    <p class="text-xs text-slate-500 mt-1">Gia nhập cộng đồng sinh viên và tham gia các hoạt động campus (US 26)</p>
+                </div>
+
+                <form onsubmit="handleRegisterSubmit(event)" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-700">Họ và tên</label>
+                        <input type="text" id="reg-fullname" required placeholder="Ví dụ: Nguyễn Văn An" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-700">Mã sinh viên (MSV)</label>
+                            <input type="text" id="reg-msv" required placeholder="B20DCCN002" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-700">Lớp sinh hoạt</label>
+                            <input type="text" id="reg-class" required placeholder="D20CNTT2" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-700">Địa chỉ Email</label>
+                        <input type="email" id="reg-email" required placeholder="an.nv@campus.edu.vn" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-700">Mật khẩu</label>
+                        <div class="relative">
+                            <input type="password" id="reg-password" oninput="checkPasswordStrength(this.value)" required placeholder="Tối thiểu 6 ký tự..." class="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                            <button type="button" onclick="togglePasswordVisibility('reg-password', 'eye-reg')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+                                <i id="eye-reg" class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                        <!-- Strength Meter Bar -->
+                        <div class="flex items-center space-x-2 pt-1">
+                            <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div id="strength-bar" class="h-full bg-slate-300 transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <span id="strength-text" class="text-xs font-bold text-slate-400">Rất yếu</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-700">Xác nhận mật khẩu</label>
+                        <input type="password" id="reg-confirm-password" required placeholder="Nhập lại mật khẩu..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                    </div>
+
+                    <label class="flex items-center space-x-2 text-xs text-slate-600 cursor-pointer pt-1">
+                        <input type="checkbox" id="reg-terms" required class="rounded text-indigo-600 focus:ring-indigo-500">
+                        <span>Tôi đồng ý với Điều khoản &amp; Quy định sử dụng</span>
+                    </label>
+
+                    <button type="submit" class="w-full py-3 rounded-2xl gradient-brand text-white font-bold text-sm shadow-lg shadow-indigo-200 hover:opacity-95 transition">
+                        Đăng Ký Tài Khoản
+                    </button>
+                </form>
+
+                <div class="text-center text-xs text-slate-500">
+                    Đã có tài khoản? <a href="#" onclick="switchView('login'); return false;" class="font-bold text-indigo-600 hover:underline">Đăng nhập ngay</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- QR TICKET ATTENDANCE MODAL (US 17) -->
+    <!-- ========================================== -->
+    <div id="qr-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-5 animate-scale-in border border-slate-100">
+            <div class="flex items-center justify-between">
+                <div class="font-extrabold text-lg text-slate-900 flex items-center space-x-2">
+                    <i class="fa-solid fa-qrcode text-indigo-600"></i>
+                    <span>Vé Điểm Danh QR Code</span>
+                </div>
+                <button onclick="closeQrModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- QR Box Container -->
+            <div class="p-6 rounded-2xl bg-slate-50 border-2 border-indigo-100 flex flex-col items-center justify-center space-y-3">
+                <div id="qrcode" class="p-2 bg-white rounded-xl shadow-md"></div>
+                <span id="qr-ticket-id" class="text-xs font-mono font-extrabold text-indigo-600">CAMPUS-TK-B20DCCN001-92812</span>
+            </div>
+
+            <!-- Ticket Meta -->
+            <div class="text-center space-y-1">
+                <h4 class="font-bold text-base text-slate-900" id="qr-event-title">Hội Thảo AI &amp; Chuyển Đổi Số 2026</h4>
+                <p class="text-xs text-slate-500 font-medium">Sinh viên: <span class="font-bold text-slate-700">Nguyễn An Cương</span> (MSV: B20DCCN001)</p>
+                <div class="inline-flex items-center space-x-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full mt-1">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Xác thực hợp lệ - Sẵn sàng Check-in</span>
+                </div>
+            </div>
+
+            <button onclick="closeQrModal()" class="w-full py-2.5 rounded-xl gradient-brand text-white font-bold text-sm shadow-md transition">
+                Đóng vé
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC & STATE MANAGEMENT -->
+    <!-- ========================================== -->
+    <script>
+        // Accounts State
+        let accounts = [
+            { id: 1, fullName: "Nguyễn An Cương", studentCode: "B20DCCN001", email: "cuong.na@campus.edu.vn", phone: "0987123456", className: "D20CNTT1", year: "K20", role: "Lớp trưởng", status: "DangHoc", statusText: "Đang học", points: 92, rank: "Xuất sắc" },
+            { id: 2, fullName: "Trần Thị Mai", studentCode: "B21DCCN045", email: "mai.tt@campus.edu.vn", phone: "0912345678", className: "D21CNTT2", year: "K21", role: "Sinh viên", status: "DangHoc", statusText: "Đang học", points: 85, rank: "Tốt" },
+            { id: 3, fullName: "Lê Hoàng Nam", studentCode: "B20DCCN112", email: "nam.lh@campus.edu.vn", phone: "0934567890", className: "D20CNTT1", year: "K20", role: "Ban chủ nhiệm", status: "BaoLuu", statusText: "Bảo lưu", points: 74, rank: "Khá" },
+            { id: 4, fullName: "Phạm Quốc Bảo", studentCode: "B19DCCN089", email: "bao.pq@campus.edu.vn", phone: "0978901234", className: "D19CNTT3", year: "K19", role: "Sinh viên", status: "BiKhoa", statusText: "Bị khóa", points: 45, rank: "Trung bình" },
+            { id: 5, fullName: "Vũ Minh Tuấn", studentCode: "B22DCCN201", email: "tuan.vm@campus.edu.vn", phone: "0901234567", className: "D22CNTT1", year: "K22", role: "Sinh viên", status: "DangHoc", statusText: "Đang học", points: 88, rank: "Tốt" },
+            { id: 6, fullName: "Hoàng Đức Anh", studentCode: "B21DCCN155", email: "anh.hd@campus.edu.vn", phone: "0945678901", className: "D21CNTT3", year: "K21", role: "Lớp phó", status: "DangHoc", statusText: "Đang học", points: 90, rank: "Xuất sắc" },
+            { id: 7, fullName: "Đặng Thu Trang", studentCode: "B20DCCN078", email: "trang.dt@campus.edu.vn", phone: "0923456789", className: "D20CNTT2", year: "K20", role: "Sinh viên", status: "DangHoc", statusText: "Đang học", points: 95, rank: "Xuất sắc" },
+            { id: 8, fullName: "Bùi Quang Huy", studentCode: "B22DCCN033", email: "huy.bq@campus.edu.vn", phone: "0967890123", className: "D22CNTT2", year: "K22", role: "Sinh viên", status: "DangHoc", statusText: "Đang học", points: 78, rank: "Khá" },
+            { id: 9, fullName: "Ngô Minh Hằng", studentCode: "B21DCCN099", email: "hang.nm@campus.edu.vn", phone: "0911223344", className: "D21CNTT1", year: "K21", role: "Sinh viên", status: "BaoLuu", statusText: "Bảo lưu", points: 68, rank: "Trung bình" },
+            { id: 10, fullName: "Dương Tuấn Kiệt", studentCode: "B20DCCN167", email: "kiet.dt@campus.edu.vn", phone: "0988776655", className: "D20CNTT3", year: "K20", role: "Sinh viên", status: "DangHoc", statusText: "Đang học", points: 82, rank: "Khá" },
+            { id: 11, fullName: "TS. Nguyễn Thanh Bình", studentCode: "GV001", email: "binh.nt@campus.edu.vn", phone: "0909090909", className: "Khoa CNTT", year: "Cán bộ", role: "Giảng viên", status: "DangHoc", statusText: "Đang học", points: 100, rank: "Cán bộ" },
+            { id: 12, fullName: "Quản trị viên Hệ thống", studentCode: "ADMIN01", email: "admin@campus.edu.vn", phone: "0999999999", className: "Phòng CTSV", year: "Admin", role: "Quản trị viên", status: "DangHoc", statusText: "Đang học", points: 100, rank: "Admin" }
+        ];
+
+        let activities = [
+            { id: 1, title: "Hội Thảo AI & Chuyển Đổi Số 2026", category: "Học thuật", catColor: "indigo", desc: "Hội thảo chuyên đề Trí tuệ nhân tạo và Cơ hội nghề nghiệp cho sinh viên CNTT tại Hội trường A2.", registered: true },
+            { id: 2, title: "Giải Bóng Đá Sinh Viên Toàn Trường", category: "Thể thao", catColor: "emerald", desc: "Giải đấu thể thao thường niên tranh cúp Vô địch giữa các khoa viện tại Sân vận động.", registered: true },
+            { id: 3, title: "Chiến Dịch Tình Nguyện Mùa Hè Xanh", category: "Tình nguyện", catColor: "rose", desc: "Hoạt động thiện nguyện vì cộng đồng, hỗ trợ bà con và các em nhỏ tại vùng khó khăn.", registered: false },
+            { id: 4, title: "Ngày Hội Việc Làm Job Fair 2026", category: "Kỹ năng", catColor: "purple", desc: "Gặp gỡ 50+ doanh nghiệp công nghệ hàng đầu, nộp CV và phỏng vấn trực tiếp tại sảnh chính.", registered: false }
+        ];
+
+        let tasks = [
+            { id: 1, title: "Đăng ký tham dự Hội thảo AI tại Hội trường A2", completed: true },
+            { id: 2, title: "Quét mã QR điểm danh đầu giờ nhận vé điện tử", completed: false },
+            { id: 3, title: "Nộp bài thu hoạch nhận 5 Điểm rèn luyện", completed: false },
+            { id: 4, title: "Đăng ký danh sách thi đấu bóng đá đại diện lớp", completed: true }
+        ];
+
+        let currentFilterStatus = "All";
+        let currentSearchQuery = "";
+
+        // Navigation
+        function switchView(viewName) {
+            ['student', 'admin', 'login', 'register'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) el.classList.add('hidden');
+                const nav = document.getElementById(`nav-${v}`);
+                if (nav) {
+                    nav.classList.remove('bg-indigo-50', 'text-indigo-600', 'font-semibold');
+                    nav.classList.add('text-slate-600', 'font-medium');
+                }
+            });
+
+            const activeEl = document.getElementById(`view-${viewName}`);
+            if (activeEl) activeEl.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${viewName}`);
+            if (activeNav) {
+                activeNav.classList.remove('text-slate-600', 'font-medium');
+                activeNav.classList.add('bg-indigo-50', 'text-indigo-600', 'font-semibold');
+            }
+
+            if (viewName === 'admin') renderAccounts();
+            if (viewName === 'student') {
+                renderActivities();
+                renderTasks();
+            }
+        }
+
+        // Render Activities
+        function renderActivities() {
+            const container = document.getElementById('activities-container');
+            container.innerHTML = activities.map(act => `
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                    <div class="space-y-3">
+                        <span class="inline-block px-3 py-1 rounded-xl text-xs font-bold bg-${act.catColor}-50 text-${act.catColor}-600 border border-${act.catColor}-100">
+                            ${act.category}
+                        </span>
+                        <h3 class="font-bold text-slate-900 text-base line-clamp-2">${act.title}</h3>
+                        <p class="text-xs text-slate-500 line-clamp-3">${act.desc}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        ${act.registered 
+                            ? `<button onclick="openQrModal('${act.title}')" class="w-full py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs flex items-center justify-center space-x-1.5"><i class="fa-solid fa-qrcode"></i><span>Xem Vé QR</span></button>`
+                            : `<button onclick="registerEvent(${act.id})" class="w-full py-2.5 rounded-xl gradient-brand text-white font-bold text-xs shadow-md shadow-indigo-100 hover:opacity-95 transition">Đăng Ký Tham Gia</button>`
+                        }
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function registerEvent(id) {
+            const act = activities.find(a => a.id === id);
+            if (act) {
+                act.registered = true;
+                document.getElementById('stat-registered').innerText = activities.filter(a => a.registered).length;
+                renderActivities();
+                openQrModal(act.title);
+            }
+        }
+
+        // Render Tasks
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = tasks.map(t => `
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between transition hover:bg-slate-100">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id})" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm font-medium ${t.completed ? 'line-through text-slate-400' : 'text-slate-800'}">${t.title}</span>
+                    </label>
+                    <span class="text-xs font-bold ${t.completed ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 bg-slate-200'} px-2 py-0.5 rounded-lg">
+                        ${t.completed ? 'Hoàn thành' : 'Đang chờ'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                document.getElementById('stat-completed').innerText = tasks.filter(t => t.completed).length;
+                renderTasks();
+            }
+        }
+
+        function cleanCompletedTasks() {
+            tasks = tasks.filter(t => !t.completed);
+            document.getElementById('stat-completed').innerText = 0;
+            renderTasks();
+            alert('Đã dọn dẹp các nhiệm vụ hoàn thành!');
+        }
+
+        // Render Admin Accounts
+        function renderAccounts() {
+            const container = document.getElementById('accounts-grid');
+            let filtered = accounts.filter(acc => {
+                const matchStatus = (currentFilterStatus === 'All') || (acc.status === currentFilterStatus);
+                const query = currentSearchQuery.toLowerCase();
+                const matchSearch = acc.fullName.toLowerCase().includes(query) ||
+                                    acc.studentCode.toLowerCase().includes(query) ||
+                                    acc.email.toLowerCase().includes(query) ||
+                                    acc.className.toLowerCase().includes(query);
+                return matchStatus && matchSearch;
+            });
+
+            // Update Metric Counts
+            document.getElementById('admin-total-count').innerText = accounts.length;
+            document.getElementById('admin-danghoc-count').innerText = accounts.filter(a => a.status === 'DangHoc').length;
+            document.getElementById('admin-baoluu-count').innerText = accounts.filter(a => a.status === 'BaoLuu').length;
+            document.getElementById('admin-bikhoa-count').innerText = accounts.filter(a => a.status === 'BiKhoa').length;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-slate-400 space-y-2">
+                        <i class="fa-solid fa-users-slash text-4xl"></i>
+                        <p class="font-bold">Không tìm thấy tài khoản phù hợp</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(acc => {
+                const statusColor = acc.status === 'DangHoc' ? 'emerald' : (acc.status === 'BaoLuu' ? 'amber' : 'rose');
+                const initials = acc.fullName.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase();
+
+                return `
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition">
+                        <!-- Top Header -->
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center font-extrabold text-indigo-700 text-base shadow-sm">
+                                    ${initials}
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-slate-900 text-base">${acc.fullName}</h4>
+                                    <div class="flex items-center space-x-2 text-xs text-slate-500 mt-0.5">
+                                        <span class="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">${acc.studentCode}</span>
+                                        <span>•</span>
+                                        <span>${acc.className}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 3 dots action -->
+                            <button onclick="accountAction(${acc.id})" class="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                        </div>
+
+                        <!-- Info Rows -->
+                        <div class="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center space-x-1.5"><i class="fa-regular fa-envelope text-slate-400"></i><span>${acc.email}</span></span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center space-x-1.5"><i class="fa-solid fa-phone text-slate-400"></i><span>${acc.phone}</span></span>
+                                <span class="font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md">⭐ ${acc.points} ĐRL</span>
+                            </div>
+                        </div>
+
+                        <!-- Status Tag & Role -->
+                        <div class="flex items-center justify-between pt-2">
+                            <span class="px-2.5 py-1 rounded-xl text-xs font-extrabold bg-${statusColor}-50 text-${statusColor}-700 border border-${statusColor}-200 flex items-center space-x-1.5">
+                                <span class="w-2 h-2 rounded-full bg-${statusColor}-500"></span>
+                                <span>${acc.statusText}</span>
+                            </span>
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700">
+                                ${acc.role}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Action on Account
+        function accountAction(id) {
+            const acc = accounts.find(a => a.id === id);
+            if (!acc) return;
+            const action = prompt(`Tác vụ cho tài khoản [${acc.fullName}]:\n1. Khóa / Mở khóa tài khoản\n2. Đổi trạng thái (DangHoc / BaoLuu)\n3. Xóa tài khoản\n\nNhập số 1, 2 hoặc 3:`, "1");
+            if (action === "1") {
+                if (acc.role === "Quản trị viên") {
+                    alert("Không thể khóa tài khoản Quản trị viên đang đăng nhập!");
+                    return;
+                }
+                acc.status = acc.status === "BiKhoa" ? "DangHoc" : "BiKhoa";
+                acc.statusText = acc.status === "BiKhoa" ? "Bị khóa" : "Đang học";
+                renderAccounts();
+            } else if (action === "2") {
+                acc.status = acc.status === "DangHoc" ? "BaoLuu" : "DangHoc";
+                acc.statusText = acc.status === "DangHoc" ? "Đang học" : "Bảo lưu";
+                renderAccounts();
+            } else if (action === "3") {
+                if (confirm(`Bạn có chắc muốn xóa tài khoản ${acc.fullName}?`)) {
+                    accounts = accounts.filter(a => a.id !== id);
+                    renderAccounts();
+                }
+            }
+        }
+
+        // Search Handlers
+        let searchTimeout;
+        function handleSearch(val) {
+            currentSearchQuery = val;
+            document.getElementById('admin-clear-btn').classList.toggle('hidden', !val);
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                renderAccounts();
+            }, 350); // 350ms Debounce
+        }
+
+        function clearSearch() {
+            document.getElementById('admin-search-input').value = "";
+            handleSearch("");
+        }
+
+        function setFilterStatus(status) {
+            currentFilterStatus = status;
+            ['All', 'DangHoc', 'BaoLuu', 'BiKhoa'].forEach(s => {
+                const btn = document.getElementById(`chip-${s}`);
+                if (btn) {
+                    if (s === status) {
+                        btn.className = "px-4 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition";
+                    } else {
+                        btn.className = "px-4 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+                    }
+                }
+            });
+            renderAccounts();
+        }
+
+        function openAddAccountModal() {
+            const name = prompt("Họ và tên:");
+            if (!name) return;
+            const msv = prompt("Mã sinh viên:");
+            const cls = prompt("Lớp:");
+            const email = prompt("Email:");
+            accounts.unshift({
+                id: Date.now(),
+                fullName: name,
+                studentCode: msv || "B23DCCN001",
+                email: email || `${msv}@campus.edu.vn`,
+                phone: "0912345678",
+                className: cls || "D23CNTT1",
+                year: "K23",
+                role: "Sinh viên",
+                status: "DangHoc",
+                statusText: "Đang học",
+                points: 80,
+                rank: "Khá"
+            });
+            renderAccounts();
+        }
+
+        function openFilterPopup() {
+            const role = prompt("Lọc theo Vai trò (Sinh viên / Giảng viên / Lớp trưởng / Tất cả):", "Tất cả");
+            if (role && role !== "Tất cả") {
+                accounts = accounts.filter(a => a.role.includes(role));
+                document.getElementById('active-filter-badge').classList.remove('hidden');
+                renderAccounts();
+            } else {
+                document.getElementById('active-filter-badge').classList.add('hidden');
+            }
+        }
+
+        // QR Modal
+        let qrCodeInstance = null;
+        function openQrModal(eventTitle) {
+            document.getElementById('qr-event-title').innerText = eventTitle;
+            const code = `CAMPUS-TK-B20DCCN001-${Math.floor(10000 + Math.random() * 90000)}`;
+            document.getElementById('qr-ticket-id').innerText = code;
+
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = "";
+            qrCodeInstance = new QRCode(qrContainer, {
+                text: JSON.stringify({ ticket: code, student: "B20DCCN001", event: eventTitle }),
+                width: 140,
+                height: 140,
+                colorDark: "#1E1B4B",
+                colorLight: "#FFFFFF",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qr-modal').classList.remove('hidden');
+        }
+
+        function closeQrModal() {
+            document.getElementById('qr-modal').classList.add('hidden');
+        }
+
+        // Login & Register Form Submissions
+        function demoLogin(role) {
+            if (role === 'admin') {
+                switchView('admin');
+            } else {
+                switchView('student');
+            }
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value;
+            const p = document.getElementById('login-password').value;
+            if (!u || !p) {
+                document.getElementById('login-error-banner').classList.remove('hidden');
+                document.getElementById('login-error-text').innerText = "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu";
+                return;
+            }
+            if (u.includes('admin')) {
+                switchView('admin');
+            } else {
+                switchView('student');
+            }
+        }
+
+        function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const p = document.getElementById('reg-password').value;
+            const cp = document.getElementById('reg-confirm-password').value;
+            if (p !== cp) {
+                alert("Mật khẩu xác nhận không khớp!");
+                return;
+            }
+            alert("Đăng ký tài khoản thành công! Chào mừng bạn gia nhập Campus.");
+            switchView('student');
+        }
+
+        function togglePasswordVisibility(fieldId, iconId) {
+            const field = document.getElementById(fieldId);
+            const icon = document.getElementById(iconId);
+            if (field.type === "password") {
+                field.type = "text";
+                icon.className = "fa-regular fa-eye-slash";
+            } else {
+                field.type = "password";
+                icon.className = "fa-regular fa-eye";
+            }
+        }
+
+        function checkPasswordStrength(pass) {
+            const bar = document.getElementById('strength-bar');
+            const text = document.getElementById('strength-text');
+            if (pass.length === 0) {
+                bar.style.width = "0%";
+                text.innerText = "Rất yếu";
+                text.className = "text-xs font-bold text-slate-400";
+            } else if (pass.length < 6) {
+                bar.style.width = "25%";
+                bar.className = "h-full bg-rose-500 transition-all duration-300";
+                text.innerText = "Yếu";
+                text.className = "text-xs font-bold text-rose-500";
+            } else if (pass.length < 10) {
+                bar.style.width = "60%";
+                bar.className = "h-full bg-amber-500 transition-all duration-300";
+                text.innerText = "Khá tốt";
+                text.className = "text-xs font-bold text-amber-500";
+            } else {
+                bar.style.width = "100%";
+                bar.className = "h-full bg-emerald-500 transition-all duration-300";
+                text.innerText = "Rất mạnh";
+                text.className = "text-xs font-bold text-emerald-500";
+            }
+        }
+
+        // Init on load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderActivities();
+            renderTasks();
+            renderAccounts();
+        });
+    </script>
+</body>
+</html>

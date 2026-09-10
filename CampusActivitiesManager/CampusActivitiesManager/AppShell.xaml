@@ -21,6 +21,12 @@
         Route="projects" />
 
     <ShellContent
+        Title="Quản lý tài khoản"
+        Icon="{StaticResource IconProjects}"
+        ContentTemplate="{DataTemplate pages:AccountListPage}"
+        Route="accounts" />
+
+    <ShellContent
         Title="Manage Meta"
         Icon="{StaticResource IconMeta}"
         ContentTemplate="{DataTemplate pages:ManageMetaPage}"
