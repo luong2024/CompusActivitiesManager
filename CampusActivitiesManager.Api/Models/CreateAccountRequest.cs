@@ -19,7 +19,7 @@ namespace CampusActivitiesManager.Api.Models
         public string FullName { get; set; } = null!;
 
         [Required(ErrorMessage = "Role is required")]
-        [RegularExpression(@"^(Admin|Lecturer|Student)$", ErrorMessage = "Invalid user role specified")]
+        [RegularExpression(@"^(Admin|Manager|User|Guest|Lecturer|Student)$", ErrorMessage = "Invalid user role specified")]
         public string Role { get; set; } = null!;
 
         public string? PhoneNumber { get; set; }
