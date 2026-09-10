@@ -162,13 +162,19 @@ namespace CampusActivitiesManager.PageModels
 
         private async Task InitData(SeedDataService seedDataService)
         {
-            bool isSeeded = Preferences.Default.ContainsKey("is_seeded_v10");
-            if (!isSeeded)
+            try
             {
-                await seedDataService.LoadSeedDataAsync();
-                Preferences.Default.Set("is_seeded_v10", true);
+                bool isSeeded = Preferences.Default.ContainsKey("is_seeded_v10");
+                if (!isSeeded)
+                {
+                    await Task.Run(() => seedDataService.LoadSeedDataAsync());
+                    Preferences.Default.Set("is_seeded_v10", true);
+                }
             }
-            await Refresh();
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
         }
 
         [RelayCommand]
@@ -200,8 +206,8 @@ namespace CampusActivitiesManager.PageModels
         {
             if (!_dataLoaded)
             {
-                await InitData(_seedDataService);
                 _dataLoaded = true;
+                await InitData(_seedDataService);
                 await Refresh();
             }
             else if (!_isNavigatedTo)
