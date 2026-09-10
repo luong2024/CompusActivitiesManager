@@ -2,9 +2,9 @@ using CampusActivitiesManager.PageModels;
 
 namespace CampusActivitiesManager.Pages
 {
-    public partial class LoginPage : ContentPage
+    public partial class AccessDeniedPage : ContentPage
     {
-        public LoginPage(LoginViewModel model)
+        public AccessDeniedPage(AccessDeniedViewModel model)
         {
             InitializeComponent();
             BindingContext = model;

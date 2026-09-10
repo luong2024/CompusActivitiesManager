@@ -4,7 +4,7 @@ namespace CampusActivitiesManager.Pages
 {
     public partial class RegisterPage : ContentPage
     {
-        public RegisterPage(RegisterPageModel viewModel)
+        public RegisterPage(RegisterViewModel viewModel)
         {
             InitializeComponent();
             BindingContext = viewModel;

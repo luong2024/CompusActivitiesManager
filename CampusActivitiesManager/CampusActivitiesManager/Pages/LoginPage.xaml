@@ -3,262 +3,143 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:f="clr-namespace:Fonts"
+             x:DataType="pageModels:LoginViewModel"
              x:Class="CampusActivitiesManager.Pages.LoginPage"
-             x:DataType="pageModels:LoginPageModel"
-             Shell.NavBarIsVisible="False"
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
-             Title="Đăng nhập">
+             Title="{Binding Title}">
 
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
-
-    <!-- AC 1.3: Whole screen inside ScrollView to avoid virtual keyboard occlusion -->
     <ScrollView>
-        <Grid Padding="{OnIdiom '20,24', Desktop='40,60'}"
-              VerticalOptions="CenterAndExpand"
-              HorizontalOptions="Center"
-              MaximumWidthRequest="500">
+        <VerticalStackLayout Spacing="24" Padding="{StaticResource LayoutPadding}" MaximumWidthRequest="480" HorizontalOptions="Center" VerticalOptions="Center">
 
-            <!-- Card Container with Sleek Elevation -->
-            <Border StrokeShape="RoundRectangle 28"
-                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
-                    StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                    Padding="{OnIdiom '24,28', Desktop='36,40'}">
-                <Border.Shadow>
-                    <Shadow Brush="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Black}}"
-                            Offset="0,10"
-                            Radius="30"
-                            Opacity="{AppThemeBinding Light=0.15, Dark=0.4}" />
-                </Border.Shadow>
+            <!-- Logo & Title Header -->
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Border HeightRequest="64" WidthRequest="64" StrokeShape="RoundRectangle 32" Stroke="Transparent" Background="{StaticResource PrimaryGradientBrush}" HorizontalOptions="Center">
+                    <Label Text="🎓" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label Text="Campus Activities Manager" Style="{StaticResource Title2}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                <Label Text="Hệ thống Quản lý Hoạt động &amp; Phân quyền RBAC" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+            </VerticalStackLayout>
 
-                <VerticalStackLayout Spacing="20">
-
-                    <!-- 1. App Branding Header -->
-                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
-                        <Border WidthRequest="72" HeightRequest="72"
-                                StrokeShape="RoundRectangle 36"
-                                Background="{StaticResource PrimaryGradientBrush}"
-                                StrokeThickness="0"
-                                HorizontalOptions="Center">
-                            <Border.Shadow>
-                                <Shadow Brush="{StaticResource Primary}" Offset="0,6" Radius="16" Opacity="0.4" />
-                            </Border.Shadow>
-                            <Image Source="{StaticResource IconRibbon}"
-                                   WidthRequest="36" HeightRequest="36"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center" />
-                        </Border>
-
-                        <Label Text="Campus Activities"
-                               FontSize="24"
-                               FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
-                               HorizontalOptions="Center"
-                               Margin="0,4,0,0" />
-
-                        <Label Text="Cổng thông tin &amp; Quản lý hoạt động sinh viên"
-                               FontSize="13"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
-                               HorizontalOptions="Center" />
+            <!-- Trạng thái phiên hiện tại -->
+            <Border StrokeShape="RoundRectangle 12"
+                    Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                    Padding="14"
+                    IsVisible="{Binding CurrentUser, Converter={toolkit:IsNotNullConverter}}">
+                <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label Text="Đang đăng nhập với:" FontSize="11" TextColor="{AppThemeBinding Light=#6366F1, Dark=#818CF8}" />
+                        <Label Text="{Binding CurrentUser.FullName}" FontAttributes="Bold" FontSize="14" />
+                        <Label Text="{Binding CurrentRoleDisplay}" FontSize="12" FontAttributes="Italic" TextColor="{AppThemeBinding Light=#4F46E5, Dark=#A5B4FC}" />
                     </VerticalStackLayout>
+                    <Button Grid.Column="1"
+                            Text="Đăng xuất"
+                            Command="{Binding LogoutCommand}"
+                            FontSize="12"
+                            HeightRequest="36"
+                            BackgroundColor="{AppThemeBinding Light=#FEE2E2, Dark=#7F1D1D}"
+                            TextColor="{AppThemeBinding Light=#991B1B, Dark=#FECACA}" />
+                </Grid>
+            </Border>
 
-                    <!-- 2. Quick Demo Role Selector Pills (Tiện ích 1 chạm) -->
-                    <Border StrokeShape="RoundRectangle 16"
-                            Background="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkBackground}}"
-                            Padding="12,10"
-                            StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
-                        <VerticalStackLayout Spacing="8">
-                            <Label Text="⚡ Đăng nhập nhanh 1 chạm (Demo):"
-                                   FontSize="11"
-                                   FontAttributes="Bold"
-                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                <Button Grid.Column="0"
-                                        Text="👑 Admin Quản trị"
-                                        FontSize="12"
-                                        FontAttributes="Bold"
-                                        HeightRequest="38"
-                                        CornerRadius="12"
-                                        Background="{StaticResource PrimaryGradientBrush}"
-                                        TextColor="{StaticResource White}"
-                                        Command="{Binding LoginAsAdminCommand}" />
-                                <Button Grid.Column="1"
-                                        Text="🎓 Sinh viên"
-                                        FontSize="12"
-                                        FontAttributes="Bold"
-                                        HeightRequest="38"
-                                        CornerRadius="12"
-                                        Background="{StaticResource BlueGradientBrush}"
-                                        TextColor="{StaticResource White}"
-                                        Command="{Binding LoginAsStudentCommand}" />
-                            </Grid>
-                        </VerticalStackLayout>
-                    </Border>
+            <!-- Form Đăng nhập -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
+                    Padding="24">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="Đăng nhập Hệ thống" Style="{StaticResource Title3}" />
 
-                    <!-- 3. Error Alert Banner -->
-                    <Border Background="#FEF2F2"
-                            StrokeThickness="1"
+                    <!-- Error Alert -->
+                    <Border StrokeShape="RoundRectangle 8"
                             Stroke="#EF4444"
-                            StrokeShape="RoundRectangle 14"
-                            Padding="14,10"
+                            BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#450A0A}"
+                            Padding="10"
                             IsVisible="{Binding HasError}">
-                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                            <Label Text="⚠️" FontSize="14" VerticalOptions="Center" />
-                            <Label Text="{Binding ErrorMessage}"
-                                   TextColor="#DC2626"
-                                   FontSize="12"
-                                   FontAttributes="Bold"
-                                   VerticalOptions="Center" />
-                        </HorizontalStackLayout>
+                        <Label Text="{Binding ErrorMessage}" TextColor="#DC2626" FontSize="12" />
                     </Border>
 
-                    <!-- 4. Field: Username / Email -->
+                    <!-- Username -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Tên đăng nhập / Email trường"
-                               FontSize="12"
-                               FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
-                        <Border StrokeShape="RoundRectangle 16"
-                                StrokeThickness="1"
-                                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                                Background="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource DarkBackground}}"
-                                Padding="14,0"
-                                HeightRequest="50">
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
-                                <Image Grid.Column="0"
-                                       Source="{StaticResource IconPerson}"
-                                       WidthRequest="20" HeightRequest="20"
-                                       VerticalOptions="Center" />
-                                <Entry Grid.Column="1"
-                                       Text="{Binding UsernameOrEmail}"
-                                       Placeholder="Nhập mã sinh viên hoặc email..."
-                                       PlaceholderColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
-                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
-                                       FontSize="14"
-                                       VerticalOptions="Center"
-                                       ClearButtonVisibility="WhileEditing" />
-                            </Grid>
+                        <Label Text="Tên đăng nhập / Username" FontSize="13" FontAttributes="Bold" />
+                        <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
+                            <Entry Text="{Binding Username}" Placeholder="Nhập username (admin, manager, student1...)" HeightRequest="44" />
                         </Border>
                     </VerticalStackLayout>
 
-                    <!-- 5. Field: Password with Eye Toggle Icon (AC 1.2) -->
+                    <!-- Password -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Mật khẩu"
-                               FontSize="12"
-                               FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
-                        <Border StrokeShape="RoundRectangle 16"
-                                StrokeThickness="1"
-                                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
-                                Background="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource DarkBackground}}"
-                                Padding="14,0"
-                                HeightRequest="50">
-                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
-                                <Image Grid.Column="0"
-                                       Source="{StaticResource IconLock}"
-                                       WidthRequest="20" HeightRequest="20"
-                                       VerticalOptions="Center" />
-                                <Entry Grid.Column="1"
-                                       Text="{Binding Password}"
-                                       IsPassword="{Binding IsPasswordHidden}"
-                                       Placeholder="Nhập mật khẩu..."
-                                       PlaceholderColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
-                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
-                                       FontSize="14"
-                                       VerticalOptions="Center" />
-                                <Button Grid.Column="2"
-                                        ImageSource="{Binding IsPasswordHidden, Converter={toolkit:BoolToObjectConverter TrueObject={StaticResource IconEye}, FalseObject={StaticResource IconEyeOff}}}"
-                                        Background="Transparent"
-                                        WidthRequest="36" HeightRequest="36"
-                                        Padding="0"
-                                        Command="{Binding TogglePasswordVisibilityCommand}"
-                                        SemanticProperties.Description="Ẩn hoặc hiện mật khẩu" />
-                            </Grid>
+                        <Label Text="Mật khẩu" FontSize="13" FontAttributes="Bold" />
+                        <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
+                            <Entry Text="{Binding Password}" IsPassword="True" Placeholder="Nhập mật khẩu (123)" HeightRequest="44" />
                         </Border>
                     </VerticalStackLayout>
 
-                    <!-- 6. Remember Me & Forgot Password (AC 3.1 & AC 1.1) -->
-                    <Grid ColumnDefinitions="*,Auto" Margin="0,2">
-                        <HorizontalStackLayout Grid.Column="0" Spacing="6" VerticalOptions="Center">
-                            <CheckBox IsChecked="{Binding RememberMe}"
-                                      Color="{StaticResource Primary}"
-                                      VerticalOptions="Center" />
-                            <Label Text="Ghi nhớ đăng nhập"
-                                   FontSize="13"
-                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
-                                   VerticalOptions="Center" />
-                        </HorizontalStackLayout>
-
-                        <Button Grid.Column="1"
-                                Text="Quên mật khẩu?"
-                                Background="Transparent"
-                                TextColor="{StaticResource Primary}"
-                                FontSize="13"
-                                FontAttributes="Bold"
-                                Padding="0"
-                                HeightRequest="36"
-                                Command="{Binding ForgotPasswordCommand}" />
-                    </Grid>
-
-                    <!-- 7. Primary Login Button with Loading Spinner (AC 1.1 & AC 2.4) -->
-                    <Button Text="{Binding IsLoading, Converter={toolkit:BoolToObjectConverter TrueObject='Đang xác thực...', FalseObject='Đăng Nhập'}}"
+                    <!-- Login Button -->
+                    <Button Text="Đăng nhập"
+                            Command="{Binding LoginCommand}"
                             Background="{StaticResource PrimaryGradientBrush}"
-                            TextColor="{StaticResource White}"
+                            TextColor="White"
                             FontAttributes="Bold"
-                            FontSize="16"
-                            HeightRequest="52"
-                            CornerRadius="16"
-                            IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"
-                            Command="{Binding LoginCommand}">
-                        <Button.Shadow>
-                            <Shadow Brush="{StaticResource Primary}" Offset="0,6" Radius="16" Opacity="0.35" />
-                        </Button.Shadow>
-                    </Button>
+                            HeightRequest="48"
+                            CornerRadius="12"
+                            Margin="0,8,0,0" />
 
-                    <!-- 8. Quick Biometric Login (AC 3.2) -->
-                    <Border StrokeShape="RoundRectangle 16"
-                            StrokeThickness="1"
-                            Stroke="{StaticResource Primary}"
-                            Background="Transparent"
-                            HeightRequest="46">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding QuickBiometricLoginCommand}" />
-                        </Border.GestureRecognizers>
-                        <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
-                            <Image Source="{StaticResource IconFingerprint}"
-                                   WidthRequest="22" HeightRequest="22"
-                                   VerticalOptions="Center" />
-                            <Label Text="Đăng nhập bằng Sinh trắc học"
-                                   FontSize="13"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource Primary}"
-                                   VerticalOptions="Center" />
-                        </HorizontalStackLayout>
-                    </Border>
-
-                    <!-- 9. Footer: Link to Register (AC 1.1) -->
-                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4" Margin="0,6,0,0">
-                        <Label Text="Chưa có tài khoản?"
-                               FontSize="13"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
-                        <Label Text="Đăng ký ngay"
-                               FontSize="13"
-                               FontAttributes="Bold"
-                               TextColor="{StaticResource Primary}">
-                            <Label.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateToRegisterCommand}" />
-                            </Label.GestureRecognizers>
-                        </Label>
+                    <!-- Register & Forgot Password -->
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="16" Margin="0,8,0,0">
+                        <Button Text="Đăng ký tài khoản" 
+                                Command="{Binding GoToRegisterCommand}" 
+                                BackgroundColor="Transparent" 
+                                TextColor="#4F46E5" 
+                                FontSize="13" 
+                                Padding="0" />
+                        <Label Text="|" VerticalOptions="Center" TextColor="{StaticResource Gray400}" />
+                        <Button Text="Quên mật khẩu?" 
+                                Command="{Binding ForgotPasswordCommand}" 
+                                BackgroundColor="Transparent" 
+                                TextColor="#4F46E5" 
+                                FontSize="13" 
+                                Padding="0" />
                     </HorizontalStackLayout>
-
                 </VerticalStackLayout>
             </Border>
-        </Grid>
+
+            <!-- Quick Profile Switch for Multi-Role Testing (AC 05.3.1 Matrix) -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
+                    Padding="20">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="⚡ Chọn nhanh vai trò để kiểm thử RBAC:" FontAttributes="Bold" FontSize="13" />
+
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                        <!-- Admin -->
+                        <Button Grid.Row="0" Grid.Column="0"
+                                Text="👑 Admin"
+                                Command="{Binding QuickLoginCommand}" CommandParameter="admin"
+                                BackgroundColor="#DC2626" TextColor="White" HeightRequest="40" FontSize="12" CornerRadius="10" />
+
+                        <!-- Manager -->
+                        <Button Grid.Row="0" Grid.Column="1"
+                                Text="💼 Manager"
+                                Command="{Binding QuickLoginCommand}" CommandParameter="manager"
+                                BackgroundColor="#2563EB" TextColor="White" HeightRequest="40" FontSize="12" CornerRadius="10" />
+
+                        <!-- Student 1 -->
+                        <Button Grid.Row="1" Grid.Column="0"
+                                Text="🎓 Student 1"
+                                Command="{Binding QuickLoginCommand}" CommandParameter="student1"
+                                BackgroundColor="#16A34A" TextColor="White" HeightRequest="40" FontSize="12" CornerRadius="10" />
+
+                        <!-- Guest -->
+                        <Button Grid.Row="1" Grid.Column="1"
+                                Text="👤 Guest"
+                                Command="{Binding QuickLoginCommand}" CommandParameter="guest"
+                                BackgroundColor="#6B7280" TextColor="White" HeightRequest="40" FontSize="12" CornerRadius="10" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

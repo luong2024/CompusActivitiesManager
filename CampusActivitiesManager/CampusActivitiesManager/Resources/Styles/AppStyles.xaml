@@ -68,6 +68,18 @@
                      Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
                      Size="{StaticResource IconSize}" />
 
+    <FontImageSource x:Key="IconUsers"
+                     Glyph="{x:Static f:FluentUI.accessibility_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconAccount"
+                     Glyph="{x:Static f:FluentUI.approvals_app_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
     <FontImageSource x:Key="IconRibbon"
                      Glyph="{x:Static f:FluentUI.ribbon_20_regular}"
                      FontFamily="{x:Static f:FluentUI.FontFamily}"

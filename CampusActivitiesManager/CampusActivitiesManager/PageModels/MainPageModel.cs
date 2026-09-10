@@ -19,7 +19,7 @@ namespace CampusActivitiesManager.PageModels
         private readonly CategoryRepository _categoryRepository;
         private readonly ModalErrorHandler _errorHandler;
         private readonly SeedDataService _seedDataService;
-        private readonly AuthService _authService;
+        private readonly IAuthenticationService _authService;
 
         [ObservableProperty]
         private Account _currentStudent;
@@ -74,7 +74,7 @@ namespace CampusActivitiesManager.PageModels
             TaskRepository taskRepository,
             CategoryRepository categoryRepository,
             ModalErrorHandler errorHandler,
-            AuthService authService)
+            IAuthenticationService authService)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
@@ -90,7 +90,19 @@ namespace CampusActivitiesManager.PageModels
         {
             if (_authService != null && _authService.CurrentUser != null)
             {
-                CurrentStudent = _authService.CurrentUser;
+                var u = _authService.CurrentUser;
+                CurrentStudent = new Account
+                {
+                    FullName = u.FullName,
+                    StudentCode = u.Username.ToUpper(),
+                    Email = u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    ClassName = "D20CNTT1",
+                    AcademicYear = "K20",
+                    Role = u.IsAdminRole ? AccountRole.Admin : AccountRole.SinhVien,
+                    Status = AccountStatus.DangHoc,
+                    TrainingPoints = 92
+                };
             }
             else
             {
@@ -253,10 +265,7 @@ namespace CampusActivitiesManager.PageModels
             bool confirm = await Shell.Current.DisplayAlert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Sinh viên?", "Đăng xuất", "Hủy");
             if (confirm)
             {
-                if (_authService != null)
-                {
-                    await _authService.LogoutAsync();
-                }
+                _authService?.Logout();
                 await Shell.Current.GoToAsync("//login");
             }
         }
@@ -278,7 +287,7 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
-        private Task NavigateToAdmin() => Shell.Current.GoToAsync("//accounts");
+        private Task NavigateToAdmin() => Shell.Current.GoToAsync("//users");
 
         [RelayCommand]
         private Task NavigateToLogin() => Shell.Current.GoToAsync("//login");

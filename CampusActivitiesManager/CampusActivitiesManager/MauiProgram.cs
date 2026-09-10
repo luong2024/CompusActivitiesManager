@@ -36,32 +36,41 @@ namespace CampusActivitiesManager
     		builder.Services.AddLogging(configure => configure.AddDebug());
 #endif
 
-            builder.Services.AddSingleton<AccountRepository>();
-            builder.Services.AddSingleton<AuthService>();
             builder.Services.AddSingleton<ProjectRepository>();
             builder.Services.AddSingleton<TaskRepository>();
             builder.Services.AddSingleton<CategoryRepository>();
             builder.Services.AddSingleton<TagRepository>();
+            builder.Services.AddSingleton<UserRepository>();
+            builder.Services.AddSingleton<UserService>();
+            builder.Services.AddSingleton<IUserService<User>, UserService>();
+            builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
 
             // PageModels
             builder.Services.AddSingleton<MainPageModel>();
-            builder.Services.AddSingleton<AccountListPageModel>();
-            builder.Services.AddSingleton<LoginPageModel>();
-            builder.Services.AddSingleton<RegisterPageModel>();
             builder.Services.AddSingleton<ProjectListPageModel>();
             builder.Services.AddSingleton<ManageMetaPageModel>();
+            builder.Services.AddSingleton<UserManagementPageModel>();
+            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<RegisterViewModel>();
+            builder.Services.AddTransient<CreateUserViewModel>();
+            builder.Services.AddTransient<EditUserRoleViewModel>();
+            builder.Services.AddTransient<AccessDeniedViewModel>();
+            builder.Services.AddTransient<ProjectDetailPageModel>();
+            builder.Services.AddTransient<TaskDetailPageModel>();
 
             // Pages
             builder.Services.AddTransient<MainPage>();
-            builder.Services.AddTransient<AccountListPage>();
+            builder.Services.AddTransient<UserManagementPage>();
             builder.Services.AddTransient<LoginPage>();
-            builder.Services.AddTransient<RegisterPage>();
 
+            builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
+            builder.Services.AddTransientWithShellRoute<CreateUserPage, CreateUserViewModel>("createuser");
+            builder.Services.AddTransientWithShellRoute<EditUserRolePage, EditUserRoleViewModel>("editrole");
+            builder.Services.AddTransientWithShellRoute<AccessDeniedPage, AccessDeniedViewModel>("accessdenied");
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
-            builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterPageModel>("register");
 
             return builder.Build();
         }

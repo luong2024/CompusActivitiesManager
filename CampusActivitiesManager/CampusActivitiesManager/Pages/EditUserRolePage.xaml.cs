@@ -2,9 +2,9 @@ using CampusActivitiesManager.PageModels;
 
 namespace CampusActivitiesManager.Pages
 {
-    public partial class LoginPage : ContentPage
+    public partial class EditUserRolePage : ContentPage
     {
-        public LoginPage(LoginViewModel model)
+        public EditUserRolePage(EditUserRoleViewModel model)
         {
             InitializeComponent();
             BindingContext = model;

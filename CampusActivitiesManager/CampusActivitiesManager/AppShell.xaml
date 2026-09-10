@@ -15,17 +15,17 @@
         ContentTemplate="{DataTemplate pages:MainPage}"
         Route="main" />
 
-    <!-- 2. Màn hình Quản trị Tài khoản Admin (US 05) -->
+    <!-- 2. Màn hình Quản lý Phân quyền (Admin / US 05) -->
     <ShellContent
-        Title="Quản trị Tài khoản (Admin)"
-        Icon="{StaticResource IconAccounts}"
-        ContentTemplate="{DataTemplate pages:AccountListPage}"
-        Route="accounts" />
+        Title="Quản lý Phân quyền"
+        Icon="{StaticResource IconUsers}"
+        ContentTemplate="{DataTemplate pages:UserManagementPage}"
+        Route="users" />
 
     <!-- 3. Màn hình Đăng nhập (Login) -->
     <ShellContent
-        Title="Đăng nhập / Chuyển tài khoản"
-        Icon="{StaticResource IconPerson}"
+        Title="Tài khoản &amp; Đăng nhập"
+        Icon="{StaticResource IconAccount}"
         ContentTemplate="{DataTemplate pages:LoginPage}"
         Route="login" />
 
