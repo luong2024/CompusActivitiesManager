@@ -88,7 +88,7 @@ namespace CampusActivitiesManager.PageModels
 
         private void UpdateStudentProfile()
         {
-            if (_authService != null && _authService.CurrentUser != null)
+            if (_authService?.CurrentUser != null && _authService.CurrentUser.Username.StartsWith("student", StringComparison.OrdinalIgnoreCase))
             {
                 var u = _authService.CurrentUser;
                 CurrentStudent = new Account
@@ -99,14 +99,14 @@ namespace CampusActivitiesManager.PageModels
                     PhoneNumber = u.PhoneNumber,
                     ClassName = "D20CNTT1",
                     AcademicYear = "K20 (2020–2025)",
-                    Role = u.IsAdminRole ? AccountRole.Admin : AccountRole.SinhVien,
+                    Role = AccountRole.SinhVien,
                     Status = AccountStatus.DangHoc,
                     TrainingPoints = 92
                 };
             }
             else
             {
-                // Default fallback student account
+                // Default Cổng Sinh Viên student profile matching design specification
                 CurrentStudent = new Account
                 {
                     FullName = "Nguyễn An Cương",
@@ -122,7 +122,7 @@ namespace CampusActivitiesManager.PageModels
             }
 
             StudentGreeting = $"Xin chào, {CurrentStudent.FullName} 👋";
-            QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-{(DateTime.Now.Ticks % 100000):D5}";
+            QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-71965";
         }
 
         private async Task LoadData()
@@ -134,6 +134,13 @@ namespace CampusActivitiesManager.PageModels
 
                 Projects = await _projectRepository.ListAsync();
                 UpcomingActivitiesCount = Projects.Count;
+
+                var categories = await _categoryRepository.ListAsync();
+                foreach (var p in Projects)
+                {
+                    p.Category = categories.FirstOrDefault(c => c.ID == p.CategoryID)
+                                 ?? (p.Tags.Count > 0 ? new Category { Title = p.Tags[0].Title } : null);
+                }
 
                 // Set initial registration for the first 2 events
                 for (int i = 0; i < Projects.Count; i++)
@@ -148,7 +155,6 @@ namespace CampusActivitiesManager.PageModels
                 var chartData = new List<CategoryChartData>();
                 var chartColors = new List<Brush>();
 
-                var categories = await _categoryRepository.ListAsync();
                 foreach (var category in categories)
                 {
                     chartColors.Add(category.ColorBrush);

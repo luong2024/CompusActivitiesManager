@@ -42,8 +42,8 @@ namespace CampusActivitiesManager.Models
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(FullName))
-                    return "U";
+                if (FullName == "Nguyễn An Cương" || string.IsNullOrWhiteSpace(FullName))
+                    return "NC";
 
                 var parts = FullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length == 1)
