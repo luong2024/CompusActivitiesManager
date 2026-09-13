@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
@@ -33,9 +33,10 @@
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
+		<MauiVersion>9.0.80</MauiVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
-		<WindowsPackageType>None</WindowsPackageType>
+		<WindowsPackageType Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">None</WindowsPackageType>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
@@ -43,6 +44,10 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+
+		<!-- Fix for Android Fast Deployment / RemoveDirFixed (XARDF7024) -->
+		<EmbedAssembliesIntoApk Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">true</EmbedAssembliesIntoApk>
+		<RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -72,6 +77,13 @@
 		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.8" />
 		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10" />
 		<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.6" />
+	</ItemGroup>
+
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<PackageReference Include="Xamarin.AndroidX.Navigation.UI" Version="2.8.9.1" />
+		<PackageReference Include="Xamarin.AndroidX.Navigation.Fragment" Version="2.8.9.1" />
+		<PackageReference Include="Xamarin.AndroidX.Navigation.Runtime" Version="2.8.9.1" />
+		<PackageReference Include="Xamarin.AndroidX.Navigation.Common" Version="2.8.9.1" />
 	</ItemGroup>
 	
 </Project>

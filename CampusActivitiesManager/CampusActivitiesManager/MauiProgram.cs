@@ -1,6 +1,10 @@
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
+using CampusActivitiesManager.Data;
+using CampusActivitiesManager.PageModels;
+using CampusActivitiesManager.Pages;
+using CampusActivitiesManager.Services;
 
 namespace CampusActivitiesManager
 {
@@ -43,22 +47,30 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
 
+            // PageModels
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<ProjectListPageModel>();
             builder.Services.AddSingleton<ManageMetaPageModel>();
             builder.Services.AddSingleton<UserManagementPageModel>();
-            builder.Services.AddSingleton<UserManagementPage>();
-
             builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<RegisterViewModel>();
+            builder.Services.AddTransient<CreateUserViewModel>();
+            builder.Services.AddTransient<EditUserRoleViewModel>();
+            builder.Services.AddTransient<AccessDeniedViewModel>();
+            builder.Services.AddTransient<ProjectDetailPageModel>();
+            builder.Services.AddTransient<TaskDetailPageModel>();
+
+            // Pages
+            builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<UserManagementPage>();
             builder.Services.AddTransient<LoginPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
-
             builder.Services.AddTransientWithShellRoute<CreateUserPage, CreateUserViewModel>("createuser");
-            builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
-            builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
             builder.Services.AddTransientWithShellRoute<EditUserRolePage, EditUserRoleViewModel>("editrole");
             builder.Services.AddTransientWithShellRoute<AccessDeniedPage, AccessDeniedViewModel>("accessdenied");
+            builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
+            builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
 
             return builder.Build();
         }

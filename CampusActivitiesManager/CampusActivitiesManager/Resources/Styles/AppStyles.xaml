@@ -115,6 +115,72 @@
                 Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
                 Size="{StaticResource size240}" />
 
+    <FontImageSource x:Key="IconAccounts"
+                     Glyph="{x:Static f:FluentUI.people_community_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconFilter"
+                     Glyph="{x:Static f:FluentUI.filter_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconSearch"
+                     Glyph="{x:Static f:FluentUI.search_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconDismiss"
+                     Glyph="{x:Static f:FluentUI.dismiss_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconMore"
+                     Glyph="{x:Static f:FluentUI.more_vertical_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconEye"
+                     Glyph="{x:Static f:FluentUI.eye_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconEyeOff"
+                     Glyph="{x:Static f:FluentUI.eye_off_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconMail"
+                     Glyph="{x:Static f:FluentUI.mail_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconLock"
+                     Glyph="{x:Static f:FluentUI.lock_closed_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconFingerprint"
+                     Glyph="{x:Static f:FluentUI.fingerprint_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
+    <FontImageSource x:Key="IconPerson"
+                     Glyph="{x:Static f:FluentUI.person_24_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
+
     <Style TargetType="Label">
         <Setter Property="TextColor"
                 Value="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />

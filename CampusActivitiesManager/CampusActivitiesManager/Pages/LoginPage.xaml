@@ -5,6 +5,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:DataType="pageModels:LoginViewModel"
              x:Class="CampusActivitiesManager.Pages.LoginPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
              Title="{Binding Title}">
 
     <ScrollView>
@@ -12,7 +13,7 @@
 
             <!-- Logo & Title Header -->
             <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
-                <Border HeightRequest="64" WidthRequest="64" StrokeShape="RoundRectangle 32" Stroke="Transparent" BackgroundColor="#4F46E5" HorizontalOptions="Center">
+                <Border HeightRequest="64" WidthRequest="64" StrokeShape="RoundRectangle 32" Stroke="Transparent" Background="{StaticResource PrimaryGradientBrush}" HorizontalOptions="Center">
                     <Label Text="🎓" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" />
                 </Border>
                 <Label Text="Campus Activities Manager" Style="{StaticResource Title2}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
@@ -77,10 +78,11 @@
                     <!-- Login Button -->
                     <Button Text="Đăng nhập"
                             Command="{Binding LoginCommand}"
-                            BackgroundColor="#4F46E5"
+                            Background="{StaticResource PrimaryGradientBrush}"
                             TextColor="White"
                             FontAttributes="Bold"
                             HeightRequest="48"
+                            CornerRadius="12"
                             Margin="0,8,0,0" />
 
                     <!-- Register & Forgot Password -->
@@ -115,25 +117,25 @@
                         <Button Grid.Row="0" Grid.Column="0"
                                 Text="👑 Admin"
                                 Command="{Binding QuickLoginCommand}" CommandParameter="admin"
-                                BackgroundColor="#DC2626" TextColor="White" HeightRequest="40" FontSize="12" />
+                                BackgroundColor="#DC2626" TextColor="White" HeightRequest="40" FontSize="12" CornerRadius="10" />
 
                         <!-- Manager -->
                         <Button Grid.Row="0" Grid.Column="1"
                                 Text="💼 Manager"
                                 Command="{Binding QuickLoginCommand}" CommandParameter="manager"
-                                BackgroundColor="#2563EB" TextColor="White" HeightRequest="40" FontSize="12" />
+                                BackgroundColor="#2563EB" TextColor="White" HeightRequest="40" FontSize="12" CornerRadius="10" />
 
                         <!-- Student 1 -->
                         <Button Grid.Row="1" Grid.Column="0"
                                 Text="🎓 Student 1"
                                 Command="{Binding QuickLoginCommand}" CommandParameter="student1"
-                                BackgroundColor="#16A34A" TextColor="White" HeightRequest="40" FontSize="12" />
+                                BackgroundColor="#16A34A" TextColor="White" HeightRequest="40" FontSize="12" CornerRadius="10" />
 
                         <!-- Guest -->
                         <Button Grid.Row="1" Grid.Column="1"
                                 Text="👤 Guest"
                                 Command="{Binding QuickLoginCommand}" CommandParameter="guest"
-                                BackgroundColor="#6B7280" TextColor="White" HeightRequest="40" FontSize="12" />
+                                BackgroundColor="#6B7280" TextColor="White" HeightRequest="40" FontSize="12" CornerRadius="10" />
                     </Grid>
                 </VerticalStackLayout>
             </Border>

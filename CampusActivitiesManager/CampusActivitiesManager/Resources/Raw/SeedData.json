@@ -1,60 +1,63 @@
 {
     "Projects": [
         {
-            "Name": "Balance",
-            "Description": "Improve work-life balance.",
+            "Name": "Hội Thảo AI & Chuyển Đổi Số 2026",
+            "Description": "Hội thảo chuyên đề Trí tuệ nhân tạo và Cơ hội nghề nghiệp cho sinh viên CNTT tại Hội trường A2.",
             "Icon": "\uea28",
-            "Category": { "Title": "work", "Color": "#3068df" },
+            "Category": { "Title": "Học thuật", "Color": "#4F46E5" },
             "Tags": [
-                { "Title": "work", "Color": "#3068df" }
+                { "Title": "Học thuật", "Color": "#4F46E5" },
+                { "Title": "AI & Tech", "Color": "#7C3AED" }
             ],
             "Tasks": [
-                { "Title": "Survey Employees", "IsCompleted": false },
-                { "Title": "Analyze Survey Results", "IsCompleted": false },
-                { "Title": "Develop Action Plan", "IsCompleted": false }
+                { "Title": "Đăng ký tham dự Hội thảo AI tại Hội trường A2", "IsCompleted": true },
+                { "Title": "Quét mã QR điểm danh đầu giờ nhận vé điện tử", "IsCompleted": false },
+                { "Title": "Nộp bài thu hoạch nhận 5 Điểm rèn luyện", "IsCompleted": false }
             ]
         },
         {
-            "Name": "Personal",
-            "Description": "Learn to speak another language.",
-            "Icon": "\uf8fe",
-            "Category": { "Title": "education", "Color": "#8800FF" },
-            "Tags": [
-                { "Title": "personal", "Color": "#FF4500" }
-            ],
-            "Tasks": [
-                { "Title": "Read a Book", "IsCompleted": false },
-                { "Title": "Attend a Workshop", "IsCompleted": false },
-                { "Title": "Practice a Hobby", "IsCompleted": false }
-            ]
-        },
-        {
-            "Name": "Fitness",
-            "Description": "Promote health and fitness activities",
+            "Name": "Giải Bóng Đá Sinh Viên Toàn Trường",
+            "Description": "Giải đấu thể thao thường niên tranh cúp Vô địch giữa các khoa viện tại Sân vận động trường.",
             "Icon": "\uf837",
-            "Category": { "Title": "self", "Color": "#FF3300" },
+            "Category": { "Title": "Thể thao", "Color": "#10B981" },
             "Tags": [
-                { "Title": "health", "Color": "#32CD32" }
+                { "Title": "Thể thao", "Color": "#10B981" },
+                { "Title": "Giải đấu", "Color": "#059669" }
             ],
             "Tasks": [
-                { "Title": "Morning Yoga", "IsCompleted": false },
-                { "Title": "Evening Run", "IsCompleted": false },
-                { "Title": "Healthy Cooking Class", "IsCompleted": false }
+                { "Title": "Đăng ký danh sách đội bóng đại diện lớp", "IsCompleted": true },
+                { "Title": "Tham gia lễ khai mạc tại Sân vận động trường", "IsCompleted": false },
+                { "Title": "Điểm danh cổ vũ nhận 3 Điểm rèn luyện", "IsCompleted": false }
             ]
         },
         {
-            "Name": "Family and Friends",
-            "Description": "Strengthen relationships with family and friends.",
+            "Name": "Chiến Dịch Tình Nguyện Mùa Hè Xanh",
+            "Description": "Hoạt động thiện nguyện vì cộng đồng, hỗ trợ bà con và các em nhỏ tại địa phương khó khăn.",
             "Icon": "\uf5a9",
-            "Category": { "Title": "relationships", "Color": "#FF9900" },
+            "Category": { "Title": "Tình nguyện", "Color": "#EF4444" },
             "Tags": [
-                { "Title": "family", "Color": "#1E90FF" },
-                { "Title": "friends", "Color": "#FF69B4" }
+                { "Title": "Tình nguyện", "Color": "#EF4444" },
+                { "Title": "Cộng đồng", "Color": "#F59E0B" }
             ],
             "Tasks": [
-                { "Title": "Plan a Family Reunion", "IsCompleted": false },
-                { "Title": "Organize a Friends' Get-together", "IsCompleted": false },
-                { "Title": "Weekly Phone Calls", "IsCompleted": false }
+                { "Title": "Tham gia buổi tập huấn kỹ năng tình nguyện viên", "IsCompleted": false },
+                { "Title": "Điểm danh nhận áo xanh và vật phẩm chiến dịch", "IsCompleted": false },
+                { "Title": "Tổng kết chiến dịch nhận Giấy chứng nhận Đoàn trường", "IsCompleted": false }
+            ]
+        },
+        {
+            "Name": "Ngày Hội Việc Làm Job Fair 2026",
+            "Description": "Gặp gỡ hơn 50 doanh nghiệp công nghệ hàng đầu, nộp CV và phỏng vấn trực tiếp tại sảnh chính.",
+            "Icon": "\uf8fe",
+            "Category": { "Title": "Kỹ năng", "Color": "#7C3AED" },
+            "Tags": [
+                { "Title": "Kỹ năng", "Color": "#7C3AED" },
+                { "Title": "Doanh nghiệp", "Color": "#2563EB" }
+            ],
+            "Tasks": [
+                { "Title": "Hoàn thiện CV cá nhân và chuẩn bị hồ sơ ứng tuyển", "IsCompleted": false },
+                { "Title": "Quét mã QR check-in tại các gian hàng doanh nghiệp", "IsCompleted": false },
+                { "Title": "Tham gia phỏng vấn thử nhận điểm rèn luyện", "IsCompleted": false }
             ]
         }
     ]
