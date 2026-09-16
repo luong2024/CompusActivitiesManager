@@ -1,6 +1,7 @@
 using CampusActivitiesManager.Api.Models;
 using System.Net;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json;
 using Xunit;
 
@@ -39,6 +40,21 @@ namespace CampusActivitiesManager.Api.Tests
 
             string userId = apiResult.Data.GetProperty("id").GetString()!;
             return _factory.AccountService.Database[userId];
+        }
+
+        /// <summary>
+        /// DoD6: Khởi tạo sẵn tối thiểu 5 tài khoản mock data
+        /// </summary>
+        [Fact]
+        public async Task DoD6_Database_ShouldContainAtLeastFiveMockAccounts()
+        {
+            var response = await _client.GetAsync("/api/v1/accounts");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<UserAccountDto>>>(_jsonOptions);
+            Assert.NotNull(result);
+            Assert.NotNull(result.Data);
+            Assert.True(result.Data.Count >= 5, $"Expected at least 5 mock accounts, but found {result.Data.Count}");
         }
 
         /// <summary>
@@ -308,6 +324,61 @@ namespace CampusActivitiesManager.Api.Tests
             Assert.NotNull(login2Data);
             Assert.True(login2Data.Success);
             Assert.True(login2Data.Data?.IsActive);
+        }
+
+        /// <summary>
+        /// AC2 / Conflict test: Bắt lỗi khi tạo tài khoản trùng email và trả về HTTP 409 Conflict.
+        /// </summary>
+        [Fact]
+        public async Task CreateAccount_DuplicateEmail_ShouldReturn409Conflict()
+        {
+            string email = $"duplicate_{Guid.NewGuid():N}@campus.edu";
+            var request = new CreateAccountRequest
+            {
+                Email = email,
+                Password = "SecurePassword@2026",
+                FullName = "Nguyen Van Duplicate",
+                Role = "Student"
+            };
+
+            // Lần 1: Thành công
+            var firstRes = await _client.PostAsJsonAsync("/api/v1/accounts", request);
+            Assert.Equal(HttpStatusCode.Created, firstRes.StatusCode);
+
+            // Lần 2: Trùng email -> 409 Conflict
+            var secondRes = await _client.PostAsJsonAsync("/api/v1/accounts", request);
+            Assert.Equal(HttpStatusCode.Conflict, secondRes.StatusCode);
+
+            var error = await secondRes.Content.ReadFromJsonAsync<ApiErrorResponse>(_jsonOptions);
+            Assert.NotNull(error);
+            Assert.Equal("CONFLICT", error.Error);
+            Assert.Equal("Email is already registered", error.Message);
+        }
+
+        /// <summary>
+        /// Toggle status test: Chuyển đổi trạng thái khóa/mở khóa linh hoạt
+        /// </summary>
+        [Fact]
+        public async Task ToggleAccountStatus_ShouldSwitchBetweenLockedAndUnlocked()
+        {
+            var account = await CreateTestAccountAsync("toggle_test");
+            string id = account.Id;
+
+            // Lần 1 toggle: Đang active -> chuyển sang locked
+            var toggle1 = await _client.PostAsync($"/api/v1/accounts/{id}/toggle-status", null);
+            Assert.Equal(HttpStatusCode.OK, toggle1.StatusCode);
+            var data1 = await toggle1.Content.ReadFromJsonAsync<ApiResponse<AccountStatusResponse>>(_jsonOptions);
+            Assert.NotNull(data1);
+            Assert.True(data1.Data?.IsLocked);
+            Assert.False(data1.Data?.IsActive);
+
+            // Lần 2 toggle: Đang locked -> chuyển sang active
+            var toggle2 = await _client.PostAsync($"/api/v1/accounts/{id}/toggle-status", null);
+            Assert.Equal(HttpStatusCode.OK, toggle2.StatusCode);
+            var data2 = await toggle2.Content.ReadFromJsonAsync<ApiResponse<AccountStatusResponse>>(_jsonOptions);
+            Assert.NotNull(data2);
+            Assert.False(data2.Data?.IsLocked);
+            Assert.True(data2.Data?.IsActive);
         }
     }
 }

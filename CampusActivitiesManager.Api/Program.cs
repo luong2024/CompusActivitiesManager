@@ -1,6 +1,5 @@
 using CampusActivitiesManager.Api.Services;
 using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -9,12 +8,25 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Configure custom model validation to suppress default 400 filter and return RFC 7807 formatted ApiErrorResponse
 builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
 
-// Register Account & Auth Services
+// Configure CORS for client applications (.NET MAUI & Web)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+// Register Account & Auth Services (DI)
 builder.Services.AddScoped<IFirebaseAccountService, FirebaseAccountService>();
 
 // Configure Firebase JWT Authentication
@@ -34,6 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -46,11 +59,11 @@ if (FirebaseApp.DefaultInstance == null)
     try 
     {
         FirebaseApp.Create();
-        Console.WriteLine("Firebase initialized successfully using Application Default Credentials.");
+        app.Logger.LogInformation("Firebase initialized successfully using Application Default Credentials.");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Could not initialize Firebase Default Instance: {ex.Message}");
+        app.Logger.LogWarning("Could not initialize Firebase Default Instance: {Message}", ex.Message);
     }
 }
 
@@ -62,9 +75,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Health check endpoint
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
 app.MapControllers();
 

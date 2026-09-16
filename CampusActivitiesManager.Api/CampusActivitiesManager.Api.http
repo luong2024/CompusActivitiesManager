@@ -1,6 +1,99 @@
-@CampusActivitiesManager.Api_HostAddress = http://localhost:5073
+@HostAddress = http://localhost:5073
 
-GET {{CampusActivitiesManager.Api_HostAddress}}/weatherforecast/
+### 1. Health Check
+GET {{HostAddress}}/health
 Accept: application/json
 
-###
+### 2. Create Account - Success (AC1)
+POST {{HostAddress}}/api/v1/accounts
+Content-Type: application/json
+
+{
+  "email": "student_demo@campus.edu",
+  "password": "SecurePassword@2026",
+  "fullName": "Nguyen Van A",
+  "role": "Student",
+  "phoneNumber": "0912345678",
+  "studentCode": "B26DCCN001"
+}
+
+### 3. Create Account - Validation Failure (AC2: Invalid email & short password)
+POST {{HostAddress}}/api/v1/accounts
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "123",
+  "fullName": "",
+  "role": "InvalidRole"
+}
+
+### 4. Get All Accounts
+GET {{HostAddress}}/api/v1/accounts
+Accept: application/json
+
+### 5. Get Account By ID
+GET {{HostAddress}}/api/v1/accounts/mock_admin_01
+Accept: application/json
+
+### 6. Update Account Information (AC3)
+PUT {{HostAddress}}/api/v1/accounts/mock_student_04
+Content-Type: application/json
+
+{
+  "fullName": "Nguyen Van An Updated",
+  "phoneNumber": "0987654321",
+  "avatarUrl": "https://storage.googleapis.com/campus/avatar.png",
+  "role": "Student"
+}
+
+### 7. Update Non-Existent Account (AC4: 404 Not Found)
+PUT {{HostAddress}}/api/v1/accounts/non_existent_account_99999
+Content-Type: application/json
+
+{
+  "fullName": "Nobody"
+}
+
+### 8. Lock Account (AC 35.1.1)
+POST {{HostAddress}}/api/v1/accounts/mock_student_04/lock
+Accept: application/json
+
+### 9. Unlock Account (AC 35.1.2)
+POST {{HostAddress}}/api/v1/accounts/mock_student_04/unlock
+Accept: application/json
+
+### 10. Lock Non-Existent Account (AC 35.1.3: 404 Not Found)
+POST {{HostAddress}}/api/v1/accounts/non_existent_account_99999/lock
+Accept: application/json
+
+### 11. Toggle Account Status
+POST {{HostAddress}}/api/v1/accounts/mock_student_04/toggle-status
+Accept: application/json
+
+### 12. Login - Active Account (Success: 200 OK)
+POST {{HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@campus.edu",
+  "password": "Admin@123456"
+}
+
+### 13. Login - Locked Account (AC 35.1.5: 403 Forbidden)
+POST {{HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "locked_student@campus.edu",
+  "password": "Student@123456"
+}
+
+### 14. Login - Invalid Credentials (401 Unauthorized)
+POST {{HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@campus.edu",
+  "password": "WrongPassword!"
+}

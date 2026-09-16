@@ -4,12 +4,126 @@ using System.Collections.Concurrent;
 
 namespace CampusActivitiesManager.Api.Tests
 {
+    /// <summary>
+    /// Dịch vụ tài khoản In-Memory phục vụ kiểm thử tích hợp tự động và nạp sẵn mock data (DoD6).
+    /// </summary>
     public class InMemoryAccountService : IFirebaseAccountService
     {
         private readonly ConcurrentDictionary<string, UserAccountDto> _accounts = new();
         private readonly ConcurrentDictionary<string, string> _passwords = new();
 
         public ConcurrentDictionary<string, UserAccountDto> Database => _accounts;
+
+        public InMemoryAccountService()
+        {
+            SeedMockData();
+        }
+
+        /// <summary>
+        /// DoD6: Khởi tạo tối thiểu 5 tài khoản mẫu với đầy đủ các vai trò (Admin, Manager, Lecturer, Student)
+        /// </summary>
+        private void SeedMockData()
+        {
+            var mockAccounts = new List<(UserAccountDto Account, string Password)>
+            {
+                (
+                    new UserAccountDto
+                    {
+                        Id = "mock_admin_01",
+                        Email = "admin@campus.edu",
+                        FullName = "Quản trị viên Hệ thống",
+                        Role = "Admin",
+                        PhoneNumber = "0901234567",
+                        StudentCode = null,
+                        IsDisabled = false,
+                        IsActive = true,
+                        CreatedAt = "2026-01-01T00:00:00Z"
+                    },
+                    "Admin@123456"
+                ),
+                (
+                    new UserAccountDto
+                    {
+                        Id = "mock_manager_02",
+                        Email = "manager@campus.edu",
+                        FullName = "Ban Tổ chức Sự kiện",
+                        Role = "Manager",
+                        PhoneNumber = "0902345678",
+                        StudentCode = null,
+                        IsDisabled = false,
+                        IsActive = true,
+                        CreatedAt = "2026-01-02T00:00:00Z"
+                    },
+                    "Manager@123456"
+                ),
+                (
+                    new UserAccountDto
+                    {
+                        Id = "mock_lecturer_03",
+                        Email = "lecturer@campus.edu",
+                        FullName = "TS. Trần Văn B",
+                        Role = "Lecturer",
+                        PhoneNumber = "0903456789",
+                        StudentCode = null,
+                        IsDisabled = false,
+                        IsActive = true,
+                        CreatedAt = "2026-01-03T00:00:00Z"
+                    },
+                    "Lecturer@123456"
+                ),
+                (
+                    new UserAccountDto
+                    {
+                        Id = "mock_student_04",
+                        Email = "student1@campus.edu",
+                        FullName = "Nguyễn Văn An",
+                        Role = "Student",
+                        PhoneNumber = "0904567890",
+                        StudentCode = "B26DCCN001",
+                        IsDisabled = false,
+                        IsActive = true,
+                        CreatedAt = "2026-01-04T00:00:00Z"
+                    },
+                    "Student@123456"
+                ),
+                (
+                    new UserAccountDto
+                    {
+                        Id = "mock_student_05",
+                        Email = "student2@campus.edu",
+                        FullName = "Lê Thị Mai",
+                        Role = "Student",
+                        PhoneNumber = "0905678901",
+                        StudentCode = "B26DCCN002",
+                        IsDisabled = false,
+                        IsActive = true,
+                        CreatedAt = "2026-01-05T00:00:00Z"
+                    },
+                    "Student@123456"
+                ),
+                (
+                    new UserAccountDto
+                    {
+                        Id = "mock_locked_06",
+                        Email = "locked_student@campus.edu",
+                        FullName = "Phạm Văn Khóa",
+                        Role = "Student",
+                        PhoneNumber = "0906789012",
+                        StudentCode = "B26DCCN003",
+                        IsDisabled = true,
+                        IsActive = false,
+                        CreatedAt = "2026-01-06T00:00:00Z"
+                    },
+                    "Student@123456"
+                )
+            };
+
+            foreach (var (account, password) in mockAccounts)
+            {
+                _accounts[account.Id] = account;
+                _passwords[account.Email.ToLowerInvariant()] = password;
+            }
+        }
 
         public Task<UserAccountDto> CreateAccountAsync(CreateAccountRequest request)
         {
