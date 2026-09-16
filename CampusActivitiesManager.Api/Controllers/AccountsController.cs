@@ -1,34 +1,19 @@
 using CampusActivitiesManager.Api.Models;
+using CampusActivitiesManager.Api.Services;
 using FirebaseAdmin.Auth;
-using Google.Cloud.Firestore;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CampusActivitiesManager.Api.Controllers
 {
     [Route("api/v1/accounts")]
     [ApiController]
-    //[Authorize(Roles = "Admin")]
     public class AccountsController : ControllerBase
     {
-        private readonly FirebaseAuth _firebaseAuth;
-        private readonly FirestoreDb? _firestoreDb;
+        private readonly IFirebaseAccountService _accountService;
 
-        public AccountsController()
+        public AccountsController(IFirebaseAccountService accountService)
         {
-            _firebaseAuth = FirebaseAuth.DefaultInstance;
-            
-            try 
-            {
-                // In a real app, inject this or get the project ID dynamically
-                // Currently defaulting to a dummy project ID if environment variable is missing
-                string projectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT") ?? "campusacmanage";
-                _firestoreDb = FirestoreDb.Create(projectId);
-            }
-            catch
-            {
-                _firestoreDb = null; // Proceeding without Firestore if not configured properly yet
-            }
+            _accountService = accountService;
         }
 
         [HttpPost]
@@ -41,38 +26,15 @@ namespace CampusActivitiesManager.Api.Controllers
 
             try
             {
-                var userArgs = new UserRecordArgs
-                {
-                    Email = request.Email,
-                    Password = request.Password,
-                    DisplayName = request.FullName,
-                    PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber
-                };
-
-                UserRecord userRecord = await _firebaseAuth.CreateUserAsync(userArgs);
-
-                // Store extended attributes in Firestore
-                if (_firestoreDb != null)
-                {
-                    DocumentReference docRef = _firestoreDb.Collection("users").Document(userRecord.Uid);
-                    await docRef.SetAsync(new
-                    {
-                        email = request.Email,
-                        fullName = request.FullName,
-                        role = request.Role,
-                        phoneNumber = request.PhoneNumber,
-                        studentCode = request.StudentCode,
-                        createdAt = DateTime.UtcNow
-                    });
-                }
+                var user = await _accountService.CreateAccountAsync(request);
 
                 var responseData = new
                 {
-                    id = userRecord.Uid,
-                    email = request.Email,
-                    fullName = request.FullName,
-                    role = request.Role,
-                    createdAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                    id = user.Id,
+                    email = user.Email,
+                    fullName = user.FullName,
+                    role = user.Role,
+                    createdAt = user.CreatedAt
                 };
 
                 return StatusCode(201, new ApiResponse<object>
@@ -120,43 +82,50 @@ namespace CampusActivitiesManager.Api.Controllers
         {
             try
             {
-                if (_firestoreDb == null)
-                {
-                    return StatusCode(500, new ApiErrorResponse
-                    {
-                        Success = false,
-                        StatusCode = 500,
-                        Error = "INTERNAL_SERVER_ERROR",
-                        Message = "Firestore is not configured properly."
-                    });
-                }
-
-                CollectionReference usersRef = _firestoreDb.Collection("users");
-                QuerySnapshot snapshot = await usersRef.GetSnapshotAsync();
-                
-                var users = snapshot.Documents.Select(doc => 
-                {
-                    var dict = doc.ToDictionary();
-                    return new
-                    {
-                        id = doc.Id,
-                        email = dict.ContainsKey("email") ? dict["email"] : "",
-                        fullName = dict.ContainsKey("fullName") ? dict["fullName"] : "",
-                        role = dict.ContainsKey("role") ? dict["role"] : "Student",
-                        phoneNumber = dict.ContainsKey("phoneNumber") ? dict["phoneNumber"] : null,
-                        studentCode = dict.ContainsKey("studentCode") ? dict["studentCode"] : null,
-                        avatarUrl = dict.ContainsKey("avatarUrl") ? dict["avatarUrl"] : null,
-                        createdAt = dict.ContainsKey("createdAt") ? dict["createdAt"] : null,
-                        isActive = dict.ContainsKey("isActive") ? dict["isActive"] : true
-                    };
-                }).ToList();
-
+                var users = await _accountService.GetAllAccountsAsync();
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
                     StatusCode = 200,
                     Message = "Accounts retrieved successfully",
                     Data = users
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    Error = "INTERNAL_SERVER_ERROR",
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAccountById(string id)
+        {
+            try
+            {
+                var user = await _accountService.GetAccountByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound(new ApiErrorResponse
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        Error = "NOT_FOUND",
+                        Message = $"Account with ID {id} not found"
+                    });
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    StatusCode = 200,
+                    Message = "Account retrieved successfully",
+                    Data = user
                 });
             }
             catch (Exception ex)
@@ -182,12 +151,8 @@ namespace CampusActivitiesManager.Api.Controllers
 
             try
             {
-                UserRecord? existingUser = null;
-                try
-                {
-                    existingUser = await _firebaseAuth.GetUserAsync(id);
-                }
-                catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+                var existingUser = await _accountService.GetAccountByIdAsync(id);
+                if (existingUser == null)
                 {
                     return NotFound(new ApiErrorResponse
                     {
@@ -198,38 +163,7 @@ namespace CampusActivitiesManager.Api.Controllers
                     });
                 }
 
-                var userArgs = new UserRecordArgs
-                {
-                    Uid = id
-                };
-
-                if (!string.IsNullOrEmpty(request.FullName))
-                {
-                    userArgs.DisplayName = request.FullName;
-                }
-
-                if (!string.IsNullOrEmpty(request.PhoneNumber))
-                {
-                    userArgs.PhoneNumber = request.PhoneNumber;
-                }
-
-                UserRecord updatedUser = await _firebaseAuth.UpdateUserAsync(userArgs);
-
-                // Update Firestore
-                if (_firestoreDb != null)
-                {
-                    DocumentReference docRef = _firestoreDb.Collection("users").Document(id);
-                    var updates = new Dictionary<string, object>();
-                    
-                    if (!string.IsNullOrEmpty(request.FullName)) updates["fullName"] = request.FullName;
-                    if (!string.IsNullOrEmpty(request.PhoneNumber)) updates["phoneNumber"] = request.PhoneNumber;
-                    if (!string.IsNullOrEmpty(request.AvatarUrl)) updates["avatarUrl"] = request.AvatarUrl;
-                    if (!string.IsNullOrEmpty(request.Role)) updates["role"] = request.Role;
-                    
-                    updates["updatedAt"] = DateTime.UtcNow;
-
-                    await docRef.SetAsync(updates, SetOptions.MergeAll);
-                }
+                var updatedUser = await _accountService.UpdateAccountAsync(id, request);
 
                 return Ok(new ApiResponse<object>
                 {
@@ -238,12 +172,22 @@ namespace CampusActivitiesManager.Api.Controllers
                     Message = "Account updated successfully",
                     Data = new
                     {
-                        id = updatedUser.Uid,
+                        id = updatedUser.Id,
                         email = updatedUser.Email,
-                        fullName = request.FullName ?? existingUser.DisplayName,
-                        role = request.Role ?? "Student", // In real app, fetch existing role from Firestore
-                        updatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                        fullName = updatedUser.FullName,
+                        role = updatedUser.Role,
+                        updatedAt = updatedUser.UpdatedAt
                     }
+                });
+            }
+            catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+            {
+                return NotFound(new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    Error = "NOT_FOUND",
+                    Message = $"Account with ID {id} not found"
                 });
             }
             catch (FirebaseAuthException ex)
@@ -268,38 +212,139 @@ namespace CampusActivitiesManager.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// AC 35.1.1 & AC 35.1.3 & AC 35.1.4: Lock account endpoint
+        /// </summary>
+        [HttpPost("{id}/lock")]
+        public async Task<IActionResult> LockAccount(string id)
+        {
+            try
+            {
+                var existingUser = await _accountService.GetAccountByIdAsync(id);
+                if (existingUser == null)
+                {
+                    return NotFound(new ApiErrorResponse
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        Error = "NOT_FOUND",
+                        Message = $"Account with ID {id} not found"
+                    });
+                }
+
+                var response = await _accountService.SetAccountLockStatusAsync(id, true);
+
+                return Ok(new ApiResponse<AccountStatusResponse>
+                {
+                    Success = true,
+                    StatusCode = 200,
+                    Message = "Account locked successfully",
+                    Data = response
+                });
+            }
+            catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+            {
+                return NotFound(new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    Error = "NOT_FOUND",
+                    Message = $"Account with ID {id} not found"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    Error = "INTERNAL_SERVER_ERROR",
+                    Message = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// AC 35.1.2 & AC 35.1.3 & AC 35.1.4: Unlock account endpoint
+        /// </summary>
+        [HttpPost("{id}/unlock")]
+        public async Task<IActionResult> UnlockAccount(string id)
+        {
+            try
+            {
+                var existingUser = await _accountService.GetAccountByIdAsync(id);
+                if (existingUser == null)
+                {
+                    return NotFound(new ApiErrorResponse
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        Error = "NOT_FOUND",
+                        Message = $"Account with ID {id} not found"
+                    });
+                }
+
+                var response = await _accountService.SetAccountLockStatusAsync(id, false);
+
+                return Ok(new ApiResponse<AccountStatusResponse>
+                {
+                    Success = true,
+                    StatusCode = 200,
+                    Message = "Account unlocked successfully",
+                    Data = response
+                });
+            }
+            catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+            {
+                return NotFound(new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    Error = "NOT_FOUND",
+                    Message = $"Account with ID {id} not found"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    Error = "INTERNAL_SERVER_ERROR",
+                    Message = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Toggle status endpoint for backward compatibility
+        /// </summary>
         [HttpPost("{id}/toggle-status")]
         public async Task<IActionResult> ToggleAccountStatus(string id)
         {
             try
             {
-                UserRecord existingUser = await _firebaseAuth.GetUserAsync(id);
-                bool newStatus = !existingUser.Disabled;
-
-                var userArgs = new UserRecordArgs
+                var existingUser = await _accountService.GetAccountByIdAsync(id);
+                if (existingUser == null)
                 {
-                    Uid = id,
-                    Disabled = newStatus
-                };
-
-                UserRecord updatedUser = await _firebaseAuth.UpdateUserAsync(userArgs);
-
-                if (_firestoreDb != null)
-                {
-                    DocumentReference docRef = _firestoreDb.Collection("users").Document(id);
-                    await docRef.SetAsync(new { isActive = !newStatus, updatedAt = DateTime.UtcNow }, SetOptions.MergeAll);
+                    return NotFound(new ApiErrorResponse
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        Error = "NOT_FOUND",
+                        Message = $"Account with ID {id} not found"
+                    });
                 }
 
-                return Ok(new ApiResponse<object>
+                bool targetLockState = existingUser.IsActive; // if currently active, lock it; if locked, unlock it
+                var response = await _accountService.SetAccountLockStatusAsync(id, targetLockState);
+
+                return Ok(new ApiResponse<AccountStatusResponse>
                 {
                     Success = true,
                     StatusCode = 200,
-                    Message = newStatus ? "Account locked successfully" : "Account unlocked successfully",
-                    Data = new
-                    {
-                        id = updatedUser.Uid,
-                        isActive = !updatedUser.Disabled
-                    }
+                    Message = response.Message,
+                    Data = response
                 });
             }
             catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)

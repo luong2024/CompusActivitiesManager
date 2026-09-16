@@ -1,6 +1,6 @@
+using CampusActivitiesManager.Api.Services;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -13,6 +13,9 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options 
 {
     options.SuppressModelStateInvalidFilter = true;
 });
+
+// Register Account & Auth Services
+builder.Services.AddScoped<IFirebaseAccountService, FirebaseAccountService>();
 
 // Configure Firebase JWT Authentication
 string firebaseProjectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT") ?? "campusacmanage";
@@ -66,3 +69,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Make Program class accessible for Integration Tests (WebApplicationFactory<Program>)
+public partial class Program { }

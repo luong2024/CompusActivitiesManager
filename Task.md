@@ -1,64 +1,50 @@
-Danh sách nhiệm vụ cần thực hiện
+# Nhiệm vụ: Xây dựng API Quản lý Tài khoản (Create & Update)
 
-1. Thiết kế Model, Enum & Cấu trúc Dữ liệu
-- Tạo Enum & Model:
-  + Định nghĩa `enum Role { Admin, Manager, User, Guest }`.
-  + Khởi tạo Model `User` với các trường: `Id`, `Username`, `PasswordHash`, `Role` (kiểu `Role`), `IsActive` (kiểu `bool`).
-- Kế thừa Base Notifier: Cho phép `User` triển khai `INotifyPropertyChanged` hoặc kế thừa từ `BaseViewModel` để tự động kích hoạt cập nhật giao diện khi trường `Role` hoặc `IsActive` bị thay đổi.
+**Mã Task**: T35.1
+**User Story**: US35 – Account Management API (Phát triển API quản lý tài khoản: tạo, cập nhật, khóa/mở khóa tài khoản)
+**Người được giao (Assignee)**: Nguyễn Đức Mạnh
+**Trạng thái**: Hoàn thành (Done)
+**Thời gian dự kiến (Estimate)**: 10 giờ
 
-2. Xây dựng Data Store & Dịch vụ CSDL
-- Định nghĩa Interface: Tạo `IUserService<User>` hoặc `IDataStore<User>` bao gồm các phương thức: `GetUsersListAsync()`, `GetUserByIdAsync(string id)`, `UpdateUserRoleAsync(string id, Role newRole)`, `DeleteUserAsync(string id)`.
-- Hiện thực hóa Repository: Triển khai truy vấn CSDL (SQLite/MockData) để thực thi các tác vụ CRUD, xử lý cập nhật trạng thái `Role` và `IsActive` xuống bộ nhớ cục bộ.
+---
 
-3. Xây dựng AuthenticationService & Logic kiểm tra quyền
-- Quản lý phiên (Session): Tạo `IAuthenticationService` lưu trữ `CurrentUser` và `CurrentRole` trong suốt vòng đời phiên làm việc.
-- Xác thực logic: Viết hàm `bool CheckPermission(Role requiredRole)` so sánh cấp bậc phân quyền hiện tại với quyền tối thiểu cần để thực thi tác vụ/truy cập trang.
+## 1. Mục tiêu nhiệm vụ
+Xây dựng các RESTful API endpoints an toàn cho phép quản trị viên hệ thống có thể tạo mới (Create) và cập nhật (Update) tài khoản người dùng.
+Yêu cầu bắt buộc: API phải được tích hợp và đồng bộ hóa với Firebase Authentication để quản lý đăng nhập, đồng thời lưu trữ siêu dữ liệu (metadata) trên Cloud Firestore/Realtime Database.
 
-4. Cấu hình Dependency Injection (MauiProgram.cs)
-- Đăng ký Services:
-  + `builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>()`
-  + `builder.Services.AddSingleton<IUserService<User>, UserService>()`
-- Đăng ký View & ViewModel:
-  + Thêm `Transient` hoặc `Singleton` cho `LoginViewModel`, `UserManagementViewModel`, `EditUserRoleViewModel`.
-  + Đăng ký tương ứng cho `LoginPage`, `UserManagementPage`, `AccessDeniedPage`.
+## 2. Chi tiết các hạng mục cần thực hiện (Checklist)
 
-5. Khung điều hướng .NET MAUI Shell & Routing
-- Đăng ký Route: Dùng `Routing.RegisterRoute(nameof(UserManagementPage), typeof(UserManagementPage))` và `Routing.RegisterRoute(nameof(AccessDeniedPage), typeof(AccessDeniedPage))` trong `AppShell.xaml.cs`.
-- Guard Navigation: Trước khi gọi `Shell.Current.GoToAsync()`, gọi `CheckPermission(Role.Admin)`. Nếu không đủ điều kiện, chuyển hướng ngay về `//AccessDeniedPage`.
-- Truyền tham số: Cấu hình `[QueryProperty(nameof(UserId), "UserId")]` trên ViewModel nhận dữ liệu để load thông tin tài khoản cụ thể.
+### 2.1. Khởi tạo & Cấu hình Project
+- [x] Khởi tạo hoặc cập nhật project `CampusActivitiesManager.Api` (ASP.NET Core Web API).
+- [x] Cài đặt các thư viện/SDK cần thiết: `FirebaseAdmin`, `Google.Cloud.Firestore`.
+- [x] Thiết lập cấu hình Middleware và Dependency Injection trong `Program.cs`.
+- [x] Cấu hình xác thực Firebase thông qua Environment Variable `GOOGLE_APPLICATION_CREDENTIALS` để bảo mật.
 
-6. Xây dựng LoginViewModel & Luồng phân trang sau đăng nhập
-- Khai báo thuộc tính: `Username`, `Password`, `IsBusy` kết hợp `SetProperty` từ `BaseViewModel`.
-- LoginCommand:
-- Kiểm tra tài khoản qua `IUserService`.
-- Lưu thông tin người dùng vào `IAuthenticationService`.
-- Dùng `Shell.Current.GoToAsync("//...")` điều hướng về trang chủ tương ứng theo từng `Role` (Admin vào trang quản trị, User/Guest vào trang xem nội dung).
+### 2.2. Xây dựng DTO Models & Xử lý Validation
+- [x] **Tạo class `CreateAccountRequest`**: Thiết lập Data Annotations để validate (bắt buộc nhập, đúng định dạng Email, Password tối thiểu 8 ký tự, có đủ chữ hoa, thường, số, ký tự đặc biệt, Role chỉ nhận giá trị Admin/Lecturer/Student).
+- [x] **Tạo class `UpdateAccountRequest`**: Thiết lập các trường cho phép tuỳ chọn (nullable) như FullName, PhoneNumber, AvatarUrl, Role nhưng nếu có gửi lên thì phải đúng định dạng.
+- [x] **Tạo class Response chuẩn**: Xây dựng `ApiResponse<T>` và `ApiErrorResponse` theo chuẩn RFC 7807 đảm bảo JSON luôn trả về cấu trúc gồm `success`, `statusCode`, `message`, `data`/`errors`.
+- [x] Cấu hình tùy chỉnh (SuppressModelStateInvalidFilter) để ASP.NET Core không tự trả về lỗi 400 mặc định mà trả về định dạng `ApiErrorResponse` do lập trình viên định nghĩa.
 
-7. Xây dựng UserManagementViewModel
-- Danh sách phản ứng: Khởi tạo `ObservableCollection<User> UsersList` để tự động đồng bộ hiển thị.
-- Tích hợp Constructor Injection: Inject `IUserService` và `IAuthenticationService`.
-- Xây dựng Commands (ICommand):
-  + `LoadUsersCommand`: Gọi `GetUsersListAsync()` và nạp vào `UsersList`.
-  + `ChangeRoleCommand`: Gọi cập nhật quyền và làm mới danh sách.
-  + `DeleteUserCommand`: Gắn hàm `canExecute` để ngăn chặn việc Admin tự xóa chính mình.
+### 2.3. Triển khai API Endpoints (AccountsController)
+- [x] **Tạo endpoint `POST /api/v1/accounts` (Tạo tài khoản)**:
+  - Lấy dữ liệu từ Request, kiểm tra tính hợp lệ (Validation).
+  - Gọi `FirebaseAuth.DefaultInstance.CreateUserAsync()` để tạo tài khoản trên Firebase.
+  - Sử dụng `FirestoreDb` để lưu thêm thông tin (role, số điện thoại, avatar...) vào collection `users` tương ứng với `UID` vừa tạo.
+  - Xử lý các ngoại lệ (Exception) như: Trùng Email -> Trả về `409 Conflict`.
+  - Trả về HTTP `201 Created` kèm dữ liệu tài khoản nếu thành công.
 
-8. Thiết kế Giao diện XAML (UserManagementPage.xaml)
-- Bố cục Layout: Dùng `Grid` và `StackLayout` chia khối danh sách người dùng và thanh công cụ tìm kiếm/lọc vai trò.
-- Hiển thị danh sách (CollectionView/ListView):
-  + `ItemTemplate`: `DataTemplate` hiển thị `Username`, nhãn vai trò (`Role`).
-  + `Context Actions`: Khai báo `MenuItem` ("Đổi quyền", "Khóa/Mở tài khoản", "Xóa") bên trong `ViewCell.ContextActions` hoặc `SwipeView` để thao tác nhanh từng dòng.
-- Form biên tập: Sử dụng `Picker` (Binding `TwoWay` với `SelectedRole`) và `Button` gắn `Command="{Binding SaveRoleCommand}"`.
+- [x] **Tạo endpoint `PUT / PATCH /api/v1/accounts/{id}` (Cập nhật tài khoản)**:
+  - Kiểm tra xem user có tồn tại hay không bằng hàm `GetUserAsync()`. Nếu không, trả về `404 Not Found`.
+  - Nếu tồn tại, đồng bộ cập nhật trên Firebase Auth (`UpdateUserAsync`).
+  - Hợp nhất dữ liệu (Merge) các thay đổi vào document trên Firestore.
+  - Xử lý ngoại lệ bảo mật và hệ thống (500 Internal Server Error).
+  - Trả về HTTP `200 OK` kèm theo dữ liệu đã cập nhật.
 
-9. Xử lý Tương tác & Thông báo (Dialogs & Prompts)
-- DisplayActionSheet: Khi bấm "Đổi quyền" từ menu ngữ cảnh, mở hộp thoại chọn nhanh giữa các `Role` (`"Admin"`, `"Manager"`, `"User"`, `"Guest"`).
-- DisplayAlert:
-  + Pop-up xác nhận thao tác xóa tài khoản hoặc cảnh báo lỗi kết nối CSDL.
-  + Thông báo từ chối truy cập: *"Bạn không có quyền thực hiện hành động này!"*.
-
-10. Kiểm thử Toàn diện & Rà soát Phân quyền
-- Role Verification Matrix:
-  + Đăng nhập lần lượt bằng 4 tài khoản ứng với 4 vai trò (`Admin`, `Manager`, `User`, `Guest`).
-  + Kiểm tra tính khả dụng của nút bấm, menu quản lý và khả năng mở `UserManagementPage`.
-- Edge Cases & Security Test:
-  + Test cố tình điều hướng URL Shell trực tiếp đến trang quản trị khi đang ở tài khoản `Guest`/`User` (đảm bảo chuyển hướng chính xác về `AccessDeniedPage`).
-  + Kiểm tra khả năng lưu trữ trạng thái `Role` bền vững qua CSDL sau khi ứng dụng restart.
+## 3. Tiêu chí nghiệm thu (Acceptance Criteria)
+- **AC1**: Trả về `201 Created` và lưu DB thành công khi Request payload (Tạo mới) hợp lệ.
+- **AC2**: Trả về `400 Bad Request` và thông báo lỗi rõ ràng của từng field nếu Validation thất bại.
+- **AC3**: Trả về `200 OK` và lưu thông tin thành công khi cập nhật account đang tồn tại.
+- **AC4**: Trả về `404 Not Found` nếu gọi API cập nhật cho một ID "ma" (không tồn tại trong Firebase).
+- **AC5**: Format Response trả về (khi thành công và khi lỗi) phải chính xác với chuẩn JSON được định nghĩa trong tài liệu `BA.md`.
+- **AC6**: Mã nguồn phải gọi đúng và đủ các phương thức tích hợp SDK của `FirebaseAdmin` và `Google.Cloud.Firestore`.
