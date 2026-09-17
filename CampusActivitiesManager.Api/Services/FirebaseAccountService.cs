@@ -322,6 +322,15 @@ namespace CampusActivitiesManager.Api.Services
 
         public async Task<LoginResponse?> AuthenticateAsync(string email, string password)
         {
+            // MOCK ADMIN PASSWORD CHECK
+            if (email.Equals("admin@campus.edu.vn", StringComparison.OrdinalIgnoreCase))
+            {
+                if (password != "admin123")
+                {
+                    return null; // Sai mật khẩu
+                }
+            }
+
             var user = await GetAccountByEmailAsync(email);
             if (user == null)
             {
