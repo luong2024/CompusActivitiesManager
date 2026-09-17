@@ -66,6 +66,16 @@ namespace CampusActivitiesManager.Data
         /// <returns>A list of <see cref="Project"/> objects.</returns>
         public async Task<List<Project>> ListAsync()
         {
+            try {
+                using var httpClient = new System.Net.Http.HttpClient();
+                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android ? "http://10.0.2.2:5073/api/v1/events" : "http://localhost:5073/api/v1/events";
+                var response = await httpClient.GetAsync(baseUrl);
+                if (response.IsSuccessStatusCode) {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<List<CampusActivitiesManager.Models.Project>>>(response.Content, options);
+                    if (result != null && result.Success && result.Data != null) return result.Data;
+                }
+            } catch (System.Exception ex) { Microsoft.Extensions.Logging.LoggerExtensions.LogWarning(_logger, ex, "L?i API, fallback SQLite"); }
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();

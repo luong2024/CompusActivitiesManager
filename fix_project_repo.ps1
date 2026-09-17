@@ -1,0 +1,6 @@
+
+$path = "CampusActivitiesManager\CampusActivitiesManager\Data\ProjectRepository.cs"
+$content = Get-Content $path -Raw
+$newContent = $content -replace "public async Task<List<Project>> ListAsync\(\)\s*\{", "public async Task<List<Project>> ListAsync()`n        {`n            try {`n                using var httpClient = new System.Net.Http.HttpClient();`n                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android ? `"http://10.0.2.2:5073/api/v1/events`" : `"http://localhost:5073/api/v1/events`";`n                var response = await httpClient.GetAsync(baseUrl);`n                if (response.IsSuccessStatusCode) {`n                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };`n                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<List<CampusActivitiesManager.Models.Project>>>(response.Content, options);`n                    if (result != null && result.Success && result.Data != null) return result.Data;`n                }`n            } catch (System.Exception ex) { Microsoft.Extensions.Logging.LoggerExtensions.LogWarning(_logger, ex, `"L?i API, fallback SQLite`"); }"
+Set-Content $path $newContent
+
