@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
@@ -6,7 +6,7 @@
              x:DataType="pageModels:LoginPageModel"
              x:Class="CampusActivitiesManager.Pages.LoginPage"
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
-             Title="Đăng nhập">
+             Title="ÄÄƒng nháº­p">
 
     <ScrollView>
         <VerticalStackLayout Spacing="24" Padding="{StaticResource LayoutPadding}" MaximumWidthRequest="480" HorizontalOptions="Center" VerticalOptions="Center">
@@ -14,19 +14,19 @@
             <!-- Logo & Title Header -->
             <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
                 <Border HeightRequest="64" WidthRequest="64" StrokeShape="RoundRectangle 32" Stroke="Transparent" Background="{StaticResource PrimaryGradientBrush}" HorizontalOptions="Center">
-                    <Label Text="🎓" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" />
+                    <Label Text="ðŸŽ“" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" />
                 </Border>
                 <Label Text="Campus Activities Manager" Style="{StaticResource Title2}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                <Label Text="Hệ thống Quản lý Hoạt động &amp; Phân quyền RBAC" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                <Label Text="Há»‡ thá»‘ng Quáº£n lÃ½ Hoáº¡t Ä‘á»™ng &amp; PhÃ¢n quyá»n RBAC" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
             </VerticalStackLayout>
 
-            <!-- Form Đăng nhập -->
+            <!-- Form ÄÄƒng nháº­p -->
             <Border StrokeShape="RoundRectangle 16"
                     Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
                     BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
                     Padding="24">
                 <VerticalStackLayout Spacing="16">
-                    <Label Text="Đăng nhập Hệ thống" Style="{StaticResource Title3}" />
+                    <Label Text="ÄÄƒng nháº­p Há»‡ thá»‘ng" Style="{StaticResource Title3}" />
 
                     <!-- Error Alert -->
                     <Border StrokeShape="RoundRectangle 8"
@@ -39,10 +39,10 @@
 
                     <!-- Username / Email -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Tên đăng nhập / Email" FontSize="13" FontAttributes="Bold" />
+                        <Label Text="TÃªn Ä‘Äƒng nháº­p / Email" FontSize="13" FontAttributes="Bold" />
                         <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
                             <Entry Text="{Binding UsernameOrEmail}"
-                                   Placeholder="Nhập email hoặc mã số sinh viên"
+                                   Placeholder="Nháº­p email hoáº·c mÃ£ sá»‘ sinh viÃªn"
                                    Keyboard="Email"
                                    HeightRequest="44" />
                         </Border>
@@ -50,13 +50,13 @@
 
                     <!-- Password -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Mật khẩu" FontSize="13" FontAttributes="Bold" />
+                        <Label Text="Máº­t kháº©u" FontSize="13" FontAttributes="Bold" />
                         <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
                             <Grid ColumnDefinitions="*,44">
                                 <Entry Grid.Column="0"
                                        Text="{Binding Password}"
                                        IsPassword="{Binding IsPasswordHidden}"
-                                       Placeholder="Nhập mật khẩu"
+                                       Placeholder="Nháº­p máº­t kháº©u"
                                        HeightRequest="44" />
                                 <ImageButton Grid.Column="1"
                                              Command="{Binding TogglePasswordVisibilityCommand}"
@@ -80,11 +80,11 @@
                     <!-- Remember Me -->
                     <HorizontalStackLayout Spacing="8">
                         <CheckBox IsChecked="{Binding RememberMe}" Color="{StaticResource Primary}" />
-                        <Label Text="Ghi nhớ đăng nhập" VerticalOptions="Center" FontSize="13" />
+                        <Label Text="Ghi nhá»› Ä‘Äƒng nháº­p" VerticalOptions="Center" FontSize="13" />
                     </HorizontalStackLayout>
 
                     <!-- Login Button -->
-                    <Button Text="{Binding IsLoading, Converter={toolkit:InvertedBoolConverter}, ConverterParameter='Đang đăng nhập...'}"
+                    <Button Text="{Binding IsLoading, Converter={toolkit:InvertedBoolConverter}, ConverterParameter='Äang Ä‘Äƒng nháº­p...'}"
                             Command="{Binding LoginCommand}"
                             Background="{StaticResource PrimaryGradientBrush}"
                             TextColor="White"
@@ -95,11 +95,11 @@
                             Margin="0,8,0,0">
                         <Button.Triggers>
                             <DataTrigger TargetType="Button" Binding="{Binding IsLoading}" Value="True">
-                                <Setter Property="Text" Value="Đang đăng nhập..." />
+                                <Setter Property="Text" Value="Äang Ä‘Äƒng nháº­p..." />
                                 <Setter Property="Opacity" Value="0.7" />
                             </DataTrigger>
                             <DataTrigger TargetType="Button" Binding="{Binding IsLoading}" Value="False">
-                                <Setter Property="Text" Value="Đăng nhập" />
+                                <Setter Property="Text" Value="ÄÄƒng nháº­p" />
                                 <Setter Property="Opacity" Value="1" />
                             </DataTrigger>
                         </Button.Triggers>
@@ -107,14 +107,14 @@
 
                     <!-- Register & Forgot Password -->
                     <HorizontalStackLayout HorizontalOptions="Center" Spacing="16" Margin="0,8,0,0">
-                        <Button Text="Đăng ký tài khoản"
+                        <Button Text="ÄÄƒng kÃ½ tÃ i khoáº£n"
                                 Command="{Binding NavigateToRegisterCommand}"
                                 BackgroundColor="Transparent"
                                 TextColor="#4F46E5"
                                 FontSize="13"
                                 Padding="0" />
                         <Label Text="|" VerticalOptions="Center" TextColor="{StaticResource Gray400}" />
-                        <Button Text="Quên mật khẩu?"
+                        <Button Text="QuÃªn máº­t kháº©u?"
                                 Command="{Binding ForgotPasswordCommand}"
                                 BackgroundColor="Transparent"
                                 TextColor="#4F46E5"
@@ -124,29 +124,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Quick Login for Demo / Testing -->
-            <Border StrokeShape="RoundRectangle 16"
-                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
-                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
-                    Padding="20">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="⚡ Đăng nhập nhanh để kiểm thử:" FontAttributes="Bold" FontSize="13" />
-
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <!-- Admin -->
-                        <Button Grid.Column="0"
-                                Text="👑 Admin"
-                                Command="{Binding LoginAsAdminCommand}"
-                                BackgroundColor="#DC2626" TextColor="White" HeightRequest="44" FontSize="13" CornerRadius="10" />
-
-                        <!-- Student -->
-                        <Button Grid.Column="1"
-                                Text="🎓 Sinh viên"
-                                Command="{Binding LoginAsStudentCommand}"
-                                BackgroundColor="#16A34A" TextColor="White" HeightRequest="44" FontSize="13" CornerRadius="10" />
-                    </Grid>
-                </VerticalStackLayout>
-            </Border>
 
         </VerticalStackLayout>
     </ScrollView>
