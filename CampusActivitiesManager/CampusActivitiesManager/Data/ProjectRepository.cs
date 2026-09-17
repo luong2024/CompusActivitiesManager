@@ -205,8 +205,6 @@ namespace CampusActivitiesManager.Data
             dropCmd.CommandText = "DROP TABLE IF EXISTS Project";
             await dropCmd.ExecuteNonQueryAsync();
 
-            await _taskRepository.DropTableAsync();
-            await _tagRepository.DropTableAsync();
             _hasBeenInitialized = false;
         }
     }
