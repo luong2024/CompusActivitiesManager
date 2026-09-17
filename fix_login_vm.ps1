@@ -1,3 +1,6 @@
+
+$path = "CampusActivitiesManager\CampusActivitiesManager\PageModels\LoginViewModel.cs"
+$content = @"
 using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -5,25 +8,31 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CampusActivitiesManager.PageModels
 {
-    /// <summary>
-    /// ViewModel xử lý đăng nhập, quản lý phiên và phân luồng điều hướng sau đăng nhập theo vai trò (Task.md mục 6).
-    /// </summary>
     public partial class LoginViewModel : BaseViewModel
     {
         private readonly IAuthenticationService _authService;
         private readonly ModalErrorHandler _errorHandler;
 
         [ObservableProperty]
-        private string _username = "admin";
+        private string _username = string.Empty;
 
         [ObservableProperty]
-        private string _password = "123";
+        private string _password = string.Empty;
 
         [ObservableProperty]
         private string _errorMessage = string.Empty;
 
         [ObservableProperty]
         private bool _hasError;
+
+        [ObservableProperty]
+        private bool _isPasswordHidden = true;
+
+        [ObservableProperty]
+        private bool _rememberMe = false;
+
+        [ObservableProperty]
+        private bool _isLoading = false;
 
         [ObservableProperty]
         private User? _currentUser;
@@ -35,8 +44,7 @@ namespace CampusActivitiesManager.PageModels
         {
             _authService = authService;
             _errorHandler = errorHandler;
-
-            Title = "Đăng nhập";
+            Title = "�ang nh?p";
             _authService.CurrentUserChanged += (s, e) => UpdateCurrentSessionInfo();
             UpdateCurrentSessionInfo();
         }
@@ -48,61 +56,52 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
-        private async Task GoToRegisterAsync()
+        private void TogglePasswordVisibility()
+        {
+            IsPasswordHidden = !IsPasswordHidden;
+        }
+
+        [RelayCommand]
+        private async Task NavigateToRegister()
         {
             await Shell.Current.GoToAsync("register");
         }
 
         [RelayCommand]
-        private async Task ForgotPasswordAsync()
+        private async Task ForgotPassword()
         {
-            await Shell.Current.DisplayAlert("Quên mật khẩu", "Tính năng đang được phát triển.", "OK");
+            await Shell.Current.DisplayAlert("Qu�n m?t kh?u", "T�nh nang dang du?c ph�t tri?n.", "OK");
         }
 
         [RelayCommand]
         public async Task Login()
         {
-            if (IsBusy)
-                return;
-
+            if (IsLoading) return;
             try
             {
-                IsBusy = true;
+                IsLoading = true;
                 HasError = false;
                 ErrorMessage = string.Empty;
 
                 if (string.IsNullOrWhiteSpace(Username))
                 {
                     HasError = true;
-                    ErrorMessage = "Vui lòng nhập tên đăng nhập!";
+                    ErrorMessage = "Vui l�ng nh?p t�n dang nh?p / email!";
                     return;
                 }
 
                 var success = await _authService.LoginAsync(Username.Trim(), Password?.Trim() ?? string.Empty);
                 if (success)
                 {
-                    // T28.3: Lưu trữ token an toàn trên thiết bị (SecureStorage)
                     await SecureStorage.Default.SetAsync("auth_token", "dummy_secure_token_" + _authService.CurrentUser?.Id);
-
                     UpdateCurrentSessionInfo();
-                    await AppShell.DisplayToastAsync($"Xin chào, {_authService.CurrentUser?.FullName} ({_authService.CurrentRole.GetShortName()})");
-
-                    // Phân luồng điều hướng theo từng Role
-                    if (_authService.CurrentRole == Role.Admin)
-                    {
-                        // Admin có thể chuyển ngay đến trang chính hoặc trang quản lý
-                        await Shell.Current.GoToAsync("//main");
-                    }
-                    else
-                    {
-                        // User / Guest điều hướng về trang chủ xem nội dung
-                        await Shell.Current.GoToAsync("//main");
-                    }
+                    await AppShell.DisplayToastAsync($"Xin ch�o, {_authService.CurrentUser?.FullName} ({_authService.CurrentRole.GetShortName()})");
+                    await Shell.Current.GoToAsync("//main");
                 }
                 else
                 {
                     HasError = true;
-                    ErrorMessage = "Tên đăng nhập hoặc mật khẩu không chính xác, hoặc tài khoản đã bị khóa!";
+                    ErrorMessage = "T�n dang nh?p ho?c m?t kh?u kh�ng ch�nh x�c, ho?c t�i kho?n d� b? kh�a!";
                 }
             }
             catch (Exception ex)
@@ -111,14 +110,22 @@ namespace CampusActivitiesManager.PageModels
             }
             finally
             {
-                IsBusy = false;
+                IsLoading = false;
             }
         }
 
         [RelayCommand]
-        public async Task QuickLogin(string targetUsername)
+        public async Task LoginAsAdmin()
         {
-            Username = targetUsername;
+            Username = "admin@campus.edu.vn";
+            Password = "123";
+            await Login();
+        }
+
+        [RelayCommand]
+        public async Task LoginAsStudent()
+        {
+            Username = "duc.tm@sinhvien.campus.edu.vn";
             Password = "123";
             await Login();
         }
@@ -129,7 +136,10 @@ namespace CampusActivitiesManager.PageModels
             _authService.Logout();
             SecureStorage.Default.Remove("auth_token");
             UpdateCurrentSessionInfo();
-            await AppShell.DisplayToastAsync("Đã đăng xuất");
+            await AppShell.DisplayToastAsync("�� dang xu?t");
         }
     }
 }
+"@
+Set-Content $path -Value $content -Encoding UTF8
+

@@ -4,7 +4,7 @@ namespace CampusActivitiesManager.Pages
 {
     public partial class LoginPage : ContentPage
     {
-        public LoginPage(LoginViewModel model)
+        public LoginPage(LoginPageModel model)
         {
             InitializeComponent();
             BindingContext = model;

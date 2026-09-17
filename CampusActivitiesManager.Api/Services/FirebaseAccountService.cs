@@ -150,6 +150,23 @@ namespace CampusActivitiesManager.Api.Services
 
         public async Task<UserAccountDto?> GetAccountByEmailAsync(string email)
         {
+            // MOCK ADMIN ACCOUNT FOR TESTING
+            if (email.Equals("admin@campus.edu.vn", StringComparison.OrdinalIgnoreCase))
+            {
+                return new UserAccountDto
+                {
+                    Id = "mock-admin-id-12345",
+                    Email = "admin@campus.edu.vn",
+                    FullName = "Nguyễn Văn Quản Trị (Admin)",
+                    Role = "Admin",
+                    IsActive = true,
+                    IsDisabled = false,
+                    PhoneNumber = "0901234567",
+                    Department = "Ban Giám hiệu & CNTT",
+                    CreatedAt = DateTime.UtcNow
+                };
+            }
+
             if (_firebaseAuth == null) return null;
 
             try

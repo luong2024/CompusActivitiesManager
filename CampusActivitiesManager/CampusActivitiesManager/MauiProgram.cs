@@ -52,7 +52,7 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<ProjectListPageModel>();
             builder.Services.AddSingleton<ManageMetaPageModel>();
             builder.Services.AddSingleton<UserManagementPageModel>();
-            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<LoginPageModel>();
             builder.Services.AddTransient<RegisterViewModel>();
             builder.Services.AddTransient<CreateUserViewModel>();
             builder.Services.AddTransient<EditUserRoleViewModel>();
