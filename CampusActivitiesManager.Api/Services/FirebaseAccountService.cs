@@ -162,8 +162,7 @@ namespace CampusActivitiesManager.Api.Services
                     IsActive = true,
                     IsDisabled = false,
                     PhoneNumber = "0901234567",
-                    Department = "Ban Giám hiệu & CNTT",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow.ToString("o")
                 };
             }
 
