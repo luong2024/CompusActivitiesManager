@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
@@ -55,37 +56,69 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(username))
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                     return false;
 
-                var user = await _userService.GetUserByUsernameAsync(username.Trim());
-                if (user == null)
+                // T28.4: K?t n?i giao di?n dang nh?p v?i API
+                using var httpClient = new System.Net.Http.HttpClient();
+                var baseUrl = DeviceInfo.Platform == DevicePlatform.Android 
+                    ? "http://10.0.2.2:5073/api/v1/auth/login" 
+                    : "http://localhost:5073/api/v1/auth/login";
+
+                // Map username to email if it doesn't contain '@'
+                var email = username.Trim();
+                if (!email.Contains('@'))
                 {
-                    _logger.LogWarning("Đăng nhập thất bại: Không tìm thấy tài khoản {Username}", username);
+                    email = $"{email}@campus.edu.vn";
+                }
+
+                var loginRequest = new { Email = email, Password = password.Trim() };
+                var response = await httpClient.PostAsJsonAsync(baseUrl, loginRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+                    };
+                    
+                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<Models.AuthLoginResponse>>(options);
+
+                    if (result != null && result.Success && result.Data != null)
+                    {
+                        var loginData = result.Data;
+                        var user = new User
+                        {
+                            Id = loginData.Id,
+                            Username = username.Trim(),
+                            FullName = loginData.FullName,
+                            Email = loginData.Email,
+                            Role = Enum.TryParse<Role>(loginData.Role, true, out var r) ? r : Role.User,
+                            IsActive = loginData.IsActive
+                        };
+
+                        _currentUser = user;
+                        _logger.LogInformation("Dang nhap thanh cong qua API: {Email} voi vai tro {Role}", user.Email, user.Role);
+                        CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+
+                        // L?u token vao SecureStorage (T28.3 & T28.4)
+                        await SecureStorage.Default.SetAsync("api_auth_token", loginData.Token);
+
+                        return true;
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Dang nhap that bai qua API, ma loi: {StatusCode}", response.StatusCode);
                     return false;
                 }
 
-                if (!user.IsActive)
-                {
-                    _logger.LogWarning("Đăng nhập thất bại: Tài khoản {Username} đã bị khóa", username);
-                    return false;
-                }
-
-                // Kiểm tra mật khẩu (hỗ trợ pass 123 hoặc đúng với passwordHash)
-                if (!string.IsNullOrEmpty(user.PasswordHash) && !string.IsNullOrEmpty(password) && user.PasswordHash != password && password != "123")
-                {
-                    _logger.LogWarning("Đăng nhập thất bại: Sai mật khẩu cho {Username}", username);
-                    return false;
-                }
-
-                _currentUser = user;
-                _logger.LogInformation("Đăng nhập thành công: {Username} với vai trò {Role}", user.Username, user.Role);
-                CurrentUserChanged?.Invoke(this, EventArgs.Empty);
-                return true;
+                return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi thực hiện đăng nhập");
+                _logger.LogError(ex, "Loi khi thuc hien dang nhap qua API");
                 return false;
             }
         }
