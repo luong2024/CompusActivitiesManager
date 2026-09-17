@@ -15,12 +15,12 @@
         ContentTemplate="{DataTemplate pages:MainPage}"
         Route="main" />
 
-    <!-- 2. Màn hình Quản lý Phân quyền (Admin / US 05) -->
+    <!-- 2. Màn hình Quản lý Tài khoản (Admin / AC 1.1) -->
     <ShellContent
-        Title="Quản lý Phân quyền"
+        Title="Quản lý Tài khoản"
         Icon="{StaticResource IconUsers}"
-        ContentTemplate="{DataTemplate pages:UserManagementPage}"
-        Route="users" />
+        ContentTemplate="{DataTemplate pages:AccountListPage}"
+        Route="accounts" />
 
     <!-- 3. Màn hình Đăng nhập (Login) -->
     <ShellContent
