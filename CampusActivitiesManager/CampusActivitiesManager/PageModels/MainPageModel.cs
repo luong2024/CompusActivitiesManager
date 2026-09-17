@@ -319,7 +319,28 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
-        private Task NavigateToAdmin() => Shell.Current.GoToAsync("//users");
+        private async Task NavigateToAdmin()
+        {
+            if (_authService == null || !_authService.IsAuthenticated)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Yêu cầu đăng nhập",
+                    "Bạn cần đăng nhập để truy cập trang Quản Trị Admin.",
+                    "Đóng");
+                return;
+            }
+
+            if (!_authService.IsAdmin)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Không có quyền truy cập",
+                    "Chỉ tài khoản Quản Trị Viên (Admin) mới có thể truy cập trang này.",
+                    "Đã hiểu");
+                return;
+            }
+
+            await Shell.Current.GoToAsync("//users");
+        }
 
         [RelayCommand]
         private Task NavigateToLogin() => Shell.Current.GoToAsync("//login");
