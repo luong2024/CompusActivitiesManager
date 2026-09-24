@@ -46,9 +46,11 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
+            builder.Services.AddSingleton<IEventService, EventService>();
 
             // PageModels
             builder.Services.AddSingleton<MainPageModel>();
+            builder.Services.AddTransient<EventListPageModel>();
             builder.Services.AddSingleton<ProjectListPageModel>();
             builder.Services.AddSingleton<ManageMetaPageModel>();
             builder.Services.AddSingleton<UserManagementPageModel>();
@@ -59,9 +61,11 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<AccessDeniedViewModel>();
             builder.Services.AddTransient<ProjectDetailPageModel>();
             builder.Services.AddTransient<TaskDetailPageModel>();
+            builder.Services.AddTransient<EventDetailPageModel>();
 
             // Pages
             builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<EventListPage>();
             builder.Services.AddTransient<UserManagementPage>();
             builder.Services.AddTransient<LoginPage>();
 
@@ -71,8 +75,10 @@ namespace CampusActivitiesManager
             builder.Services.AddTransientWithShellRoute<AccessDeniedPage, AccessDeniedViewModel>("accessdenied");
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
+            builder.Services.AddTransientWithShellRoute<EventDetailPage, EventDetailPageModel>("eventdetails");
 
             return builder.Build();
         }
     }
 }
+

@@ -15,6 +15,13 @@
         ContentTemplate="{DataTemplate pages:MainPage}"
         Route="main" />
 
+    <!-- S? ki?n -->
+    <ShellContent
+        Title="S? ki?n"
+        Icon="{StaticResource IconDashboard}"
+        ContentTemplate="{DataTemplate pages:EventListPage}"
+        Route="events" />
+
     <!-- 2. Màn hình Quản lý Tài khoản (Admin / AC 1.1) -->
     <ShellContent
         Title="Quản lý Tài khoản"
@@ -45,3 +52,4 @@
     </Shell.FlyoutFooter>
 
 </Shell>
+
