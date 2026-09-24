@@ -118,6 +118,22 @@ namespace CampusActivitiesManager.Services
 
         public async Task<int> SaveItemAsync(User item) => await SaveUserAsync(item);
 
+                public async Task<bool> UpdateProfileAsync(UpdateProfileRequest request)
+        {
+            try
+            {
+                var profileUrl = _baseUrl.Replace("accounts", "profile");
+                var response = await _httpClient.PutAsJsonAsync(profileUrl, request);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "L?i khi c?p nh?t profile qua API");
+                _errorHandler.HandleError(ex);
+                return false;
+            }
+        }
+
         public async Task<bool> UpdateUserAsync(User user)
         {
             try

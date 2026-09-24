@@ -1,4 +1,4 @@
-﻿using CampusActivitiesManager.Models;
+using CampusActivitiesManager.Models;
 
 namespace CampusActivitiesManager.Services
 {
@@ -9,6 +9,7 @@ namespace CampusActivitiesManager.Services
         Task<T?> GetUserByUsernameAsync(string username);
         Task<int> SaveUserAsync(T user);
         Task<bool> UpdateUserAsync(T user);
+        Task<bool> UpdateProfileAsync(UpdateProfileRequest request);
         Task<bool> UpdateUserRoleAsync(string id, Role newRole);
         Task<bool> DeleteUserAsync(string id);
         Task<bool> ToggleUserStatusAsync(string id);

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="CampusActivitiesManager.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -22,6 +22,12 @@
         ContentTemplate="{DataTemplate pages:UserManagementPage}"
         Route="users" />
 
+    <!-- 4. Màn hình Cập nhật thông tin cá nhân (Profile) -->
+    <ShellContent
+        Title="Thông tin cá nhân"
+        Icon="{StaticResource IconAccount}"
+        ContentTemplate="{DataTemplate pages:ProfilePage}"
+        Route="profile" />
     <!-- 3. Màn hình Đăng nhập (Login) -->
     <ShellContent
         Title="Tài khoản &amp; Đăng nhập"

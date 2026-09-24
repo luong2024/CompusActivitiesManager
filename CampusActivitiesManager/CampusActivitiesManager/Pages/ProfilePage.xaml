@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pm="clr-namespace:CampusActivitiesManager.PageModels"
+             x:Class="CampusActivitiesManager.Pages.ProfilePage"
+             x:DataType="pm:ProfilePageModel"
+             Title="{Binding Title}">
+    
+    <ScrollView>
+        <VerticalStackLayout Spacing="15" Padding="20">
+            <Label Text="Cập nhật thông tin cá nhân" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" />
+
+            <Entry Placeholder="Họ và tên" Text="{Binding FullName}" />
+            <Entry Placeholder="Số điện thoại" Text="{Binding PhoneNumber}" Keyboard="Telephone" />
+            <Entry Placeholder="URL Ảnh đại diện" Text="{Binding AvatarUrl}" />
+            
+            <Button Text="Cập nhật" Command="{Binding UpdateProfileCommand}" IsEnabled="{Binding IsNotBusy}" Margin="0,20,0,0" />
+            
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
