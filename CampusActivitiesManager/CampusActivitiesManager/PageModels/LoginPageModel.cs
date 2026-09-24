@@ -8,7 +8,7 @@ namespace CampusActivitiesManager.PageModels
 {
     public partial class LoginPageModel : ObservableObject
     {
-        private readonly AuthService _authService;
+        private readonly IAuthenticationService _authService;
 
         [ObservableProperty]
         private string _usernameOrEmail = string.Empty;
@@ -31,7 +31,7 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private bool _hasError = false;
 
-        public LoginPageModel(AuthService authService)
+        public LoginPageModel(IAuthenticationService authService)
         {
             _authService = authService;
         }
@@ -69,24 +69,29 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 await Task.Delay(350); // UI feel & smooth transition
-                var (success, message, user) = await _authService.LoginAsync(UsernameOrEmail, Password, RememberMe);
+                bool success = await _authService.LoginAsync(UsernameOrEmail, Password);
 
                 if (!success)
                 {
-                    ErrorMessage = message;
+                    ErrorMessage = "Tên đăng nhập hoặc mật khẩu không chính xác, hoặc tài khoản đã bị khóa.";
                     HasError = true;
                     return;
                 }
 
+                var user = _authService.CurrentUser;
+
                 // AC 28.4.3: Role-based Navigation
-                if (user?.Role == AccountRole.Admin)
+                MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                    await Shell.Current.GoToAsync("//accounts");
-                }
-                else
-                {
-                    await Shell.Current.GoToAsync("//main");
-                }
+                    if (user?.Role == Role.Admin)
+                    {
+                        await Shell.Current.GoToAsync("//users");
+                    }
+                    else
+                    {
+                        await Shell.Current.GoToAsync("//main");
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -124,10 +129,10 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 await Task.Delay(400);
-                var (success, message, user) = await _authService.LoginAsync("admin@campus.edu.vn", "123456", true);
+                bool success = await _authService.LoginAsync("admin@campus.edu.vn", "123456");
                 if (success)
                 {
-                    await Shell.Current.GoToAsync("//accounts");
+                    await Shell.Current.GoToAsync("//users");
                 }
             }
             finally

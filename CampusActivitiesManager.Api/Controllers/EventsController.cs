@@ -1,4 +1,4 @@
-using CampusActivitiesManager.Api.Models;
+﻿using CampusActivitiesManager.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CampusActivitiesManager.Api.Controllers
@@ -12,18 +12,18 @@ namespace CampusActivitiesManager.Api.Controllers
         {
             var categories = new List<EventCategoryDto>
             {
-                new EventCategoryDto { ID = 1, Title = "H?c thu?t", Color = "#2563EB" },
-                new EventCategoryDto { ID = 2, Title = "Th? thao", Color = "#059669" },
-                new EventCategoryDto { ID = 3, Title = "T�nh nguy?n", Color = "#DC2626" },
-                new EventCategoryDto { ID = 4, Title = "K? nang", Color = "#7C3AED" }
+                new EventCategoryDto { ID = 1, Title = "Học thuật", Color = "#2563EB" },
+                new EventCategoryDto { ID = 2, Title = "Thể thao", Color = "#059669" },
+                new EventCategoryDto { ID = 3, Title = "Tình nguyện", Color = "#DC2626" },
+                new EventCategoryDto { ID = 4, Title = "Kỹ năng", Color = "#7C3AED" }
             };
 
             var events = new List<EventDto>
             {
-                new EventDto { ID = 1, Name = "H?i th?o C�ng ngh? Th�ng tin 2026", Description = "C?p nh?t xu hu?ng AI v� Blockchain", Icon = "??", Category = categories[0] },
-                new EventDto { ID = 2, Name = "Gi?i B�ng d� Sinh vi�n To�n tru?ng", Description = "Khai m?c gi?i d?u th? thao l?n nh?t nam", Icon = "?", Category = categories[1] },
-                new EventDto { ID = 3, Name = "M�a H� Xanh - T�nh nguy?n H�", Description = "X�y d?ng n�ng th�n m?i v� d?y h?c", Icon = "??", Category = categories[2] },
-                new EventDto { ID = 4, Name = "Workshop K? nang Thuy?t tr�nh", Description = "Ph�t tri?n k? nang giao ti?p v� t? tin", Icon = "??", Category = categories[3] }
+                new EventDto { ID = 1, Name = "Hội thảo Công nghệ Thông tin 2026", Description = "Cập nhật xu hướng AI và Blockchain", Icon = "💻", Category = categories[0] },
+                new EventDto { ID = 2, Name = "Giải Bóng đá Sinh viên Toàn trường", Description = "Khai mạc giải đấu thể thao lớn nhất năm", Icon = "⚽", Category = categories[1] },
+                new EventDto { ID = 3, Name = "Mùa Hè Xanh - Tình nguyện Hè", Description = "Xây dựng nông thôn mới và dạy học", Icon = "🌿", Category = categories[2] },
+                new EventDto { ID = 4, Name = "Workshop Kỹ năng Thuyết trình", Description = "Phát triển kỹ năng giao tiếp và tự tin", Icon = "🗣️", Category = categories[3] }
             };
 
             return Ok(new ApiResponse<List<EventDto>>
@@ -31,7 +31,7 @@ namespace CampusActivitiesManager.Api.Controllers
                 Success = true,
                 StatusCode = 200,
                 Data = events,
-                Message = "L?y danh s�ch s? ki?n th�nh c�ng"
+                Message = "Lấy danh sách sự kiện thành công"
             });
         }
     }

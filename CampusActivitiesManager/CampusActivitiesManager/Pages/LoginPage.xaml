@@ -6,7 +6,7 @@
              x:DataType="pageModels:LoginPageModel"
              x:Class="CampusActivitiesManager.Pages.LoginPage"
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
-             Title="ÄÄƒng nháº­p">
+             Title="Đăng nhập">
 
     <ScrollView>
         <VerticalStackLayout Spacing="24" Padding="{StaticResource LayoutPadding}" MaximumWidthRequest="480" HorizontalOptions="Center" VerticalOptions="Center">
@@ -14,19 +14,19 @@
             <!-- Logo & Title Header -->
             <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
                 <Border HeightRequest="64" WidthRequest="64" StrokeShape="RoundRectangle 32" Stroke="Transparent" Background="{StaticResource PrimaryGradientBrush}" HorizontalOptions="Center">
-                    <Label Text="ðŸŽ“" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" />
+                    <Label Text="🎓" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" />
                 </Border>
                 <Label Text="Campus Activities Manager" Style="{StaticResource Title2}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
-                <Label Text="Há»‡ thá»‘ng Quáº£n lÃ½ Hoáº¡t Ä‘á»™ng &amp; PhÃ¢n quyá»n RBAC" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                <Label Text="Hệ thống Quản lý Hoạt động &amp; Phân quyền RBAC" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
             </VerticalStackLayout>
 
-            <!-- Form ÄÄƒng nháº­p -->
+            <!-- Form Đăng nhập -->
             <Border StrokeShape="RoundRectangle 16"
                     Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
                     BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
                     Padding="24">
                 <VerticalStackLayout Spacing="16">
-                    <Label Text="ÄÄƒng nháº­p Há»‡ thá»‘ng" Style="{StaticResource Title3}" />
+                    <Label Text="Đăng nhập Hệ thống" Style="{StaticResource Title3}" />
 
                     <!-- Error Alert -->
                     <Border StrokeShape="RoundRectangle 8"
@@ -39,10 +39,10 @@
 
                     <!-- Username / Email -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="TÃªn Ä‘Äƒng nháº­p / Email" FontSize="13" FontAttributes="Bold" />
+                        <Label Text="Tên đăng nhập / Email" FontSize="13" FontAttributes="Bold" />
                         <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
                             <Entry Text="{Binding UsernameOrEmail}"
-                                   Placeholder="Nháº­p email hoáº·c mÃ£ sá»‘ sinh viÃªn"
+                                   Placeholder="Nhập email hoặc mã số sinh viên"
                                    Keyboard="Email"
                                    HeightRequest="44" />
                         </Border>
@@ -50,17 +50,16 @@
 
                     <!-- Password -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Máº­t kháº©u" FontSize="13" FontAttributes="Bold" />
+                        <Label Text="Mật khẩu" FontSize="13" FontAttributes="Bold" />
                         <Border StrokeShape="RoundRectangle 8" Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}" Padding="10,0">
                             <Grid ColumnDefinitions="*,44">
                                 <Entry Grid.Column="0"
                                        Text="{Binding Password}"
                                        IsPassword="{Binding IsPasswordHidden}"
-                                       Placeholder="Nháº­p máº­t kháº©u"
+                                       Placeholder="Nhập mật khẩu"
                                        HeightRequest="44" />
                                 <ImageButton Grid.Column="1"
                                              Command="{Binding TogglePasswordVisibilityCommand}"
-                                             Source="{Binding IsPasswordHidden, Converter={toolkit:InvertedBoolConverter}}"
                                              BackgroundColor="Transparent"
                                              HeightRequest="44" WidthRequest="44"
                                              Opacity="0.6">
@@ -80,12 +79,11 @@
                     <!-- Remember Me -->
                     <HorizontalStackLayout Spacing="8">
                         <CheckBox IsChecked="{Binding RememberMe}" Color="{StaticResource Primary}" />
-                        <Label Text="Ghi nhá»› Ä‘Äƒng nháº­p" VerticalOptions="Center" FontSize="13" />
+                        <Label Text="Ghi nhớ đăng nhập" VerticalOptions="Center" FontSize="13" />
                     </HorizontalStackLayout>
 
                     <!-- Login Button -->
-                    <Button Text="{Binding IsLoading, Converter={toolkit:InvertedBoolConverter}, ConverterParameter='Äang Ä‘Äƒng nháº­p...'}"
-                            Command="{Binding LoginCommand}"
+                    <Button Command="{Binding LoginCommand}"
                             Background="{StaticResource PrimaryGradientBrush}"
                             TextColor="White"
                             FontAttributes="Bold"
@@ -95,11 +93,11 @@
                             Margin="0,8,0,0">
                         <Button.Triggers>
                             <DataTrigger TargetType="Button" Binding="{Binding IsLoading}" Value="True">
-                                <Setter Property="Text" Value="Äang Ä‘Äƒng nháº­p..." />
+                                <Setter Property="Text" Value="Đang đăng nhập..." />
                                 <Setter Property="Opacity" Value="0.7" />
                             </DataTrigger>
                             <DataTrigger TargetType="Button" Binding="{Binding IsLoading}" Value="False">
-                                <Setter Property="Text" Value="ÄÄƒng nháº­p" />
+                                <Setter Property="Text" Value="Đăng nhập" />
                                 <Setter Property="Opacity" Value="1" />
                             </DataTrigger>
                         </Button.Triggers>
@@ -107,14 +105,14 @@
 
                     <!-- Register & Forgot Password -->
                     <HorizontalStackLayout HorizontalOptions="Center" Spacing="16" Margin="0,8,0,0">
-                        <Button Text="ÄÄƒng kÃ½ tÃ i khoáº£n"
+                        <Button Text="Đăng ký tài khoản"
                                 Command="{Binding NavigateToRegisterCommand}"
                                 BackgroundColor="Transparent"
                                 TextColor="#4F46E5"
                                 FontSize="13"
                                 Padding="0" />
                         <Label Text="|" VerticalOptions="Center" TextColor="{StaticResource Gray400}" />
-                        <Button Text="QuÃªn máº­t kháº©u?"
+                        <Button Text="Quên mật khẩu?"
                                 Command="{Binding ForgotPasswordCommand}"
                                 BackgroundColor="Transparent"
                                 TextColor="#4F46E5"
@@ -123,7 +121,6 @@
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Border>
-
 
         </VerticalStackLayout>
     </ScrollView>

@@ -59,11 +59,11 @@ namespace CampusActivitiesManager.Services
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                     return false;
 
-                // T28.4: K?t n?i giao di?n dang nh?p v?i API
-                using var httpClient = new System.Net.Http.HttpClient();
+                // T28.4: Kết nối giao diện đăng nhập với API
+                using var httpClient = new System.Net.Http.HttpClient(HttpHelper.GetInsecureHandler());
                 var baseUrl = DeviceInfo.Platform == DevicePlatform.Android 
-                    ? "http://10.0.2.2:5073/api/v1/auth/login" 
-                    : "http://localhost:5073/api/v1/auth/login";
+                    ? "https://10.0.2.2:7258/api/v1/auth/login" 
+                    : "https://localhost:7258/api/v1/auth/login";
 
                 // Map username to email if it doesn't contain '@'
                 var email = username.Trim();
@@ -102,8 +102,16 @@ namespace CampusActivitiesManager.Services
                         _logger.LogInformation("Dang nhap thanh cong qua API: {Email} voi vai tro {Role}", user.Email, user.Role);
                         CurrentUserChanged?.Invoke(this, EventArgs.Empty);
 
-                        // L?u token vao SecureStorage (T28.3 & T28.4)
-                        await SecureStorage.Default.SetAsync("api_auth_token", loginData.Token);
+                        // LÆ°u token vao SecureStorage (T28.3 & T28.4)
+                        try
+                        {
+                            await SecureStorage.Default.SetAsync("api_auth_token", loginData.Token);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "SecureStorage failed, falling back to Preferences");
+                            Preferences.Default.Set("api_auth_token", loginData.Token);
+                        }
 
                         return true;
                     }
@@ -146,6 +154,8 @@ namespace CampusActivitiesManager.Services
         public void Logout()
         {
             _currentUser = null;
+            SecureStorage.Default.Remove("api_auth_token");
+            Preferences.Default.Remove("api_auth_token");
             _logger.LogInformation("Người dùng đã đăng xuất");
             CurrentUserChanged?.Invoke(this, EventArgs.Empty);
         }

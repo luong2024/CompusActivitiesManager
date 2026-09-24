@@ -19,8 +19,8 @@
     <ShellContent
         Title="Quản lý Tài khoản"
         Icon="{StaticResource IconUsers}"
-        ContentTemplate="{DataTemplate pages:AccountListPage}"
-        Route="accounts" />
+        ContentTemplate="{DataTemplate pages:UserManagementPage}"
+        Route="users" />
 
     <!-- 3. Màn hình Đăng nhập (Login) -->
     <ShellContent

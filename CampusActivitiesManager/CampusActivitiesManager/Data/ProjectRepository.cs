@@ -67,8 +67,8 @@ namespace CampusActivitiesManager.Data
         public async Task<List<Project>> ListAsync()
         {
             try {
-                using var httpClient = new System.Net.Http.HttpClient();
-                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android ? "http://10.0.2.2:5073/api/v1/events" : "http://localhost:5073/api/v1/events";
+                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
+                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android ? "https://10.0.2.2:7258/api/v1/events" : "https://localhost:7258/api/v1/events";
                 var response = await httpClient.GetAsync(baseUrl);
                 if (response.IsSuccessStatusCode) {
                     var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };

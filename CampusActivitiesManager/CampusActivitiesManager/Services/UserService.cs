@@ -13,12 +13,12 @@ namespace CampusActivitiesManager.Services
         
         // Use 10.0.2.2 for Android Emulator, localhost for Windows
         private readonly string _baseUrl = DeviceInfo.Platform == DevicePlatform.Android 
-            ? "http://10.0.2.2:5073/api/v1/accounts" 
-            : "http://localhost:5073/api/v1/accounts";
+            ? "https://10.0.2.2:7258/api/v1/accounts" 
+            : "https://localhost:7258/api/v1/accounts";
 
         public UserService(ModalErrorHandler errorHandler, ILogger<UserService> logger)
         {
-            _httpClient = new HttpClient();
+            _httpClient = new HttpClient(HttpHelper.GetInsecureHandler());
             _errorHandler = errorHandler;
             _logger = logger;
         }
