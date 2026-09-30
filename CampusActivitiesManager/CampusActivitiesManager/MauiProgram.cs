@@ -59,11 +59,13 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<AccessDeniedViewModel>();
             builder.Services.AddTransient<ProjectDetailPageModel>();
             builder.Services.AddTransient<TaskDetailPageModel>();
+            builder.Services.AddTransient<EventFormPageModel>();
 
             // Pages
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<UserManagementPage>();
             builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<EventFormPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
             builder.Services.AddTransientWithShellRoute<CreateUserPage, CreateUserViewModel>("createuser");
