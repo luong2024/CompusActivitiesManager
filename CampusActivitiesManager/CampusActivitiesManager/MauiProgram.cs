@@ -64,6 +64,9 @@ namespace CampusActivitiesManager
             
             builder.Services.AddTransient<ManageCategoryPage>();
             builder.Services.AddTransient<ManageCategoryPageModel>();
+            
+            builder.Services.AddTransient<ProfilePage>();
+            builder.Services.AddTransient<ProfilePageModel>();
 
             return builder.Build();
         }
