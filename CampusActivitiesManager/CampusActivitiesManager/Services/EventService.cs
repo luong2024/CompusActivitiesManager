@@ -48,7 +48,7 @@ namespace CampusActivitiesManager.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "L?i khi l?y danh sách s? ki?n");
+                _logger.LogError(ex, "Error getting events");
                 _errorHandler.HandleError(ex);
                 return new List<EventDto>();
             }
@@ -58,6 +58,21 @@ namespace CampusActivitiesManager.Services
         {
             var events = await GetEventsAsync();
             return events.FirstOrDefault(e => e.ID == id);
+        }
+
+        public async Task CreateEventAsync(EventDto eventDto)
+        {
+            await _httpClient.PostAsJsonAsync(_baseUrl, eventDto);
+        }
+
+        public async Task UpdateEventAsync(EventDto eventDto)
+        {
+            await _httpClient.PutAsJsonAsync($"{_baseUrl}/{eventDto.ID}", eventDto);
+        }
+
+        public async Task DeleteEventAsync(int id)
+        {
+            await _httpClient.DeleteAsync($"{_baseUrl}/{id}");
         }
     }
 }
