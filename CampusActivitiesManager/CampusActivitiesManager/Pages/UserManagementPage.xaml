@@ -334,7 +334,7 @@
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                             <RadioButton Grid.Column="0"
                                          GroupName="RoleGroup"
-                                         IsChecked="{Binding SelectedNewRole, Converter={toolkit:EnumToBoolConverter}, ConverterParameter={x:Static models:Role.Admin}}"
+                                         IsChecked="{Binding SelectedNewRole, Mode=OneWay, Converter={toolkit:EnumToBoolConverter}, ConverterParameter={x:Static models:Role.Admin}}"
                                          CheckedChanged="OnRoleRadioChanged"
                                          Value="Admin" />
                             <VerticalStackLayout Grid.Column="1">
@@ -352,7 +352,7 @@
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                             <RadioButton Grid.Column="0"
                                          GroupName="RoleGroup"
-                                         IsChecked="{Binding SelectedNewRole, Converter={toolkit:EnumToBoolConverter}, ConverterParameter={x:Static models:Role.Manager}}"
+                                         IsChecked="{Binding SelectedNewRole, Mode=OneWay, Converter={toolkit:EnumToBoolConverter}, ConverterParameter={x:Static models:Role.Manager}}"
                                          CheckedChanged="OnRoleRadioChanged"
                                          Value="Manager" />
                             <VerticalStackLayout Grid.Column="1">
@@ -370,7 +370,7 @@
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                             <RadioButton Grid.Column="0"
                                          GroupName="RoleGroup"
-                                         IsChecked="{Binding SelectedNewRole, Converter={toolkit:EnumToBoolConverter}, ConverterParameter={x:Static models:Role.User}}"
+                                         IsChecked="{Binding SelectedNewRole, Mode=OneWay, Converter={toolkit:EnumToBoolConverter}, ConverterParameter={x:Static models:Role.User}}"
                                          CheckedChanged="OnRoleRadioChanged"
                                          Value="User" />
                             <VerticalStackLayout Grid.Column="1">
@@ -388,7 +388,7 @@
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                             <RadioButton Grid.Column="0"
                                          GroupName="RoleGroup"
-                                         IsChecked="{Binding SelectedNewRole, Converter={toolkit:EnumToBoolConverter}, ConverterParameter={x:Static models:Role.Guest}}"
+                                         IsChecked="{Binding SelectedNewRole, Mode=OneWay, Converter={toolkit:EnumToBoolConverter}, ConverterParameter={x:Static models:Role.Guest}}"
                                          CheckedChanged="OnRoleRadioChanged"
                                          Value="Guest" />
                             <VerticalStackLayout Grid.Column="1">
