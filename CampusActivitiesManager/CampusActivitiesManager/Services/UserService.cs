@@ -85,8 +85,17 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> DeleteUserAsync(string id)
         {
-            // API doesn't have delete yet, just return false
-            return await Task.FromResult(false);
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"{_baseUrl}/{id}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting user {Id} via API", id);
+                _errorHandler.HandleError(ex);
+                return false;
+            }
         }
 
         public async Task<bool> DeleteItemAsync(string id) => await DeleteUserAsync(id);

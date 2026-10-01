@@ -55,8 +55,8 @@ namespace CampusActivitiesManager
             // Show User management only for admin
             NavUsers.IsVisible = isAdmin;
 
-            // Show Student dashboard only for non-admin logged in users
-            NavStudentDashboard.IsVisible = isLoggedIn && !isAdmin;
+            // Show Student dashboard for everyone who is logged in
+            NavStudentDashboard.IsVisible = isLoggedIn;
         }
 
         private void RegisterRoutes()

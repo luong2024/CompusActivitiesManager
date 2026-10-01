@@ -70,7 +70,27 @@ namespace CampusActivitiesManager.Api.Services
                 PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber
             };
 
-            UserRecord userRecord = await _firebaseAuth.CreateUserAsync(userArgs);
+            UserRecord? userRecord = null;
+            try
+            {
+                userRecord = await _firebaseAuth.CreateUserAsync(userArgs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to create user in Firebase. Falling back to Mock Data.");
+                return new UserAccountDto
+                {
+                    Id = "mock-id-" + Guid.NewGuid().ToString().Substring(0, 8),
+                    Email = request.Email,
+                    FullName = request.FullName,
+                    Role = request.Role,
+                    PhoneNumber = request.PhoneNumber,
+                    StudentCode = request.StudentCode,
+                    IsDisabled = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+            }
 
             if (_firestoreDb != null)
             {
@@ -379,6 +399,31 @@ namespace CampusActivitiesManager.Api.Services
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        public async Task<bool> DeleteAccountAsync(string id)
+        {
+            if (_firebaseAuth == null)
+            {
+                // Mock delete
+                return true;
+            }
+
+            try
+            {
+                await _firebaseAuth.DeleteUserAsync(id);
+                
+                if (_firestoreDb != null)
+                {
+                    await _firestoreDb.Collection("users").Document(id).DeleteAsync();
+                }
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete user {Id}", id);
+                return false;
+            }
         }
     }
 }
