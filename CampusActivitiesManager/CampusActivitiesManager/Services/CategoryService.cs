@@ -21,7 +21,7 @@ public class CategoryService
         return await _httpClient.GetFromJsonAsync<List<EventCategoryDto>>(_baseUrl) ?? new List<EventCategoryDto>();
     }
 
-    public async Task<EventCategoryDto> GetCategoryAsync(int id)
+    public async Task<EventCategoryDto?> GetCategoryAsync(int id)
     {
         return await _httpClient.GetFromJsonAsync<EventCategoryDto>($"{_baseUrl}/{id}");
     }

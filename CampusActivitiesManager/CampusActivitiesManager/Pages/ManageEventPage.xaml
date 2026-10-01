@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
+             xmlns:viewmodels="clr-namespace:CampusActivitiesManager.PageModels"
+             x:DataType="viewmodels:ManageEventPageModel"
              x:Class="CampusActivitiesManager.Pages.ManageEventPage"
              Title="Manage Events">
     <VerticalStackLayout Padding="20" Spacing="10">
         <Label Text="Events Management" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
         <ListView ItemsSource="{Binding Events}" HasUnevenRows="True">
             <ListView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="models:EventDto">
                     <ViewCell>
                         <StackLayout Padding="10">
                             <Label Text="{Binding Name}" FontAttributes="Bold" />

@@ -54,7 +54,7 @@ namespace CampusActivitiesManager.Services
             }
         }
 
-        public async Task<EventDto> GetEventByIdAsync(int id)
+        public async Task<EventDto?> GetEventByIdAsync(int id)
         {
             var events = await GetEventsAsync();
             return events.FirstOrDefault(e => e.ID == id);

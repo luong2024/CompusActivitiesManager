@@ -8,7 +8,7 @@ namespace CampusActivitiesManager.PageModels
     public partial class EventDetailPageModel : ObservableObject
     {
         [ObservableProperty]
-        private EventDto _eventDto;
+        private EventDto? _eventDto;
 
         public EventDetailPageModel()
         {
