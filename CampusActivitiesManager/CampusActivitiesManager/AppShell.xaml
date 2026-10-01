@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="CampusActivitiesManager.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -8,22 +8,33 @@
     Shell.FlyoutBehavior="Flyout"
     Title="Campus Activities Manager">
 
-    <!-- 1. Màn hình Cổng Sinh Viên (Student Dashboard) - MÀN HÌNH MẶC ĐỊNH MỞ ĐẦU -->
+    <!-- 1. Màn hình Đăng nhập (Login) - BẮT BUỘC KHỞI ĐỘNG TRƯỚC -->
     <ShellContent
+        x:Name="NavLogin"
+        Title="Tài khoản &amp; Đăng nhập"
+        Icon="{StaticResource IconAccount}"
+        ContentTemplate="{DataTemplate pages:LoginPage}"
+        Route="login" />
+
+    <!-- 2. Màn hình Cổng Sinh Viên (Student Dashboard) -->
+    <ShellContent
+        x:Name="NavStudentDashboard"
         Title="Cổng Sinh Viên"
         Icon="{StaticResource IconDashboard}"
         ContentTemplate="{DataTemplate pages:MainPage}"
         Route="main" />
 
-    <!-- S? ki?n -->
+    <!-- Sự kiện -->
     <ShellContent
-        Title="S? ki?n"
+        x:Name="NavEvents"
+        Title="Sự kiện"
         Icon="{StaticResource IconDashboard}"
         ContentTemplate="{DataTemplate pages:EventListPage}"
         Route="events" />
 
-    <!-- 2. Màn hình Quản lý Tài khoản (Admin / AC 1.1) -->
+    <!-- 3. Màn hình Quản lý Tài khoản (Admin / AC 1.1) -->
     <ShellContent
+        x:Name="NavUsers"
         Title="Quản lý Tài khoản"
         Icon="{StaticResource IconUsers}"
         ContentTemplate="{DataTemplate pages:UserManagementPage}"
@@ -31,16 +42,11 @@
 
     <!-- 4. Màn hình Cập nhật thông tin cá nhân (Profile) -->
     <ShellContent
+        x:Name="NavProfile"
         Title="Thông tin cá nhân"
         Icon="{StaticResource IconAccount}"
         ContentTemplate="{DataTemplate pages:ProfilePage}"
         Route="profile" />
-    <!-- 3. Màn hình Đăng nhập (Login) -->
-    <ShellContent
-        Title="Tài khoản &amp; Đăng nhập"
-        Icon="{StaticResource IconAccount}"
-        ContentTemplate="{DataTemplate pages:LoginPage}"
-        Route="login" />
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">
