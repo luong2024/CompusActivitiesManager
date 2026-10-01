@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -115,10 +115,18 @@ namespace CampusActivitiesManager.PageModels
                     IsActive = true
                 };
 
-                await _userService.SaveUserAsync(newUser);
+                var result = await _userService.SaveUserAsync(newUser);
                 
-                await Shell.Current.DisplayAlert("Thành công", "Đăng ký tài khoản thành công!", "OK");
-                await Shell.Current.GoToAsync("..");
+                if (result > 0)
+                {
+                    await Shell.Current.DisplayAlert("Thành công", "Đăng ký tài khoản thành công!", "OK");
+                    await Shell.Current.GoToAsync("..");
+                }
+                else
+                {
+                    ErrorMessage = "Không thể đăng ký. Email đã tồn tại hoặc mật khẩu không đủ mạnh (cần chữ hoa, chữ thường, số, ký tự đặc biệt).";
+                    HasError = true;
+                }
             }
             catch (Exception ex)
             {

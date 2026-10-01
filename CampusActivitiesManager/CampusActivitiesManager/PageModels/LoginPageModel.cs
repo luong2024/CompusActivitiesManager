@@ -129,7 +129,7 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 await Task.Delay(400);
-                bool success = await _authService.LoginAsync("admin@campus.edu.vn", "123456");
+                bool success = await _authService.LoginAsync("admin@campus.edu.vn", "admin123");
                 if (success)
                 {
                     await Shell.Current.GoToAsync("//users");
