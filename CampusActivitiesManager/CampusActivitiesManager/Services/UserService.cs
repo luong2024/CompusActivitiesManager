@@ -98,7 +98,7 @@ namespace CampusActivitiesManager.Services
                 var payload = new 
                 {
                     email = user.Email,
-                    password = "Password@123", // Default password for new users if not set
+                    password = string.IsNullOrWhiteSpace(user.PasswordHash) ? "Password@123" : user.PasswordHash,
                     fullName = user.FullName,
                     role = user.Role.ToString(),
                     phoneNumber = user.PhoneNumber,

@@ -124,7 +124,7 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 await Task.Delay(400);
-                var (success, message, user) = await _authService.LoginAsync("admin@campus.edu.vn", "123456", true);
+                bool success = await _authService.LoginAsync("admin@campus.edu.vn", "admin123");
                 if (success)
                 {
                     await Shell.Current.GoToAsync("//accounts");

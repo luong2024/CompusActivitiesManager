@@ -432,7 +432,7 @@ namespace CampusActivitiesManager.PageModels
                 return;
             }
 
-            await Shell.Current.GoToAsync("createuser");
+            await Shell.Current.GoToAsync(nameof(CampusActivitiesManager.Pages.CreateUserPage));
         }
 
         /// <summary>
@@ -453,7 +453,7 @@ namespace CampusActivitiesManager.PageModels
                 return;
             }
 
-            await Shell.Current.GoToAsync($"editrole?UserId={user.Id}");
+            await Shell.Current.GoToAsync($"{nameof(CampusActivitiesManager.Pages.EditUserRolePage)}?UserId={user.Id}");
         }
     }
 

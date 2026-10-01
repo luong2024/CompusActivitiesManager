@@ -22,6 +22,7 @@ namespace CampusActivitiesManager
         {
             Routing.RegisterRoute(nameof(UserManagementPage), typeof(UserManagementPage));
             Routing.RegisterRoute(nameof(EditUserRolePage), typeof(EditUserRolePage));
+            Routing.RegisterRoute(nameof(CreateUserPage), typeof(CreateUserPage));
             Routing.RegisterRoute(nameof(AccessDeniedPage), typeof(AccessDeniedPage));
             Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
         }
