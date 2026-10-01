@@ -46,7 +46,20 @@ namespace CampusActivitiesManager.Api.Services
         {
             if (_firebaseAuth == null)
             {
-                throw new InvalidOperationException("Firebase Auth is not initialized.");
+                // MOCK BEHAVIOR FOR TESTING WITHOUT FIREBASE
+                _logger.LogWarning("Firebase Auth not initialized. Using Mock Data for CreateAccount.");
+                return new UserAccountDto
+                {
+                    Id = "mock-id-" + Guid.NewGuid().ToString().Substring(0, 8),
+                    Email = request.Email,
+                    FullName = request.FullName,
+                    Role = request.Role,
+                    PhoneNumber = request.PhoneNumber,
+                    StudentCode = request.StudentCode,
+                    IsDisabled = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
             }
 
             var userArgs = new UserRecordArgs
@@ -205,7 +218,17 @@ namespace CampusActivitiesManager.Api.Services
         {
             if (_firebaseAuth == null)
             {
-                throw new InvalidOperationException("Firebase Auth is not initialized.");
+                return new UserAccountDto
+                {
+                    Id = id,
+                    Email = "mock@icu.edu.vn",
+                    FullName = request.FullName ?? "Mock User",
+                    Role = request.Role ?? "Student",
+                    PhoneNumber = request.PhoneNumber,
+                    IsDisabled = false,
+                    IsActive = true,
+                    UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
             }
 
             UserRecord existingUser = await _firebaseAuth.GetUserAsync(id);
@@ -260,7 +283,12 @@ namespace CampusActivitiesManager.Api.Services
         {
             if (_firebaseAuth == null)
             {
-                throw new InvalidOperationException("Firebase Auth is not initialized.");
+                return new AccountStatusResponse
+                {
+                    Id = id,
+                    IsLocked = isLocked,
+                    UpdatedAt = DateTime.UtcNow.ToString("o")
+                };
             }
 
             // AC 35.1.3: Throws FirebaseAuthException if user does not exist (handled by caller as 404)

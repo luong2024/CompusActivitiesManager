@@ -18,6 +18,47 @@ namespace CampusActivitiesManager
             ThemeSegmentedControl.SelectedIndex = currentTheme == AppTheme.Light ? 0 : 1;
         }
 
+        protected override void OnHandlerChanged()
+        {
+            base.OnHandlerChanged();
+
+            if (Handler != null)
+            {
+                UpdateMenuVisibility();
+                
+                var authService = Handler.MauiContext?.Services.GetService<IAuthenticationService>();
+                if (authService != null)
+                {
+                    authService.CurrentUserChanged += (s, e) => 
+                    {
+                        MainThread.BeginInvokeOnMainThread(() => UpdateMenuVisibility());
+                    };
+                }
+            }
+        }
+
+        private void UpdateMenuVisibility()
+        {
+            var authService = Handler?.MauiContext?.Services.GetService<IAuthenticationService>();
+            if (authService == null) return;
+
+            bool isLoggedIn = authService.CurrentUser != null;
+            bool isAdmin = authService.IsAdmin;
+
+            // Show Login if not logged in
+            NavLogin.IsVisible = !isLoggedIn;
+
+            // Show profile and events if logged in
+            
+            
+
+            // Show User management only for admin
+            NavUsers.IsVisible = isAdmin;
+
+            // Show Student dashboard only for non-admin logged in users
+            NavStudentDashboard.IsVisible = isLoggedIn && !isAdmin;
+        }
+
         private void RegisterRoutes()
         {
             Routing.RegisterRoute(nameof(UserManagementPage), typeof(UserManagementPage));

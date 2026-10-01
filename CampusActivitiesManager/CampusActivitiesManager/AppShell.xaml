@@ -1,43 +1,46 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version=""1.0"" encoding=""UTF-8"" ?>
 <Shell
-    x:Class="CampusActivitiesManager.AppShell"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:sf="clr-namespace:Syncfusion.Maui.Toolkit.SegmentedControl;assembly=Syncfusion.Maui.Toolkit"
-    xmlns:pages="clr-namespace:CampusActivitiesManager.Pages"
-    Shell.FlyoutBehavior="Flyout"
-    Title="Campus Activities Manager">
+    x:Class=""CampusActivitiesManager.AppShell""
+    xmlns=""http://schemas.microsoft.com/dotnet/2021/maui""
+    xmlns:x=""http://schemas.microsoft.com/winfx/2009/xaml""
+    xmlns:sf=""clr-namespace:Syncfusion.Maui.Toolkit.SegmentedControl;assembly=Syncfusion.Maui.Toolkit""
+    xmlns:pages=""clr-namespace:CampusActivitiesManager.Pages""
+    Shell.FlyoutBehavior=""Flyout""
+    Title=""Campus Activities Manager"">
 
-    <!-- 1. Màn hình Cổng Sinh Viên (Student Dashboard) - MÀN HÌNH MẶC ĐỊNH MỞ ĐẦU -->
+    <!-- 1. Màn hình Đăng nhập (Login) - BẮT BUỘC KHỞI ĐỘNG TRƯỚC -->
     <ShellContent
-        Title="Cổng Sinh Viên"
-        Icon="{StaticResource IconDashboard}"
-        ContentTemplate="{DataTemplate pages:MainPage}"
-        Route="main" />
+        x:Name=""NavLogin""
+        Title=""Tài khoản &amp; Đăng nhập""
+        Icon=""{StaticResource IconAccount}""
+        ContentTemplate=""{DataTemplate pages:LoginPage}""
+        Route=""login"" />
 
-    <!-- 2. Màn hình Quản lý Tài khoản (Admin / AC 1.1) -->
+    <!-- 2. Màn hình Cổng Sinh Viên (Student Dashboard) -->
     <ShellContent
-        Title="Quản lý Tài khoản"
-        Icon="{StaticResource IconUsers}"
-        ContentTemplate="{DataTemplate pages:AccountListPage}"
-        Route="accounts" />
+        x:Name=""NavStudentDashboard""
+        Title=""Cổng Sinh Viên""
+        Icon=""{StaticResource IconDashboard}""
+        ContentTemplate=""{DataTemplate pages:MainPage}""
+        Route=""main"" />
 
-    <!-- 3. Màn hình Đăng nhập (Login) -->
+    <!-- 3. Màn hình Quản lý Tài khoản (Admin / AC 1.1) -->
     <ShellContent
-        Title="Tài khoản &amp; Đăng nhập"
-        Icon="{StaticResource IconAccount}"
-        ContentTemplate="{DataTemplate pages:LoginPage}"
-        Route="login" />
+        x:Name=""NavUsers""
+        Title=""Quản lý Tài khoản""
+        Icon=""{StaticResource IconUsers}""
+        ContentTemplate=""{DataTemplate pages:AccountListPage}""
+        Route=""accounts"" />
 
     <Shell.FlyoutFooter>
-        <Grid Padding="15">
-            <sf:SfSegmentedControl x:Name="ThemeSegmentedControl" 
-                VerticalOptions="Center" HorizontalOptions="Center" SelectionChanged="SfSegmentedControl_SelectionChanged"
-                SegmentWidth="40" SegmentHeight="40">
+        <Grid Padding=""15"">
+            <sf:SfSegmentedControl x:Name=""ThemeSegmentedControl"" 
+                VerticalOptions=""Center"" HorizontalOptions=""Center"" SelectionChanged=""SfSegmentedControl_SelectionChanged""
+                SegmentWidth=""40"" SegmentHeight=""40"">
                 <sf:SfSegmentedControl.ItemsSource>
-                    <x:Array Type="{x:Type sf:SfSegmentItem}">
-                        <sf:SfSegmentItem ImageSource="{StaticResource IconLight}"/>
-                        <sf:SfSegmentItem ImageSource="{StaticResource IconDark}"/>
+                    <x:Array Type=""{x:Type sf:SfSegmentItem}"">
+                        <sf:SfSegmentItem ImageSource=""{StaticResource IconLight}""/>
+                        <sf:SfSegmentItem ImageSource=""{StaticResource IconDark}""/>
                     </x:Array>
                 </sf:SfSegmentedControl.ItemsSource>
             </sf:SfSegmentedControl>
