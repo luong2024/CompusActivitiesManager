@@ -24,6 +24,8 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute(nameof(EditUserRolePage), typeof(EditUserRolePage));
             Routing.RegisterRoute(nameof(AccessDeniedPage), typeof(AccessDeniedPage));
             Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
+            Routing.RegisterRoute(nameof(EventFormPage), typeof(EventFormPage));
+            Routing.RegisterRoute("eventform", typeof(EventFormPage));
         }
 
         /// <summary>
