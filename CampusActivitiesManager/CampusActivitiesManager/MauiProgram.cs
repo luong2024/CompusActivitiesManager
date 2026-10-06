@@ -71,6 +71,7 @@ namespace CampusActivitiesManager
             builder.Services.AddTransientWithShellRoute<AccessDeniedPage, AccessDeniedViewModel>("accessdenied");
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
+            builder.Services.AddTransientWithShellRoute<ManageCategoriesPage, ManageCategoriesPageModel>("categories");
 
             return builder.Build();
         }
