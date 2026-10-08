@@ -1,4 +1,6 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+﻿import io
+
+appshell_content = '''<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="CampusActivitiesManager.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -52,3 +54,7 @@
     </Shell.FlyoutFooter>
 
 </Shell>
+'''
+
+with io.open('CampusActivitiesManager/CampusActivitiesManager/AppShell.xaml', 'w', encoding='utf-8-sig') as f:
+    f.write(appshell_content)

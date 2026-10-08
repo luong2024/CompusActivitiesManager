@@ -43,6 +43,7 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<UserRepository>();
             builder.Services.AddSingleton<UserService>();
             builder.Services.AddSingleton<IUserService<User>, UserService>();
+            builder.Services.AddSingleton<IUserService, UserService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
