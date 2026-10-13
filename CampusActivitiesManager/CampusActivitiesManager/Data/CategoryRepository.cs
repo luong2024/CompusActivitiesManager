@@ -58,6 +58,26 @@ namespace CampusActivitiesManager.Data
         /// <returns>A list of <see cref="Category"/> objects.</returns>
         public async Task<List<Category>> ListAsync()
         {
+            try
+            {
+                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
+                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
+                    ? "https://10.0.2.2:7258/api/v1/categories"
+                    : "https://localhost:7258/api/v1/categories";
+                var response = await httpClient.GetAsync(baseUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<List<Category>>>(response.Content, options);
+                    if (result != null && result.Success && result.Data != null)
+                        return result.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi API ListAsync categories, fallback SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -83,10 +103,28 @@ namespace CampusActivitiesManager.Data
         /// <summary>
         /// Retrieves a specific category by its ID.
         /// </summary>
-        /// <param name="id">The ID of the category.</param>
-        /// <returns>A <see cref="Category"/> object if found; otherwise, null.</returns>
         public async Task<Category?> GetAsync(int id)
         {
+            try
+            {
+                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
+                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
+                    ? $"https://10.0.2.2:7258/api/v1/categories/{id}"
+                    : $"https://localhost:7258/api/v1/categories/{id}";
+                var response = await httpClient.GetAsync(baseUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<Category>>(response.Content, options);
+                    if (result != null && result.Success && result.Data != null)
+                        return result.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi API GetAsync category, fallback SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -110,12 +148,48 @@ namespace CampusActivitiesManager.Data
         }
 
         /// <summary>
-        /// Saves a category to the database. If the category ID is 0, a new category is created; otherwise, the existing category is updated.
+        /// Saves a category to the Firebase API and database.
         /// </summary>
-        /// <param name="item">The category to save.</param>
-        /// <returns>The ID of the saved category.</returns>
         public async Task<int> SaveItemAsync(Category item)
         {
+            try
+            {
+                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
+                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
+                    ? "https://10.0.2.2:7258/api/v1/categories"
+                    : "https://localhost:7258/api/v1/categories";
+                var payload = new
+                {
+                    title = item.Title,
+                    color = string.IsNullOrWhiteSpace(item.Color) ? "#2563EB" : item.Color
+                };
+
+                HttpResponseMessage response;
+                if (item.ID == 0)
+                {
+                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PostAsJsonAsync(httpClient, baseUrl, payload);
+                }
+                else
+                {
+                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PutAsJsonAsync(httpClient, $"{baseUrl}/{item.ID}", payload);
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<Category>>(response.Content, options);
+                    if (result?.Data != null && result.Data.ID > 0)
+                    {
+                        item.ID = result.Data.ID;
+                        return item.ID;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi API SaveItemAsync category, fallback SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -139,22 +213,37 @@ namespace CampusActivitiesManager.Data
             saveCmd.Parameters.AddWithValue("@Title", item.Title);
             saveCmd.Parameters.AddWithValue("@Color", item.Color);
 
-            var result = await saveCmd.ExecuteScalarAsync();
+            var dbResult = await saveCmd.ExecuteScalarAsync();
             if (item.ID == 0)
             {
-                item.ID = Convert.ToInt32(result);
+                item.ID = Convert.ToInt32(dbResult);
             }
 
             return item.ID;
         }
 
         /// <summary>
-        /// Deletes a category from the database.
+        /// Deletes a category from the Firebase API and database.
         /// </summary>
-        /// <param name="item">The category to delete.</param>
-        /// <returns>The number of rows affected.</returns>
         public async Task<int> DeleteItemAsync(Category item)
         {
+            try
+            {
+                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
+                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
+                    ? $"https://10.0.2.2:7258/api/v1/categories/{item.ID}"
+                    : $"https://localhost:7258/api/v1/categories/{item.ID}";
+                var response = await httpClient.DeleteAsync(baseUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    return 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi API DeleteItemAsync category, fallback SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();

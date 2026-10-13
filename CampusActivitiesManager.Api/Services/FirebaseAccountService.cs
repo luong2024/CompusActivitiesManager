@@ -1,5 +1,7 @@
 using CampusActivitiesManager.Api.Models;
+using FirebaseAdmin;
 using FirebaseAdmin.Auth;
+using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -20,8 +22,30 @@ namespace CampusActivitiesManager.Api.Services
             _configuration = configuration;
             _logger = logger;
 
+            string? credPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")?.Trim('"', ' ');
+            if (string.IsNullOrEmpty(credPath) || !File.Exists(credPath))
+            {
+                string defaultKey = @"D:\keys\campusacmanage-df24bcb494c7.json";
+                if (File.Exists(defaultKey))
+                {
+                    credPath = defaultKey;
+                }
+            }
+            if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
+            {
+                Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+            }
+
             try
             {
+                if (FirebaseApp.DefaultInstance == null)
+                {
+                    FirebaseApp.Create(new AppOptions
+                    {
+                        Credential = GoogleCredential.GetApplicationDefault(),
+                        ProjectId = "campusacmanage"
+                    });
+                }
                 _firebaseAuth = FirebaseAuth.DefaultInstance;
             }
             catch (Exception ex)
@@ -32,7 +56,7 @@ namespace CampusActivitiesManager.Api.Services
 
             try
             {
-                string projectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT") ?? "campusacmanage";
+                string projectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT")?.Trim('"', ' ') ?? "campusacmanage";
                 _firestoreDb = FirestoreDb.Create(projectId);
             }
             catch (Exception ex)
@@ -42,71 +66,71 @@ namespace CampusActivitiesManager.Api.Services
             }
         }
 
+        private static string? FormatE164PhoneNumber(string? phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone)) return null;
+            var digits = new string(phone.Trim().Where(c => char.IsDigit(c) || c == '+').ToArray());
+            if (digits.StartsWith("0") && digits.Length >= 9 && digits.Length <= 11)
+            {
+                return "+84" + digits.Substring(1);
+            }
+            if (digits.StartsWith("+") && digits.Length >= 10 && digits.Length <= 15)
+            {
+                return digits;
+            }
+            return null;
+        }
+
         public async Task<UserAccountDto> CreateAccountAsync(CreateAccountRequest request)
         {
             if (_firebaseAuth == null)
             {
-                // MOCK BEHAVIOR FOR TESTING WITHOUT FIREBASE
-                _logger.LogWarning("Firebase Auth not initialized. Using Mock Data for CreateAccount.");
-                return new UserAccountDto
-                {
-                    Id = "mock-id-" + Guid.NewGuid().ToString().Substring(0, 8),
-                    Email = request.Email,
-                    FullName = request.FullName,
-                    Role = request.Role,
-                    PhoneNumber = request.PhoneNumber,
-                    StudentCode = request.StudentCode,
-                    IsDisabled = false,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
+                throw new InvalidOperationException("Firebase Authentication is not initialized. Check GOOGLE_APPLICATION_CREDENTIALS.");
             }
 
+            string? e164Phone = FormatE164PhoneNumber(request.PhoneNumber);
             var userArgs = new UserRecordArgs
             {
                 Email = request.Email,
                 Password = request.Password,
                 DisplayName = request.FullName,
-                PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber
+                PhoneNumber = e164Phone
             };
 
-            UserRecord? userRecord = null;
+            UserRecord userRecord;
             try
             {
                 userRecord = await _firebaseAuth.CreateUserAsync(userArgs);
             }
-            catch (Exception ex)
+            catch (FirebaseAuthException ex) when (ex.AuthErrorCode != AuthErrorCode.EmailAlreadyExists && userArgs.PhoneNumber != null)
             {
-                _logger.LogWarning(ex, "Failed to create user in Firebase. Falling back to Mock Data.");
-                return new UserAccountDto
-                {
-                    Id = "mock-id-" + Guid.NewGuid().ToString().Substring(0, 8),
-                    Email = request.Email,
-                    FullName = request.FullName,
-                    Role = request.Role,
-                    PhoneNumber = request.PhoneNumber,
-                    StudentCode = request.StudentCode,
-                    IsDisabled = false,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
+                // If phone number already exists or invalid in Firebase Auth, create user without Auth PhoneNumber and store PhoneNumber in Firestore
+                userArgs.PhoneNumber = null;
+                userRecord = await _firebaseAuth.CreateUserAsync(userArgs);
             }
+            catch (ArgumentException) when (userArgs.PhoneNumber != null)
+            {
+                userArgs.PhoneNumber = null;
+                userRecord = await _firebaseAuth.CreateUserAsync(userArgs);
+            }
+
+            string createdIso = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
 
             if (_firestoreDb != null)
             {
                 try
                 {
                     DocumentReference docRef = _firestoreDb.Collection("users").Document(userRecord.Uid);
-                    await docRef.SetAsync(new
+                    await docRef.SetAsync(new Dictionary<string, object?>
                     {
-                        email = request.Email,
-                        fullName = request.FullName,
-                        role = request.Role,
-                        phoneNumber = request.PhoneNumber,
-                        studentCode = request.StudentCode,
-                        isActive = true,
-                        isLocked = false,
-                        createdAt = DateTime.UtcNow
+                        ["email"] = request.Email,
+                        ["fullName"] = request.FullName,
+                        ["role"] = request.Role,
+                        ["phoneNumber"] = request.PhoneNumber ?? "",
+                        ["studentCode"] = request.StudentCode ?? request.Email.Split('@')[0],
+                        ["isActive"] = true,
+                        ["isLocked"] = false,
+                        ["createdAt"] = createdIso
                     });
                 }
                 catch (Exception ex)
@@ -122,148 +146,263 @@ namespace CampusActivitiesManager.Api.Services
                 FullName = request.FullName,
                 Role = request.Role,
                 PhoneNumber = request.PhoneNumber,
-                StudentCode = request.StudentCode,
+                StudentCode = request.StudentCode ?? request.Email.Split('@')[0],
                 IsDisabled = false,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                CreatedAt = createdIso
             };
         }
 
         public async Task<UserAccountDto?> GetAccountByIdAsync(string id)
         {
-            if (_firebaseAuth == null) return null;
-
-            try
+            UserRecord? authUser = null;
+            if (_firebaseAuth != null)
             {
-                UserRecord user = await _firebaseAuth.GetUserAsync(id);
-                string role = "Student";
-                string? studentCode = null;
-                string? avatarUrl = null;
-                bool isActive = !user.Disabled;
-
-                if (_firestoreDb != null)
+                try
                 {
-                    try
+                    authUser = await _firebaseAuth.GetUserAsync(id);
+                }
+                catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+                {
+                    authUser = null;
+                }
+            }
+
+            Dictionary<string, object>? firestoreDict = null;
+            if (_firestoreDb != null)
+            {
+                try
+                {
+                    var doc = await _firestoreDb.Collection("users").Document(id).GetSnapshotAsync();
+                    if (doc.Exists)
                     {
-                        var doc = await _firestoreDb.Collection("users").Document(id).GetSnapshotAsync();
-                        if (doc.Exists)
-                        {
-                            var dict = doc.ToDictionary();
-                            if (dict.TryGetValue("role", out var r) && r != null) role = r.ToString()!;
-                            if (dict.TryGetValue("studentCode", out var sc) && sc != null) studentCode = sc.ToString();
-                            if (dict.TryGetValue("avatarUrl", out var av) && av != null) avatarUrl = av.ToString();
-                            if (dict.TryGetValue("isActive", out var act) && act is bool b) isActive = b;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Could not load Firestore metadata for UID {Uid}", id);
+                        firestoreDict = doc.ToDictionary();
                     }
                 }
-
-                return new UserAccountDto
+                catch (Exception ex)
                 {
-                    Id = user.Uid,
-                    Email = user.Email,
-                    FullName = user.DisplayName ?? string.Empty,
-                    Role = role,
-                    PhoneNumber = user.PhoneNumber,
-                    StudentCode = studentCode,
-                    AvatarUrl = avatarUrl,
-                    IsDisabled = user.Disabled,
-                    IsActive = isActive && !user.Disabled,
-                    CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
+                    _logger.LogWarning(ex, "Could not load Firestore metadata for UID {Uid}", id);
+                }
             }
-            catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+
+            if (authUser == null && firestoreDict == null)
             {
                 return null;
             }
+
+            string email = authUser?.Email ?? (firestoreDict != null && firestoreDict.TryGetValue("email", out var em) ? em?.ToString() ?? "" : "");
+            string fullName = (firestoreDict != null && firestoreDict.TryGetValue("fullName", out var fn) && !string.IsNullOrWhiteSpace(fn?.ToString()))
+                ? fn!.ToString()!
+                : (authUser?.DisplayName ?? "");
+            string role = (firestoreDict != null && firestoreDict.TryGetValue("role", out var r) && r != null)
+                ? r.ToString()!
+                : "Student";
+            string? phoneNumber = (firestoreDict != null && firestoreDict.TryGetValue("phoneNumber", out var ph) && !string.IsNullOrWhiteSpace(ph?.ToString()))
+                ? ph!.ToString()
+                : authUser?.PhoneNumber;
+            string? studentCode = (firestoreDict != null && firestoreDict.TryGetValue("studentCode", out var sc) && sc != null)
+                ? sc.ToString()
+                : (email.Contains('@') ? email.Split('@')[0] : id);
+            string? avatarUrl = (firestoreDict != null && firestoreDict.TryGetValue("avatarUrl", out var av) && av != null)
+                ? av.ToString()
+                : authUser?.PhotoUrl;
+
+            bool isLocked = (authUser?.Disabled ?? false) || (firestoreDict != null && firestoreDict.TryGetValue("isLocked", out var lk) && lk != null && Convert.ToBoolean(lk));
+            bool isActive = !isLocked && (firestoreDict == null || !firestoreDict.TryGetValue("isActive", out var act) || act == null || Convert.ToBoolean(act));
+
+            return new UserAccountDto
+            {
+                Id = authUser?.Uid ?? id,
+                Email = email,
+                FullName = fullName,
+                Role = role,
+                PhoneNumber = phoneNumber,
+                StudentCode = studentCode,
+                AvatarUrl = avatarUrl,
+                IsDisabled = isLocked,
+                IsActive = isActive,
+                CreatedAt = (firestoreDict != null && firestoreDict.TryGetValue("createdAt", out var ca) && ca != null)
+                    ? ca.ToString()!
+                    : DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+            };
         }
 
         public async Task<UserAccountDto?> GetAccountByEmailAsync(string email)
         {
-            if (_firebaseAuth == null) return null;
+            if (_firebaseAuth != null)
+            {
+                try
+                {
+                    UserRecord user = await _firebaseAuth.GetUserByEmailAsync(email);
+                    return await GetAccountByIdAsync(user.Uid);
+                }
+                catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+                {
+                    // Fallback to Firestore query by email below
+                }
+            }
 
-            try
+            if (_firestoreDb != null)
             {
-                UserRecord user = await _firebaseAuth.GetUserByEmailAsync(email);
-                return await GetAccountByIdAsync(user.Uid);
+                try
+                {
+                    var query = _firestoreDb.Collection("users").WhereEqualTo("email", email).Limit(1);
+                    var snap = await query.GetSnapshotAsync();
+                    if (snap.Count > 0)
+                    {
+                        return await GetAccountByIdAsync(snap.Documents[0].Id);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error querying Firestore by email {Email}", email);
+                }
             }
-            catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
-            {
-                return null;
-            }
+
+            return null;
         }
 
         public async Task<List<UserAccountDto>> GetAllAccountsAsync()
         {
-            var users = new List<UserAccountDto>();
-            if (_firestoreDb == null) return users;
+            var usersById = new Dictionary<string, UserAccountDto>(StringComparer.OrdinalIgnoreCase);
 
-            try
+            // 1. Read from Firestore "users" collection
+            if (_firestoreDb != null)
             {
-                CollectionReference usersRef = _firestoreDb.Collection("users");
-                QuerySnapshot snapshot = await usersRef.GetSnapshotAsync();
-                foreach (var doc in snapshot.Documents)
+                try
                 {
-                    var dict = doc.ToDictionary();
-                    bool isActive = !dict.ContainsKey("isActive") || Convert.ToBoolean(dict["isActive"]);
-                    bool isLocked = dict.ContainsKey("isLocked") && Convert.ToBoolean(dict["isLocked"]);
-
-                    users.Add(new UserAccountDto
+                    CollectionReference usersRef = _firestoreDb.Collection("users");
+                    QuerySnapshot snapshot = await usersRef.GetSnapshotAsync();
+                    foreach (var doc in snapshot.Documents)
                     {
-                        Id = doc.Id,
-                        Email = dict.ContainsKey("email") ? dict["email"]?.ToString() ?? "" : "",
-                        FullName = dict.ContainsKey("fullName") ? dict["fullName"]?.ToString() ?? "" : "",
-                        Role = dict.ContainsKey("role") ? dict["role"]?.ToString() ?? "Student" : "Student",
-                        PhoneNumber = dict.ContainsKey("phoneNumber") ? dict["phoneNumber"]?.ToString() : null,
-                        StudentCode = dict.ContainsKey("studentCode") ? dict["studentCode"]?.ToString() : null,
-                        AvatarUrl = dict.ContainsKey("avatarUrl") ? dict["avatarUrl"]?.ToString() : null,
-                        IsDisabled = isLocked,
-                        IsActive = isActive && !isLocked,
-                        CreatedAt = dict.ContainsKey("createdAt") ? dict["createdAt"]?.ToString() ?? "" : ""
-                    });
+                        var dict = doc.ToDictionary();
+                        bool isActive = !dict.ContainsKey("isActive") || dict["isActive"] == null || Convert.ToBoolean(dict["isActive"]);
+                        bool isLocked = dict.ContainsKey("isLocked") && dict["isLocked"] != null && Convert.ToBoolean(dict["isLocked"]);
+                        string email = dict.ContainsKey("email") ? dict["email"]?.ToString() ?? "" : "";
+
+                        usersById[doc.Id] = new UserAccountDto
+                        {
+                            Id = doc.Id,
+                            Email = email,
+                            FullName = dict.ContainsKey("fullName") ? dict["fullName"]?.ToString() ?? "" : "",
+                            Role = dict.ContainsKey("role") ? dict["role"]?.ToString() ?? "Student" : "Student",
+                            PhoneNumber = dict.ContainsKey("phoneNumber") ? dict["phoneNumber"]?.ToString() : null,
+                            StudentCode = dict.ContainsKey("studentCode") ? dict["studentCode"]?.ToString() : (email.Contains('@') ? email.Split('@')[0] : doc.Id),
+                            AvatarUrl = dict.ContainsKey("avatarUrl") ? dict["avatarUrl"]?.ToString() : null,
+                            IsDisabled = isLocked,
+                            IsActive = isActive && !isLocked,
+                            CreatedAt = dict.ContainsKey("createdAt") ? dict["createdAt"]?.ToString() ?? "" : ""
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error getting all accounts from Firestore");
                 }
             }
-            catch (Exception ex)
+
+            // 2. Also sync any accounts present in FirebaseAuth that are not yet in Firestore
+            if (_firebaseAuth != null)
             {
-                _logger.LogError(ex, "Error getting all accounts from Firestore");
+                try
+                {
+                    var pagedEnumerable = _firebaseAuth.ListUsersAsync(null);
+                    await foreach (var authUser in pagedEnumerable)
+                    {
+                        if (!usersById.TryGetValue(authUser.Uid, out var existingDto))
+                        {
+                            string email = authUser.Email ?? "";
+                            string role = email.StartsWith("admin", StringComparison.OrdinalIgnoreCase) ? "Admin" : "Student";
+                            var dto = new UserAccountDto
+                            {
+                                Id = authUser.Uid,
+                                Email = email,
+                                FullName = authUser.DisplayName ?? (email.Contains('@') ? email.Split('@')[0] : authUser.Uid),
+                                Role = role,
+                                PhoneNumber = authUser.PhoneNumber,
+                                StudentCode = email.Contains('@') ? email.Split('@')[0] : authUser.Uid,
+                                AvatarUrl = authUser.PhotoUrl,
+                                IsDisabled = authUser.Disabled,
+                                IsActive = !authUser.Disabled,
+                                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                            };
+                            usersById[authUser.Uid] = dto;
+
+                            if (_firestoreDb != null)
+                            {
+                                try
+                                {
+                                    await _firestoreDb.Collection("users").Document(authUser.Uid).SetAsync(new Dictionary<string, object?>
+                                    {
+                                        ["email"] = dto.Email,
+                                        ["fullName"] = dto.FullName,
+                                        ["role"] = dto.Role,
+                                        ["phoneNumber"] = dto.PhoneNumber ?? "",
+                                        ["studentCode"] = dto.StudentCode,
+                                        ["isActive"] = dto.IsActive,
+                                        ["isLocked"] = dto.IsDisabled,
+                                        ["createdAt"] = dto.CreatedAt
+                                    }, SetOptions.MergeAll);
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error listing users from FirebaseAuth");
+                }
             }
 
-            return users;
+            return usersById.Values.ToList();
         }
 
         public async Task<UserAccountDto> UpdateAccountAsync(string id, UpdateAccountRequest request)
         {
-            if (_firebaseAuth == null)
+            var currentAccount = await GetAccountByIdAsync(id);
+            if (currentAccount == null)
             {
-                return new UserAccountDto
+                throw new KeyNotFoundException($"Account with ID {id} not found");
+            }
+
+            if (_firebaseAuth != null)
+            {
+                try
                 {
-                    Id = id,
-                    Email = "mock@icu.edu.vn",
-                    FullName = request.FullName ?? "Mock User",
-                    Role = request.Role ?? "Student",
-                    PhoneNumber = request.PhoneNumber,
-                    IsDisabled = false,
-                    IsActive = true,
-                    UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
+                    var userArgs = new UserRecordArgs { Uid = id };
+                    bool hasAuthUpdates = false;
+                    if (!string.IsNullOrEmpty(request.FullName))
+                    {
+                        userArgs.DisplayName = request.FullName;
+                        hasAuthUpdates = true;
+                    }
+                    string? e164Phone = FormatE164PhoneNumber(request.PhoneNumber);
+                    if (!string.IsNullOrEmpty(e164Phone))
+                    {
+                        userArgs.PhoneNumber = e164Phone;
+                        hasAuthUpdates = true;
+                    }
+                    if (hasAuthUpdates)
+                    {
+                        try
+                        {
+                            await _firebaseAuth.UpdateUserAsync(userArgs);
+                        }
+                        catch when (userArgs.PhoneNumber != null && !string.IsNullOrEmpty(request.FullName))
+                        {
+                            userArgs.PhoneNumber = null;
+                            await _firebaseAuth.UpdateUserAsync(userArgs);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not update FirebaseAuth record for UID {Uid}, continuing with Firestore update", id);
+                }
             }
 
-            UserRecord existingUser = await _firebaseAuth.GetUserAsync(id);
-
-            var userArgs = new UserRecordArgs { Uid = id };
-            if (!string.IsNullOrEmpty(request.FullName))
-            {
-                userArgs.DisplayName = request.FullName;
-            }
-            if (!string.IsNullOrEmpty(request.PhoneNumber))
-            {
-                userArgs.PhoneNumber = request.PhoneNumber;
-            }
-
-            UserRecord updatedUser = await _firebaseAuth.UpdateUserAsync(userArgs);
+            string updatedIso = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
 
             if (_firestoreDb != null)
             {
@@ -272,10 +411,10 @@ namespace CampusActivitiesManager.Api.Services
                     DocumentReference docRef = _firestoreDb.Collection("users").Document(id);
                     var updates = new Dictionary<string, object>();
                     if (!string.IsNullOrEmpty(request.FullName)) updates["fullName"] = request.FullName;
-                    if (!string.IsNullOrEmpty(request.PhoneNumber)) updates["phoneNumber"] = request.PhoneNumber;
-                    if (!string.IsNullOrEmpty(request.AvatarUrl)) updates["avatarUrl"] = request.AvatarUrl;
+                    if (request.PhoneNumber != null) updates["phoneNumber"] = request.PhoneNumber;
+                    if (request.AvatarUrl != null) updates["avatarUrl"] = request.AvatarUrl;
                     if (!string.IsNullOrEmpty(request.Role)) updates["role"] = request.Role;
-                    updates["updatedAt"] = DateTime.UtcNow;
+                    updates["updatedAt"] = updatedIso;
 
                     await docRef.SetAsync(updates, SetOptions.MergeAll);
                 }
@@ -287,53 +426,56 @@ namespace CampusActivitiesManager.Api.Services
 
             return new UserAccountDto
             {
-                Id = updatedUser.Uid,
-                Email = updatedUser.Email,
-                FullName = request.FullName ?? existingUser.DisplayName ?? string.Empty,
-                Role = request.Role ?? "Student",
-                PhoneNumber = request.PhoneNumber ?? updatedUser.PhoneNumber,
-                AvatarUrl = request.AvatarUrl,
-                IsDisabled = updatedUser.Disabled,
-                IsActive = !updatedUser.Disabled,
-                UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                Id = id,
+                Email = currentAccount.Email,
+                FullName = !string.IsNullOrEmpty(request.FullName) ? request.FullName : currentAccount.FullName,
+                Role = !string.IsNullOrEmpty(request.Role) ? request.Role : currentAccount.Role,
+                PhoneNumber = request.PhoneNumber ?? currentAccount.PhoneNumber,
+                StudentCode = currentAccount.StudentCode,
+                AvatarUrl = request.AvatarUrl ?? currentAccount.AvatarUrl,
+                IsDisabled = currentAccount.IsDisabled,
+                IsActive = currentAccount.IsActive,
+                UpdatedAt = updatedIso
             };
         }
 
         public async Task<AccountStatusResponse> SetAccountLockStatusAsync(string id, bool isLocked)
         {
-            if (_firebaseAuth == null)
+            var existing = await GetAccountByIdAsync(id);
+            if (existing == null)
             {
-                return new AccountStatusResponse
-                {
-                    Id = id,
-                    IsLocked = isLocked,
-                    UpdatedAt = DateTime.UtcNow.ToString("o")
-                };
+                throw new KeyNotFoundException($"Account with ID {id} not found");
             }
 
-            // AC 35.1.3: Throws FirebaseAuthException if user does not exist (handled by caller as 404)
-            UserRecord existingUser = await _firebaseAuth.GetUserAsync(id);
-
-            // Update Firebase Auth Disabled property
-            var userArgs = new UserRecordArgs
+            if (_firebaseAuth != null)
             {
-                Uid = id,
-                Disabled = isLocked
-            };
+                try
+                {
+                    var userArgs = new UserRecordArgs
+                    {
+                        Uid = id,
+                        Disabled = isLocked
+                    };
+                    await _firebaseAuth.UpdateUserAsync(userArgs);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not update Disabled flag in FirebaseAuth for UID {Uid}", id);
+                }
+            }
 
-            UserRecord updatedUser = await _firebaseAuth.UpdateUserAsync(userArgs);
+            string updatedIso = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
 
-            // AC 35.1.4: Update Firestore document
             if (_firestoreDb != null)
             {
                 try
                 {
                     DocumentReference docRef = _firestoreDb.Collection("users").Document(id);
-                    await docRef.SetAsync(new
+                    await docRef.SetAsync(new Dictionary<string, object>
                     {
-                        isActive = !isLocked,
-                        isLocked = isLocked,
-                        updatedAt = DateTime.UtcNow
+                        ["isActive"] = !isLocked,
+                        ["isLocked"] = isLocked,
+                        ["updatedAt"] = updatedIso
                     }, SetOptions.MergeAll);
                 }
                 catch (Exception ex)
@@ -344,11 +486,11 @@ namespace CampusActivitiesManager.Api.Services
 
             return new AccountStatusResponse
             {
-                Id = updatedUser.Uid,
+                Id = id,
                 IsLocked = isLocked,
                 IsActive = !isLocked,
                 Message = isLocked ? "Account locked successfully" : "Account unlocked successfully",
-                UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                UpdatedAt = updatedIso
             };
         }
 
@@ -360,9 +502,6 @@ namespace CampusActivitiesManager.Api.Services
                 return null;
             }
 
-            // Note: In client applications, Firebase Auth signs in via client SDK.
-            // On API, if account is locked, we return user with IsActive = false / IsLocked = true
-            // so Controller can reject with 403.
             string token = GenerateJwtToken(user);
 
             return new LoginResponse
@@ -400,30 +539,42 @@ namespace CampusActivitiesManager.Api.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
         public async Task<bool> DeleteAccountAsync(string id)
         {
-            if (_firebaseAuth == null)
+            bool deletedAny = false;
+
+            if (_firebaseAuth != null)
             {
-                // Mock delete
-                return true;
+                try
+                {
+                    await _firebaseAuth.DeleteUserAsync(id);
+                    deletedAny = true;
+                }
+                catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+                {
+                    // Continue to delete from Firestore if present
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error deleting user {Id} from FirebaseAuth", id);
+                }
             }
 
-            try
+            if (_firestoreDb != null)
             {
-                await _firebaseAuth.DeleteUserAsync(id);
-                
-                if (_firestoreDb != null)
+                try
                 {
                     await _firestoreDb.Collection("users").Document(id).DeleteAsync();
+                    deletedAny = true;
                 }
-                
-                return true;
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to delete user {Id} from Firestore", id);
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to delete user {Id}", id);
-                return false;
-            }
+
+            return deletedAny;
         }
     }
 }

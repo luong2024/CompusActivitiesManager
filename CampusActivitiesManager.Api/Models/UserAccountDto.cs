@@ -8,6 +8,7 @@ namespace CampusActivitiesManager.Api.Models
         public string Role { get; set; } = "Student";
         public string? PhoneNumber { get; set; }
         public string? StudentCode { get; set; }
+        public string Username => !string.IsNullOrWhiteSpace(StudentCode) ? StudentCode : (Email.Contains('@') ? Email.Split('@')[0] : Id);
         public string? AvatarUrl { get; set; }
         public bool IsDisabled { get; set; }
         public bool IsActive { get; set; } = true;
