@@ -25,7 +25,7 @@ namespace CampusActivitiesManager.PageModels
             _userService = userService;
             _authService = authService;
             _errorHandler = errorHandler;
-            Title = "ThÙng tin c· nh‚n";
+            Title = "Th√¥ng tin c√° nh√¢n";
         }
 
         [RelayCommand]
@@ -57,15 +57,22 @@ namespace CampusActivitiesManager.PageModels
                 };
 
                 var result = await _userService.UpdateProfileAsync(request);
+                if (_authService.CurrentUser != null)
+                {
+                    _authService.CurrentUser.FullName = FullName;
+                    _authService.CurrentUser.PhoneNumber = PhoneNumber;
+                    var accountUpdated = await _userService.UpdateUserAsync(_authService.CurrentUser);
+                    result = result || accountUpdated;
+                }
                 
                 if (result)
                 {
-                    await Shell.Current.DisplayAlert("Th‡nh cÙng", "C?p nh?t thÙng tin th‡nh cÙng", "OK");
+                    await Shell.Current.DisplayAlert("Th√†nh c√¥ng", "C·∫≠p nh·∫≠t th√¥ng tin th√†nh c√¥ng", "OK");
                     await _authService.RefreshCurrentUserAsync();
                 }
                 else
                 {
-                    await Shell.Current.DisplayAlert("L?i", "KhÙng th? c?p nh?t thÙng tin", "OK");
+                    await Shell.Current.DisplayAlert("L·ªói", "Kh√¥ng th·ªÉ c·∫≠p nh·∫≠t th√¥ng tin", "OK");
                 }
             }
             catch (Exception ex)

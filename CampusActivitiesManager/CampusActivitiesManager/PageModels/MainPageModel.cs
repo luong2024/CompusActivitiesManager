@@ -88,7 +88,7 @@ namespace CampusActivitiesManager.PageModels
 
         private void UpdateStudentProfile()
         {
-            if (_authService?.CurrentUser != null && _authService.CurrentUser.Username.StartsWith("student", StringComparison.OrdinalIgnoreCase))
+            if (_authService?.CurrentUser != null)
             {
                 var u = _authService.CurrentUser;
                 CurrentStudent = new Account
