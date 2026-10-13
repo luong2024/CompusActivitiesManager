@@ -229,5 +229,15 @@ namespace CampusActivitiesManager.Api.Tests
                 IsActive = account.IsActive && !account.IsDisabled
             });
         }
+
+        public Task<bool> DeleteAccountAsync(string id)
+        {
+            if (_accounts.TryRemove(id, out var removed))
+            {
+                _passwords.TryRemove(removed.Email.ToLowerInvariant(), out _);
+                return Task.FromResult(true);
+            }
+            return Task.FromResult(false);
+        }
     }
 }
