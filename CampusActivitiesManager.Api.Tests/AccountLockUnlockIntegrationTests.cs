@@ -216,7 +216,7 @@ namespace CampusActivitiesManager.Api.Tests
             Assert.False(error.Success);
             Assert.Equal(403, error.StatusCode);
             Assert.Equal("ACCOUNT_LOCKED", error.Error);
-            Assert.Equal("Account is locked. Please contact administrator.", error.Message);
+            Assert.Equal("Tài khoản của bạn đã bị khóa", error.Message);
         }
 
         /// <summary>
