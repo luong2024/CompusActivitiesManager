@@ -66,6 +66,16 @@ namespace CampusActivitiesManager.Data
         /// <returns>A list of <see cref="Project"/> objects.</returns>
         public async Task<List<Project>> ListAsync()
         {
+            try {
+                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
+                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android ? "https://10.0.2.2:7258/api/v1/events" : "https://localhost:7258/api/v1/events";
+                var response = await httpClient.GetAsync(baseUrl);
+                if (response.IsSuccessStatusCode) {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<List<CampusActivitiesManager.Models.Project>>>(response.Content, options);
+                    if (result != null && result.Success && result.Data != null) return result.Data;
+                }
+            } catch (System.Exception ex) { Microsoft.Extensions.Logging.LoggerExtensions.LogWarning(_logger, ex, "L?i API, fallback SQLite"); }
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -103,6 +113,26 @@ namespace CampusActivitiesManager.Data
         /// <returns>A <see cref="Project"/> object if found; otherwise, null.</returns>
         public async Task<Project?> GetAsync(int id)
         {
+            try
+            {
+                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
+                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
+                    ? $"https://10.0.2.2:7258/api/v1/events/{id}"
+                    : $"https://localhost:7258/api/v1/events/{id}";
+                var response = await httpClient.GetAsync(baseUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<CampusActivitiesManager.Models.Project>>(response.Content, options);
+                    if (result != null && result.Success && result.Data != null)
+                        return result.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi API GetAsync event, fallback SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -133,12 +163,50 @@ namespace CampusActivitiesManager.Data
         }
 
         /// <summary>
-        /// Saves a project to the database. If the project ID is 0, a new project is created; otherwise, the existing project is updated.
+        /// Saves a project to the database and Firebase API.
         /// </summary>
-        /// <param name="item">The project to save.</param>
-        /// <returns>The ID of the saved project.</returns>
         public async Task<int> SaveItemAsync(Project item)
         {
+            try
+            {
+                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
+                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
+                    ? "https://10.0.2.2:7258/api/v1/events"
+                    : "https://localhost:7258/api/v1/events";
+                var payload = new
+                {
+                    name = item.Name,
+                    description = item.Description,
+                    icon = string.IsNullOrWhiteSpace(item.Icon) ? "📅" : item.Icon,
+                    categoryId = item.CategoryID > 0 ? item.CategoryID : (item.Category?.ID ?? 1)
+                };
+
+                HttpResponseMessage response;
+                if (item.ID == 0)
+                {
+                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PostAsJsonAsync(httpClient, baseUrl, payload);
+                }
+                else
+                {
+                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PutAsJsonAsync(httpClient, $"{baseUrl}/{item.ID}", payload);
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<CampusActivitiesManager.Models.Project>>(response.Content, options);
+                    if (result?.Data != null && result.Data.ID > 0)
+                    {
+                        item.ID = result.Data.ID;
+                        return item.ID;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi API SaveItemAsync event, fallback SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -165,22 +233,37 @@ namespace CampusActivitiesManager.Data
             saveCmd.Parameters.AddWithValue("@Icon", item.Icon);
             saveCmd.Parameters.AddWithValue("@CategoryID", item.CategoryID);
 
-            var result = await saveCmd.ExecuteScalarAsync();
+            var dbResult = await saveCmd.ExecuteScalarAsync();
             if (item.ID == 0)
             {
-                item.ID = Convert.ToInt32(result);
+                item.ID = Convert.ToInt32(dbResult);
             }
 
             return item.ID;
         }
 
         /// <summary>
-        /// Deletes a project from the database.
+        /// Deletes a project from the Firebase API and database.
         /// </summary>
-        /// <param name="item">The project to delete.</param>
-        /// <returns>The number of rows affected.</returns>
         public async Task<int> DeleteItemAsync(Project item)
         {
+            try
+            {
+                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
+                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
+                    ? $"https://10.0.2.2:7258/api/v1/events/{item.ID}"
+                    : $"https://localhost:7258/api/v1/events/{item.ID}";
+                var response = await httpClient.DeleteAsync(baseUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    return 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi API DeleteItemAsync event, fallback SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();

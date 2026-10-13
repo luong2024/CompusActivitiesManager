@@ -1,10 +1,43 @@
 using CampusActivitiesManager.Api.Services;
 using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Ensure GOOGLE_APPLICATION_CREDENTIALS is clean (no surrounding quotes) and points to the Firebase key
+string? credPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")?.Trim('"', ' ');
+if (string.IsNullOrEmpty(credPath) || !File.Exists(credPath))
+{
+    string defaultKeyPath = @"D:\keys\campusacmanage-df24bcb494c7.json";
+    if (File.Exists(defaultKeyPath))
+    {
+        credPath = defaultKeyPath;
+    }
+}
+if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
+{
+    Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+}
+
+// Initialize Firebase App early so DI services can access FirebaseAuth.DefaultInstance
+if (FirebaseApp.DefaultInstance == null)
+{
+    try
+    {
+        FirebaseApp.Create(new AppOptions
+        {
+            Credential = GoogleCredential.GetApplicationDefault(),
+            ProjectId = "campusacmanage"
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Could not initialize Firebase Default Instance: {ex.Message}");
+    }
+}
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -26,11 +59,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Register Account & Auth Services (DI)
+// Register Firebase Services (DI)
 builder.Services.AddScoped<IFirebaseAccountService, FirebaseAccountService>();
+builder.Services.AddScoped<IFirebaseEventService, FirebaseEventService>();
 
 // Configure Firebase JWT Authentication
-string firebaseProjectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT") ?? "campusacmanage";
+string firebaseProjectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT")?.Trim('"', ' ') ?? "campusacmanage";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -42,7 +76,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = firebaseProjectId,
             ValidateLifetime = true,
-            RoleClaimType = "role" // Map Firebase custom claim "role" to .NET Role
+            RoleClaimType = "role"
         };
     });
 
@@ -50,22 +84,6 @@ builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
-
-// Initialize Firebase App
-if (FirebaseApp.DefaultInstance == null)
-{
-    // Firebase Admin SDK will automatically look for the 
-    // GOOGLE_APPLICATION_CREDENTIALS environment variable.
-    try 
-    {
-        FirebaseApp.Create();
-        app.Logger.LogInformation("Firebase initialized successfully using Application Default Credentials.");
-    }
-    catch (Exception ex)
-    {
-        app.Logger.LogWarning("Could not initialize Firebase Default Instance: {Message}", ex.Message);
-    }
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -81,7 +99,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Health check endpoint
-app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy", firebaseConnected = FirebaseApp.DefaultInstance != null, timestamp = DateTime.UtcNow }));
 
 app.MapControllers();
 
