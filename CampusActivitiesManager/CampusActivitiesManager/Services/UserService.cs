@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
@@ -10,15 +11,10 @@ namespace CampusActivitiesManager.Services
         private readonly HttpClient _httpClient;
         private readonly ModalErrorHandler _errorHandler;
         private readonly ILogger<UserService> _logger;
-        
-        // Use 10.0.2.2 for Android Emulator, localhost for Windows
-        private readonly string _baseUrl = DeviceInfo.Platform == DevicePlatform.Android 
-            ? "https://10.0.2.2:7258/api/v1/accounts" 
-            : "https://localhost:7258/api/v1/accounts";
 
         public UserService(ModalErrorHandler errorHandler, ILogger<UserService> logger)
         {
-            _httpClient = new HttpClient(HttpHelper.GetInsecureHandler());
+            _httpClient = HttpHelper.CreateApiClient();
             _errorHandler = errorHandler;
             _logger = logger;
         }
@@ -27,7 +23,7 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync(_baseUrl);
+                var response = await _httpClient.GetAsync(Constants.AccountsApiUrl);
                 if (response.IsSuccessStatusCode)
                 {
                     var options = new JsonSerializerOptions
@@ -45,7 +41,7 @@ namespace CampusActivitiesManager.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi gọi API lấy danh sách người dùng");
+                _logger.LogError(ex, "Error fetching user list from API");
                 _errorHandler.HandleError(ex);
                 return new List<User>();
             }
@@ -72,12 +68,12 @@ namespace CampusActivitiesManager.Services
             try
             {
                 var payload = new { role = newRole.ToString() };
-                var response = await _httpClient.PutAsJsonAsync($"{_baseUrl}/{id}", payload);
+                var response = await _httpClient.PutAsJsonAsync($"{Constants.AccountsApiUrl}/{id}", payload);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi cập nhật vai trò người dùng");
+                _logger.LogError(ex, "Error updating user role via API");
                 _errorHandler.HandleError(ex);
                 return false;
             }
@@ -87,12 +83,12 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{_baseUrl}/{id}");
+                var response = await _httpClient.DeleteAsync($"{Constants.AccountsApiUrl}/{id}");
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi xóa người dùng qua API");
+                _logger.LogError(ex, "Error deleting user via API");
                 _errorHandler.HandleError(ex);
                 return false;
             }
@@ -104,22 +100,22 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                var payload = new 
+                var payload = new
                 {
                     email = user.Email,
-                    password = "Password@123", // Default password for new users if not set
+                    password = string.IsNullOrWhiteSpace(user.PasswordHash) ? "Password@123" : user.PasswordHash,
                     fullName = user.FullName,
                     role = user.Role.ToString(),
                     phoneNumber = user.PhoneNumber,
                     studentCode = user.Username
                 };
-                
-                var response = await _httpClient.PostAsJsonAsync(_baseUrl, payload);
+
+                var response = await _httpClient.PostAsJsonAsync(Constants.AccountsApiUrl, payload);
                 return response.IsSuccessStatusCode ? 1 : 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi lưu người dùng qua API");
+                _logger.LogError(ex, "Error creating user via API");
                 _errorHandler.HandleError(ex);
                 return 0;
             }
@@ -127,17 +123,16 @@ namespace CampusActivitiesManager.Services
 
         public async Task<int> SaveItemAsync(User item) => await SaveUserAsync(item);
 
-                public async Task<bool> UpdateProfileAsync(UpdateProfileRequest request)
+        public async Task<bool> UpdateProfileAsync(UpdateProfileRequest request)
         {
             try
             {
-                var profileUrl = _baseUrl.Replace("accounts", "profile");
-                var response = await _httpClient.PutAsJsonAsync(profileUrl, request);
+                var response = await _httpClient.PutAsJsonAsync(Constants.ProfileApiUrl, request);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "L?i khi c?p nh?t profile qua API");
+                _logger.LogError(ex, "Error updating profile via API");
                 _errorHandler.HandleError(ex);
                 return false;
             }
@@ -147,18 +142,18 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                var payload = new 
+                var payload = new
                 {
                     fullName = user.FullName,
                     phoneNumber = user.PhoneNumber,
                     role = user.Role.ToString()
                 };
-                var response = await _httpClient.PutAsJsonAsync($"{_baseUrl}/{user.Id}", payload);
+                var response = await _httpClient.PutAsJsonAsync($"{Constants.AccountsApiUrl}/{user.Id}", payload);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi cập nhật người dùng qua API");
+                _logger.LogError(ex, "Error updating user via API");
                 _errorHandler.HandleError(ex);
                 return false;
             }
@@ -170,13 +165,12 @@ namespace CampusActivitiesManager.Services
         {
             try
             {
-                // Gọi POST /api/v1/accounts/{id}/toggle-status
-                var response = await _httpClient.PostAsync($"{_baseUrl}/{id}/toggle-status", null);
+                var response = await _httpClient.PostAsync($"{Constants.AccountsApiUrl}/{id}/toggle-status", null);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi đổi trạng thái người dùng qua API");
+                _logger.LogError(ex, "Error toggling user status via API");
                 _errorHandler.HandleError(ex);
                 return false;
             }
@@ -184,7 +178,6 @@ namespace CampusActivitiesManager.Services
 
         public async Task SeedDefaultUsersAsync()
         {
-            // Do nothing, data is on Firebase
             await Task.CompletedTask;
         }
     }

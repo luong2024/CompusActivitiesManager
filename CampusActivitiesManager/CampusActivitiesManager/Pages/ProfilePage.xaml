@@ -11,40 +11,34 @@
         <VerticalStackLayout Spacing="20" Padding="24,32" MaximumWidthRequest="540" HorizontalOptions="Center" VerticalOptions="Start">
 
             <!-- Profile Header Banner -->
-            <Border StrokeShape="RoundRectangle 20" StrokeThickness="0" Padding="24">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#4F46E5" Offset="0.0" />
-                        <GradientStop Color="#7C3AED" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Border.Background>
+            <Border StrokeShape="RoundRectangle 20" StrokeThickness="0" Padding="24" Background="{StaticResource PrimaryGradientBrush}">
                 <HorizontalStackLayout Spacing="16" VerticalOptions="Center">
-                    <Border HeightRequest="64" WidthRequest="64" StrokeShape="RoundRectangle 32" BackgroundColor="#33FFFFFF" Stroke="White" StrokeThickness="2" Padding="0">
+                    <Border HeightRequest="64" WidthRequest="64" StrokeShape="RoundRectangle 32" BackgroundColor="{StaticResource TranslucentWhite}" Stroke="{StaticResource White}" StrokeThickness="2" Padding="0">
                         <Label Text="👤" FontSize="30" HorizontalOptions="Center" VerticalOptions="Center" />
                     </Border>
                     <VerticalStackLayout VerticalOptions="Center" Spacing="4">
-                        <Label Text="{Binding FullName, TargetNullValue='Hồ sơ cá nhân', FallbackValue='Hồ sơ cá nhân'}" FontSize="20" FontAttributes="Bold" TextColor="White" />
-                        <Label Text="Quản lý và cập nhật thông tin tài khoản của bạn" FontSize="13" TextColor="#E0E7FF" />
+                        <Label Text="{Binding FullName, TargetNullValue='Hồ sơ cá nhân', FallbackValue='Hồ sơ cá nhân'}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                        <Label Text="Quản lý và cập nhật thông tin tài khoản của bạn" FontSize="13" TextColor="{StaticResource HeaderSubtitleColor}" />
                     </VerticalStackLayout>
                 </HorizontalStackLayout>
             </Border>
 
             <!-- Form Card -->
             <Border StrokeShape="RoundRectangle 20"
-                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#334155}"
+                    Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
                     StrokeThickness="1"
-                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
                     Padding="28">
                 <VerticalStackLayout Spacing="18">
                     <Label Text="Chi tiết Hồ sơ" Style="{StaticResource Title3}" />
 
                     <!-- Full Name -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Họ và tên" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                        <Label Text="Họ và tên" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
                         <Border StrokeShape="RoundRectangle 10"
-                                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#475569}"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
                                 StrokeThickness="1"
-                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0F172A}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
                             <Entry Placeholder="Nhập họ và tên đầy đủ" Text="{Binding FullName}" FontSize="14" HeightRequest="42" />
                         </Border>
@@ -52,11 +46,11 @@
 
                     <!-- Phone Number -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Số điện thoại" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                        <Label Text="Số điện thoại" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
                         <Border StrokeShape="RoundRectangle 10"
-                                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#475569}"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
                                 StrokeThickness="1"
-                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0F172A}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
                             <Entry Placeholder="Nhập số điện thoại liên hệ" Text="{Binding PhoneNumber}" Keyboard="Telephone" FontSize="14" HeightRequest="42" />
                         </Border>
@@ -64,11 +58,11 @@
 
                     <!-- Avatar URL -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="URL Ảnh đại diện" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                        <Label Text="URL Ảnh đại diện" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
                         <Border StrokeShape="RoundRectangle 10"
-                                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#475569}"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
                                 StrokeThickness="1"
-                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0F172A}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
                             <Entry Placeholder="https://example.com/avatar.png" Text="{Binding AvatarUrl}" FontSize="14" HeightRequest="42" />
                         </Border>
@@ -79,7 +73,7 @@
                             Command="{Binding UpdateProfileCommand}"
                             IsEnabled="{Binding IsNotBusy}"
                             Background="{StaticResource PrimaryGradientBrush}"
-                            TextColor="White"
+                            TextColor="{StaticResource White}"
                             FontAttributes="Bold"
                             FontSize="15"
                             HeightRequest="48"

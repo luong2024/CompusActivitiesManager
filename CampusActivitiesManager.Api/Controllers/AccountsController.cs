@@ -41,7 +41,7 @@ namespace CampusActivitiesManager.Api.Controllers
 
             try
             {
-                _logger.LogInformation("Creating account for email: {Email}", request.Email);
+                _logger.LogInformation("Creating new user account");
                 var user = await _accountService.CreateAccountAsync(request);
 
                 var responseData = new
@@ -63,7 +63,7 @@ namespace CampusActivitiesManager.Api.Controllers
             }
             catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.EmailAlreadyExists)
             {
-                _logger.LogWarning("Create account conflict: Email already registered ({Email})", request.Email);
+                _logger.LogWarning("Create account conflict: Email already registered");
                 return StatusCode(StatusCodes.Status409Conflict, new ApiErrorResponse
                 {
                     Success = false,
@@ -85,7 +85,7 @@ namespace CampusActivitiesManager.Api.Controllers
             }
             catch (FirebaseAuthException ex)
             {
-                _logger.LogError(ex, "FirebaseAuthException creating account for {Email}", request.Email);
+                _logger.LogError(ex, "FirebaseAuthException creating account");
                 return StatusCode(StatusCodes.Status400BadRequest, new ApiErrorResponse
                 {
                     Success = false,
@@ -96,7 +96,7 @@ namespace CampusActivitiesManager.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled exception creating account for {Email}", request.Email);
+                _logger.LogError(ex, "Unhandled exception creating account");
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiErrorResponse
                 {
                     Success = false,

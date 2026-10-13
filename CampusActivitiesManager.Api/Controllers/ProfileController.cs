@@ -108,12 +108,13 @@ namespace CampusActivitiesManager.Api.Controllers
                     });
                 }
 
+                // Rule Mục 7B: Không cho phép cập nhật mật khẩu, role, trạng thái khóa qua API thông tin cá nhân
                 var updatedProfile = await _accountService.UpdateAccountAsync(targetUser.Id, new UpdateAccountRequest
                 {
                     FullName = request.FullName,
                     PhoneNumber = request.PhoneNumber,
                     AvatarUrl = request.AvatarUrl,
-                    Role = targetUser.Role
+                    Role = null
                 });
 
                 return Ok(new ApiResponse<UserAccountDto>

@@ -10,20 +10,14 @@
     Title="Campus Activities Manager">
 
     <Shell.FlyoutHeader>
-        <Border BackgroundColor="{StaticResource Primary}" Padding="20,24" StrokeThickness="0">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#4F46E5" Offset="0.0" />
-                    <GradientStop Color="#7C3AED" Offset="1.0" />
-                </LinearGradientBrush>
-            </Border.Background>
+        <Border Background="{StaticResource PrimaryGradientBrush}" Padding="20,24" StrokeThickness="0">
             <HorizontalStackLayout Spacing="14" VerticalOptions="Center">
-                <Border WidthRequest="44" HeightRequest="44" StrokeShape="RoundRectangle 12" BackgroundColor="#33FFFFFF" StrokeThickness="0" Padding="0">
+                <Border WidthRequest="44" HeightRequest="44" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0" Padding="0">
                     <Label Text="🎓" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"/>
                 </Border>
                 <VerticalStackLayout VerticalOptions="Center" Spacing="2">
-                    <Label Text="Campus Hub" FontSize="18" FontAttributes="Bold" TextColor="White"/>
-                    <Label Text="Quản lý Hoạt động Sinh viên" FontSize="12" TextColor="#E0E7FF"/>
+                    <Label Text="Campus Hub" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource White}"/>
+                    <Label Text="Quản lý Hoạt động Sinh viên" FontSize="12" TextColor="{StaticResource HeaderSubtitleColor}"/>
                 </VerticalStackLayout>
             </HorizontalStackLayout>
         </Border>
