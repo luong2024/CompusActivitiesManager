@@ -51,6 +51,8 @@ namespace CampusActivitiesManager.PageModels
                 
                 var request = new UpdateProfileRequest
                 {
+                    Id = _authService.CurrentUser?.Id,
+                    Email = _authService.CurrentUser?.Email,
                     FullName = FullName,
                     PhoneNumber = PhoneNumber,
                     AvatarUrl = AvatarUrl
