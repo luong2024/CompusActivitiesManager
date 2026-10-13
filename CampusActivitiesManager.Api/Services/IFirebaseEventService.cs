@@ -4,7 +4,7 @@ namespace CampusActivitiesManager.Api.Services
 {
     public interface IFirebaseEventService
     {
-        Task<List<EventDto>> GetAllEventsAsync();
+        Task<List<EventDto>> GetAllEventsAsync(int limit = 20, int? afterId = null);
         Task<EventDto?> GetEventByIdAsync(int id);
         Task<EventDto> CreateEventAsync(CreateEventRequest request);
         Task<EventDto?> UpdateEventAsync(int id, UpdateEventRequest request);

@@ -75,6 +75,7 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<ManageMetaPageModel>();
             builder.Services.AddSingleton<UserManagementPageModel>();
             builder.Services.AddTransient<LoginPageModel>();
+            builder.Services.AddTransient<ProfilePageModel>();
             builder.Services.AddTransient<RegisterViewModel>();
             builder.Services.AddTransient<CreateUserViewModel>();
             builder.Services.AddTransient<EditUserRoleViewModel>();
@@ -85,6 +86,7 @@ namespace CampusActivitiesManager
             // Pages
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<UserManagementPage>();
+        builder.Services.AddTransient<ProfilePage>();
             builder.Services.AddTransient<LoginPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");

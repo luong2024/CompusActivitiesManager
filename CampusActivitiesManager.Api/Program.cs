@@ -7,20 +7,16 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ensure GOOGLE_APPLICATION_CREDENTIALS is clean (no surrounding quotes) and points to the Firebase key
+// Sanitize GOOGLE_APPLICATION_CREDENTIALS if surrounding quotes are present in the environment variable
 string? credPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")?.Trim('"', ' ');
-if (string.IsNullOrEmpty(credPath) || !File.Exists(credPath))
-{
-    string defaultKeyPath = @"D:\keys\campusacmanage-df24bcb494c7.json";
-    if (File.Exists(defaultKeyPath))
-    {
-        credPath = defaultKeyPath;
-    }
-}
 if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
 {
     Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
 }
+
+string firebaseProjectId = builder.Configuration["Firebase:ProjectId"]
+    ?? Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT")?.Trim('"', ' ')
+    ?? "campusacmanage";
 
 // Initialize Firebase App early so DI services can access FirebaseAuth.DefaultInstance
 if (FirebaseApp.DefaultInstance == null)
@@ -30,7 +26,7 @@ if (FirebaseApp.DefaultInstance == null)
         FirebaseApp.Create(new AppOptions
         {
             Credential = GoogleCredential.GetApplicationDefault(),
-            ProjectId = "campusacmanage"
+            ProjectId = firebaseProjectId
         });
     }
     catch (Exception ex)
@@ -64,7 +60,6 @@ builder.Services.AddScoped<IFirebaseAccountService, FirebaseAccountService>();
 builder.Services.AddScoped<IFirebaseEventService, FirebaseEventService>();
 
 // Configure Firebase JWT Authentication
-string firebaseProjectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT")?.Trim('"', ' ') ?? "campusacmanage";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

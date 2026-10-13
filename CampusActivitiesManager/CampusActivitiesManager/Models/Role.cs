@@ -12,7 +12,9 @@ namespace CampusActivitiesManager.Models
         Admin,
         Manager,
         User,
-        Guest
+        Guest,
+        Student = User,
+        Lecturer = Manager
     }
 
     public static class RoleExtensions

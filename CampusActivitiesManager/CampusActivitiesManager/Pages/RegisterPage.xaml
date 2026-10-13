@@ -22,29 +22,29 @@
 
             <!-- Form Đăng ký -->
             <Border StrokeShape="RoundRectangle 20"
-                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#334155}"
+                    Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
                     StrokeThickness="1"
-                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
                     Padding="28">
                 <VerticalStackLayout Spacing="16">
 
                     <!-- Error Alert -->
                     <Border StrokeShape="RoundRectangle 10"
-                            Stroke="#FCA5A5"
+                            Stroke="{StaticResource ErrorBorderLight}"
                             StrokeThickness="1"
-                            BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#450A0A}"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}"
                             Padding="12,10"
                             IsVisible="{Binding HasError}">
-                        <Label Text="{Binding ErrorMessage}" TextColor="#DC2626" FontSize="13" />
+                        <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorDark}" FontSize="13" />
                     </Border>
 
                     <!-- Full Name -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Họ và Tên" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                        <Label Text="Họ và Tên" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
                         <Border StrokeShape="RoundRectangle 10"
-                                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#475569}"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
                                 StrokeThickness="1"
-                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0F172A}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
                             <Entry Text="{Binding FullName}" Placeholder="Nguyễn Văn A" FontSize="14" HeightRequest="42" />
                         </Border>
@@ -52,11 +52,11 @@
 
                     <!-- Email -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Email" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                        <Label Text="Email" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
                         <Border StrokeShape="RoundRectangle 10"
-                                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#475569}"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
                                 StrokeThickness="1"
-                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0F172A}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
                             <Entry Text="{Binding Email}" Placeholder="email@truong.edu.vn" Keyboard="Email" FontSize="14" HeightRequest="42" />
                         </Border>
@@ -64,11 +64,11 @@
 
                     <!-- Username -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Tên đăng nhập" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                        <Label Text="Tên đăng nhập" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
                         <Border StrokeShape="RoundRectangle 10"
-                                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#475569}"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
                                 StrokeThickness="1"
-                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0F172A}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
                             <Entry Text="{Binding Username}" Placeholder="Nhập tên đăng nhập / MSSV" FontSize="14" HeightRequest="42" />
                         </Border>
@@ -77,13 +77,13 @@
                     <!-- Password -->
                     <VerticalStackLayout Spacing="6">
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Text="Mật khẩu" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                            <Label Text="Mật khẩu" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
                             <Label Grid.Column="1" Text="{Binding PasswordStrength}" TextColor="{Binding PasswordStrengthColor}" FontSize="12" FontAttributes="Bold" VerticalOptions="Center" />
                         </Grid>
                         <Border StrokeShape="RoundRectangle 10"
-                                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#475569}"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
                                 StrokeThickness="1"
-                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0F172A}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
                             <Entry Text="{Binding Password}" IsPassword="True" Placeholder="Mật khẩu (ít nhất 6 ký tự)" FontSize="14" HeightRequest="42" />
                         </Border>
@@ -91,11 +91,11 @@
 
                     <!-- Confirm Password -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Xác nhận Mật khẩu" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
+                        <Label Text="Xác nhận Mật khẩu" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
                         <Border StrokeShape="RoundRectangle 10"
-                                Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#475569}"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
                                 StrokeThickness="1"
-                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#0F172A}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
                             <Entry Text="{Binding ConfirmPassword}" IsPassword="True" Placeholder="Nhập lại mật khẩu" FontSize="14" HeightRequest="42" />
                         </Border>
@@ -105,7 +105,7 @@
                     <Button Text="Đăng ký tài khoản"
                             Command="{Binding RegisterCommand}"
                             Background="{StaticResource EmeraldGradientBrush}"
-                            TextColor="White"
+                            TextColor="{StaticResource White}"
                             FontAttributes="Bold"
                             FontSize="15"
                             HeightRequest="48"
@@ -116,7 +116,7 @@
                     <Button Text="Đã có tài khoản? Quay lại đăng nhập"
                             Command="{Binding GoBackCommand}"
                             BackgroundColor="Transparent"
-                            TextColor="#4F46E5"
+                            TextColor="{StaticResource Primary}"
                             FontAttributes="Bold"
                             FontSize="13"
                             Margin="0,2,0,0" />

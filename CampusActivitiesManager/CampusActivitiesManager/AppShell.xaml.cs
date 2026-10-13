@@ -25,11 +25,11 @@ namespace CampusActivitiesManager
             if (Handler != null)
             {
                 UpdateMenuVisibility();
-                
+
                 var authService = Handler.MauiContext?.Services.GetService<IAuthenticationService>();
                 if (authService != null)
                 {
-                    authService.CurrentUserChanged += (s, e) => 
+                    authService.CurrentUserChanged += (s, e) =>
                     {
                         MainThread.BeginInvokeOnMainThread(() => UpdateMenuVisibility());
                     };
@@ -45,18 +45,10 @@ namespace CampusActivitiesManager
             bool isLoggedIn = authService.CurrentUser != null;
             bool isAdmin = authService.IsAdmin;
 
-            // Show Login if not logged in
-            NavLogin.IsVisible = !isLoggedIn;
-
-            // Show profile and events if logged in
-            
-            
-
-            // Show User management only for admin
-            NavUsers.IsVisible = isAdmin;
-
-            // Show Student dashboard for everyone who is logged in
+            NavLogin.IsVisible = true;
             NavStudentDashboard.IsVisible = isLoggedIn;
+            NavProfile.IsVisible = isLoggedIn;
+            NavUsers.IsVisible = isAdmin;
         }
 
         private void RegisterRoutes()
@@ -68,10 +60,6 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
         }
 
-        /// <summary>
-        /// Navigation Guard: Kiểm tra thẩm quyền trước khi chuyển hướng (Task.md mục 5).
-        /// Nếu không đủ quyền, tự động chuyển hướng về //AccessDeniedPage.
-        /// </summary>
         public static async Task NavigateWithGuardAsync(string route, Role requiredRole, IAuthenticationService authService)
         {
             if (!authService.CheckPermission(requiredRole))
@@ -82,6 +70,7 @@ namespace CampusActivitiesManager
 
             await Shell.Current.GoToAsync(route);
         }
+
         public static async Task DisplaySnackbarAsync(string message)
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -103,7 +92,6 @@ namespace CampusActivitiesManager
 
         public static async Task DisplayToastAsync(string message)
         {
-            // Toast is currently not working in MCT on Windows, fallback to Snackbar
             if (OperatingSystem.IsWindows())
             {
                 await DisplaySnackbarAsync(message);
