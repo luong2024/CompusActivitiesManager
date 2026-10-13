@@ -59,79 +59,85 @@
                 </Border>
 
                 <!-- 4 Thẻ Thống kê Số lượng Tài khoản -->
-                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="14">
                     <!-- Total -->
-                    <Border Grid.Column="0" StrokeShape="RoundRectangle 10" Stroke="Transparent" BackgroundColor="{AppThemeBinding Light=#F3F4F6, Dark=#1F2937}" Padding="12">
-                        <VerticalStackLayout Spacing="2">
-                            <Label Text="TỔNG SỐ" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
-                            <Label Text="{Binding TotalUsersCount}" FontSize="24" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
-                            <Label Text="Tài khoản" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
+                    <Border Grid.Column="0" StrokeShape="RoundRectangle 16" Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#334155}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}" Padding="18,16">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="TỔNG SỐ TÀI KHOẢN" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
+                            <Label Text="{Binding TotalUsersCount}" FontSize="28" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#0F172A, Dark=#F8FAFC}" />
+                            <Label Text="Toàn hệ thống" FontSize="12" TextColor="{AppThemeBinding Light=#94A3B8, Dark=#64748B}" />
                         </VerticalStackLayout>
                     </Border>
 
                     <!-- Admin -->
-                    <Border Grid.Column="1" StrokeShape="RoundRectangle 10" Stroke="Transparent" BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#450A0A}" Padding="12">
-                        <VerticalStackLayout Spacing="2">
-                            <Label Text="ADMIN" FontSize="11" FontAttributes="Bold" TextColor="#DC2626" />
-                            <Label Text="{Binding AdminCount}" FontSize="24" FontAttributes="Bold" TextColor="#DC2626" />
-                            <Label Text="Quản trị viên" FontSize="11" TextColor="#EF4444" />
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 16" Stroke="{AppThemeBinding Light=#FECACA, Dark=#7F1D1D}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#450A0A}" Padding="18,16">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="QUẢN TRỊ VIÊN (ADMIN)" FontSize="11" FontAttributes="Bold" TextColor="#DC2626" />
+                            <Label Text="{Binding AdminCount}" FontSize="28" FontAttributes="Bold" TextColor="#DC2626" />
+                            <Label Text="Toàn quyền hệ thống" FontSize="12" TextColor="#EF4444" />
                         </VerticalStackLayout>
                     </Border>
 
                     <!-- Manager -->
-                    <Border Grid.Column="2" StrokeShape="RoundRectangle 10" Stroke="Transparent" BackgroundColor="{AppThemeBinding Light=#EFF6FF, Dark=#172554}" Padding="12">
-                        <VerticalStackLayout Spacing="2">
-                            <Label Text="MANAGER" FontSize="11" FontAttributes="Bold" TextColor="#2563EB" />
-                            <Label Text="{Binding ManagerCount}" FontSize="24" FontAttributes="Bold" TextColor="#2563EB" />
-                            <Label Text="Quản lý" FontSize="11" TextColor="#3B82F6" />
+                    <Border Grid.Column="2" StrokeShape="RoundRectangle 16" Stroke="{AppThemeBinding Light=#BFDBFE, Dark=#1E3A8A}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light=#EFF6FF, Dark=#172554}" Padding="18,16">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="QUẢN LÝ (MANAGER)" FontSize="11" FontAttributes="Bold" TextColor="#2563EB" />
+                            <Label Text="{Binding ManagerCount}" FontSize="28" FontAttributes="Bold" TextColor="#2563EB" />
+                            <Label Text="Tổ chức hoạt động" FontSize="12" TextColor="#3B82F6" />
                         </VerticalStackLayout>
                     </Border>
 
                     <!-- User/Student -->
-                    <Border Grid.Column="3" StrokeShape="RoundRectangle 10" Stroke="Transparent" BackgroundColor="{AppThemeBinding Light=#F0FDF4, Dark=#052E16}" Padding="12">
-                        <VerticalStackLayout Spacing="2">
-                            <Label Text="USER / SV" FontSize="11" FontAttributes="Bold" TextColor="#16A34A" />
-                            <Label Text="{Binding UserCount}" FontSize="24" FontAttributes="Bold" TextColor="#16A34A" />
-                            <Label Text="Sinh viên" FontSize="11" TextColor="#22C55E" />
+                    <Border Grid.Column="3" StrokeShape="RoundRectangle 16" Stroke="{AppThemeBinding Light=#A7F3D0, Dark=#14532D}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light=#ECFDF5, Dark=#052E16}" Padding="18,16">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="SINH VIÊN (USER)" FontSize="11" FontAttributes="Bold" TextColor="#059669" />
+                            <Label Text="{Binding UserCount}" FontSize="28" FontAttributes="Bold" TextColor="#059669" />
+                            <Label Text="Thành viên tham gia" FontSize="12" TextColor="#10B981" />
                         </VerticalStackLayout>
                     </Border>
                 </Grid>
 
                 <!-- Tìm kiếm & Bộ lọc Vai trò -->
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                    <SearchBar Text="{Binding SearchText}"
-                               Placeholder="Tìm theo họ tên, username, email, khoa..."
-                               Grid.Column="0"
-                               HeightRequest="44" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 12"
+                            Stroke="{AppThemeBinding Light=#CBD5E1, Dark=#475569}"
+                            StrokeThickness="1"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
+                            Padding="4,0">
+                        <SearchBar Text="{Binding SearchText}"
+                                   Placeholder="Tìm theo họ tên, username, email, khoa..."
+                                   HeightRequest="44" />
+                    </Border>
 
-                    <HorizontalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
                         <Button Text="Tất cả"
                                 Command="{Binding SetFilterRoleCommand}" CommandParameter="All"
-                                HeightRequest="36" Padding="12,0" FontSize="12"
-                                BackgroundColor="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
-                                TextColor="{AppThemeBinding Light=#1F2937, Dark=#F9FAFB}" />
+                                HeightRequest="40" Padding="14,0" FontSize="13" CornerRadius="10"
+                                BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#334155}"
+                                TextColor="{AppThemeBinding Light=#1E293B, Dark=#F8FAFC}" />
                         <Button Text="Admin"
                                 Command="{Binding SetFilterRoleCommand}" CommandParameter="Admin"
-                                HeightRequest="36" Padding="12,0" FontSize="12"
+                                HeightRequest="40" Padding="14,0" FontSize="13" CornerRadius="10"
                                 BackgroundColor="#DC2626" TextColor="White" />
                         <Button Text="Manager"
                                 Command="{Binding SetFilterRoleCommand}" CommandParameter="Manager"
-                                HeightRequest="36" Padding="12,0" FontSize="12"
+                                HeightRequest="40" Padding="14,0" FontSize="13" CornerRadius="10"
                                 BackgroundColor="#2563EB" TextColor="White" />
                         <Button Text="User"
                                 Command="{Binding SetFilterRoleCommand}" CommandParameter="User"
-                                HeightRequest="36" Padding="12,0" FontSize="12"
-                                BackgroundColor="#16A34A" TextColor="White" />
+                                HeightRequest="40" Padding="14,0" FontSize="13" CornerRadius="10"
+                                BackgroundColor="#059669" TextColor="White" />
                         
                         <!-- Add Account Button -->
                         <Button Text="+ Thêm tài khoản"
                                 Command="{Binding NavigateToCreateUserPageCommand}"
-                                BackgroundColor="#10B981"
+                                Background="{StaticResource EmeraldGradientBrush}"
                                 TextColor="White"
                                 FontAttributes="Bold"
-                                Padding="16,0"
-                                HeightRequest="44"
-                                CornerRadius="8"
+                                Padding="18,0"
+                                HeightRequest="42"
+                                CornerRadius="10"
                                 VerticalOptions="Center" />
                     </HorizontalStackLayout>
                 </Grid>

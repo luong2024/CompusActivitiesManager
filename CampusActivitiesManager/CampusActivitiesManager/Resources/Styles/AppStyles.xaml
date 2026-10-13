@@ -29,25 +29,25 @@
     <OnIdiom x:Key="IconSize"
              x:TypeArguments="x:Double"
              Default="20">
-        <OnIdiom.Desktop>32</OnIdiom.Desktop>
+        <OnIdiom.Desktop>22</OnIdiom.Desktop>
     </OnIdiom>
     
     <OnIdiom x:Key="IconSizeSmall"
              x:TypeArguments="x:Double"
-             Default="12">
-        <OnIdiom.Desktop>18</OnIdiom.Desktop>
+             Default="14">
+        <OnIdiom.Desktop>16</OnIdiom.Desktop>
     </OnIdiom>
 
     <OnIdiom x:Key="LayoutPadding"
              x:TypeArguments="Thickness"
-             Default="15">
-        <OnIdiom.Desktop>30</OnIdiom.Desktop>
+             Default="16">
+        <OnIdiom.Desktop>24</OnIdiom.Desktop>
     </OnIdiom>
 
     <OnIdiom x:Key="LayoutSpacing"
              x:TypeArguments="x:Double"
-             Default="5">
-        <OnIdiom.Desktop>15</OnIdiom.Desktop>
+             Default="8">
+        <OnIdiom.Desktop>14</OnIdiom.Desktop>
     </OnIdiom>
 
     <FontImageSource x:Key="IconDashboard"
@@ -187,7 +187,7 @@
         <Setter Property="BackgroundColor"
                 Value="Transparent" />
         <Setter Property="FontSize"
-                Value="17" />
+                Value="14" />
         <Setter Property="LineHeight"
                 Value="1.29" />
         <!-- 22 -->
@@ -326,13 +326,6 @@
         <!-- 70 -->
         <Setter Property="FontAttributes"
                 Value="{OnPlatform WinUI=None, Default=Bold}" />
-    </Style>
-
-    <Style TargetType="Border">
-        <Setter Property="StrokeShape" Value="RoundRectangle 20"/>
-        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource LightSecondaryBackground},Dark={StaticResource DarkSecondaryBackground}}"/>
-        <Setter Property="StrokeThickness" Value="0"/>
-        <Setter Property="Padding" Value="{OnIdiom 15, Desktop=20}"/>
     </Style>
 
     <Style TargetType="Border" x:Key="CardStyle">
