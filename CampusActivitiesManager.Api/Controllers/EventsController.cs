@@ -18,11 +18,11 @@ namespace CampusActivitiesManager.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetEvents()
+        public async Task<IActionResult> GetEvents([FromQuery] int limit = 20, [FromQuery] int? afterId = null)
         {
             try
             {
-                var events = await _eventService.GetAllEventsAsync();
+                var events = await _eventService.GetAllEventsAsync(limit, afterId);
                 return Ok(new ApiResponse<List<EventDto>>
                 {
                     Success = true,

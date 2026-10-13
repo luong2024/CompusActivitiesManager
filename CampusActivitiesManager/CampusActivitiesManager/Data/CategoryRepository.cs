@@ -60,11 +60,8 @@ namespace CampusActivitiesManager.Data
         {
             try
             {
-                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
-                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
-                    ? "https://10.0.2.2:7258/api/v1/categories"
-                    : "https://localhost:7258/api/v1/categories";
-                var response = await httpClient.GetAsync(baseUrl);
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
+                var response = await httpClient.GetAsync(Constants.CategoriesApiUrl);
                 if (response.IsSuccessStatusCode)
                 {
                     var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -75,7 +72,7 @@ namespace CampusActivitiesManager.Data
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Lỗi API ListAsync categories, fallback SQLite");
+                _logger.LogWarning(ex, "Error fetching categories from API, falling back to SQLite");
             }
 
             await Init();
@@ -107,11 +104,8 @@ namespace CampusActivitiesManager.Data
         {
             try
             {
-                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
-                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
-                    ? $"https://10.0.2.2:7258/api/v1/categories/{id}"
-                    : $"https://localhost:7258/api/v1/categories/{id}";
-                var response = await httpClient.GetAsync(baseUrl);
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
+                var response = await httpClient.GetAsync($"{Constants.CategoriesApiUrl}/{id}");
                 if (response.IsSuccessStatusCode)
                 {
                     var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -122,7 +116,7 @@ namespace CampusActivitiesManager.Data
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Lỗi API GetAsync category, fallback SQLite");
+                _logger.LogWarning(ex, "Error fetching category by ID from API, falling back to SQLite");
             }
 
             await Init();
@@ -154,10 +148,7 @@ namespace CampusActivitiesManager.Data
         {
             try
             {
-                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
-                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
-                    ? "https://10.0.2.2:7258/api/v1/categories"
-                    : "https://localhost:7258/api/v1/categories";
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
                 var payload = new
                 {
                     title = item.Title,
@@ -167,11 +158,11 @@ namespace CampusActivitiesManager.Data
                 HttpResponseMessage response;
                 if (item.ID == 0)
                 {
-                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PostAsJsonAsync(httpClient, baseUrl, payload);
+                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PostAsJsonAsync(httpClient, Constants.CategoriesApiUrl, payload);
                 }
                 else
                 {
-                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PutAsJsonAsync(httpClient, $"{baseUrl}/{item.ID}", payload);
+                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PutAsJsonAsync(httpClient, $"{Constants.CategoriesApiUrl}/{item.ID}", payload);
                 }
 
                 if (response.IsSuccessStatusCode)
@@ -187,7 +178,7 @@ namespace CampusActivitiesManager.Data
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Lỗi API SaveItemAsync category, fallback SQLite");
+                _logger.LogWarning(ex, "Error saving category to API, falling back to SQLite");
             }
 
             await Init();
@@ -229,11 +220,8 @@ namespace CampusActivitiesManager.Data
         {
             try
             {
-                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
-                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
-                    ? $"https://10.0.2.2:7258/api/v1/categories/{item.ID}"
-                    : $"https://localhost:7258/api/v1/categories/{item.ID}";
-                var response = await httpClient.DeleteAsync(baseUrl);
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
+                var response = await httpClient.DeleteAsync($"{Constants.CategoriesApiUrl}/{item.ID}");
                 if (response.IsSuccessStatusCode)
                 {
                     return 1;
@@ -241,7 +229,7 @@ namespace CampusActivitiesManager.Data
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Lỗi API DeleteItemAsync category, fallback SQLite");
+                _logger.LogWarning(ex, "Error deleting category from API, falling back to SQLite");
             }
 
             await Init();

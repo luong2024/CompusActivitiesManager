@@ -64,6 +64,7 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<UserRepository>();
             builder.Services.AddSingleton<UserService>();
             builder.Services.AddSingleton<IUserService<User>, UserService>();
+            builder.Services.AddSingleton<IUserService, UserService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
@@ -74,6 +75,7 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<ManageMetaPageModel>();
             builder.Services.AddSingleton<UserManagementPageModel>();
             builder.Services.AddTransient<LoginPageModel>();
+            builder.Services.AddTransient<ProfilePageModel>();
             builder.Services.AddTransient<RegisterViewModel>();
             builder.Services.AddTransient<CreateUserViewModel>();
             builder.Services.AddTransient<EditUserRoleViewModel>();
@@ -84,6 +86,7 @@ namespace CampusActivitiesManager
             // Pages
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<UserManagementPage>();
+        builder.Services.AddTransient<ProfilePage>();
             builder.Services.AddTransient<LoginPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
@@ -92,7 +95,6 @@ namespace CampusActivitiesManager
             builder.Services.AddTransientWithShellRoute<AccessDeniedPage, AccessDeniedViewModel>("accessdenied");
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
-            builder.Services.AddTransientWithShellRoute<ManageCategoriesPage, ManageCategoriesPageModel>("categories");
 
             return builder.Build();
         }

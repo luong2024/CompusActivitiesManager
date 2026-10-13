@@ -40,48 +40,48 @@ namespace CampusActivitiesManager.Api.Controllers
 
             try
             {
-                _logger.LogInformation("Login attempt for email: {Email}", request.Email);
+                _logger.LogInformation("Processing authentication request");
 
                 var user = await _accountService.GetAccountByEmailAsync(request.Email);
                 if (user == null)
                 {
-                    _logger.LogWarning("Login failed: User not found for email {Email}", request.Email);
+                    _logger.LogWarning("Authentication failed: invalid credentials");
                     return Unauthorized(new ApiErrorResponse
                     {
                         Success = false,
                         StatusCode = StatusCodes.Status401Unauthorized,
                         Error = "UNAUTHORIZED",
-                        Message = "Invalid email or password"
+                        Message = "Tên đăng nhập hoặc mật khẩu không chính xác"
                     });
                 }
 
                 // AC 35.1.5: Kiểm tra nếu tài khoản đang bị khóa
                 if (user.IsDisabled || !user.IsActive)
                 {
-                    _logger.LogWarning("Login rejected: Account is locked for email {Email} (UID: {Id})", request.Email, user.Id);
+                    _logger.LogWarning("Authentication rejected: account is locked (UID: {Id})", user.Id);
                     return StatusCode(StatusCodes.Status403Forbidden, new ApiErrorResponse
                     {
                         Success = false,
                         StatusCode = StatusCodes.Status403Forbidden,
                         Error = "ACCOUNT_LOCKED",
-                        Message = "Account is locked. Please contact administrator."
+                        Message = "Tài khoản của bạn đã bị khóa"
                     });
                 }
 
                 var loginResult = await _accountService.AuthenticateAsync(request.Email, request.Password);
                 if (loginResult == null)
                 {
-                    _logger.LogWarning("Login failed: Invalid credentials for email {Email}", request.Email);
+                    _logger.LogWarning("Authentication failed: invalid credentials");
                     return Unauthorized(new ApiErrorResponse
                     {
                         Success = false,
                         StatusCode = StatusCodes.Status401Unauthorized,
                         Error = "UNAUTHORIZED",
-                        Message = "Invalid email or password"
+                        Message = "Tên đăng nhập hoặc mật khẩu không chính xác"
                     });
                 }
 
-                _logger.LogInformation("User {Email} logged in successfully", request.Email);
+                _logger.LogInformation("User UID {Id} authenticated successfully", user.Id);
                 return Ok(new ApiResponse<LoginResponse>
                 {
                     Success = true,
@@ -92,7 +92,7 @@ namespace CampusActivitiesManager.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled exception during login for {Email}", request.Email);
+                _logger.LogError(ex, "Unhandled exception during login");
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiErrorResponse
                 {
                     Success = false,

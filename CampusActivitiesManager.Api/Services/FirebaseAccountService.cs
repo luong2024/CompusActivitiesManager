@@ -23,18 +23,14 @@ namespace CampusActivitiesManager.Api.Services
             _logger = logger;
 
             string? credPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")?.Trim('"', ' ');
-            if (string.IsNullOrEmpty(credPath) || !File.Exists(credPath))
-            {
-                string defaultKey = @"D:\keys\campusacmanage-df24bcb494c7.json";
-                if (File.Exists(defaultKey))
-                {
-                    credPath = defaultKey;
-                }
-            }
             if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
             {
                 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
             }
+
+            string projectId = _configuration["Firebase:ProjectId"]
+                ?? Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT")?.Trim('"', ' ')
+                ?? "campusacmanage";
 
             try
             {
@@ -43,7 +39,7 @@ namespace CampusActivitiesManager.Api.Services
                     FirebaseApp.Create(new AppOptions
                     {
                         Credential = GoogleCredential.GetApplicationDefault(),
-                        ProjectId = "campusacmanage"
+                        ProjectId = projectId
                     });
                 }
                 _firebaseAuth = FirebaseAuth.DefaultInstance;
@@ -56,7 +52,6 @@ namespace CampusActivitiesManager.Api.Services
 
             try
             {
-                string projectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT")?.Trim('"', ' ') ?? "campusacmanage";
                 _firestoreDb = FirestoreDb.Create(projectId);
             }
             catch (Exception ex)
@@ -255,7 +250,7 @@ namespace CampusActivitiesManager.Api.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Error querying Firestore by email {Email}", email);
+                    _logger.LogWarning(ex, "Error querying Firestore user account by email");
                 }
             }
 
@@ -457,10 +452,14 @@ namespace CampusActivitiesManager.Api.Services
                         Disabled = isLocked
                     };
                     await _firebaseAuth.UpdateUserAsync(userArgs);
+                    if (isLocked)
+                    {
+                        await _firebaseAuth.RevokeRefreshTokensAsync(id);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Could not update Disabled flag in FirebaseAuth for UID {Uid}", id);
+                    _logger.LogWarning(ex, "Could not update Disabled flag or revoke tokens in FirebaseAuth for UID {Uid}", id);
                 }
             }
 
@@ -517,8 +516,12 @@ namespace CampusActivitiesManager.Api.Services
 
         private string GenerateJwtToken(UserAccountDto user)
         {
-            string secretKey = _configuration["Jwt:SecretKey"] ?? "CampusActivitiesManager_DefaultSecretKey_ForTokenGeneration_2026_!@#";
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            string issuer = _configuration["Jwt:Issuer"] ?? "CampusActivitiesManager.Api";
+            string audience = _configuration["Jwt:Audience"] ?? "CampusActivitiesManager.Client";
+            string rawKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+                ?? _configuration["Jwt:SecretKey"]
+                ?? $"{issuer}:{audience}".PadRight(32, '_');
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(rawKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
@@ -531,8 +534,8 @@ namespace CampusActivitiesManager.Api.Services
             };
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"] ?? "CampusActivitiesManager.Api",
-                audience: _configuration["Jwt:Audience"] ?? "CampusActivitiesManager.Client",
+                issuer: issuer,
+                audience: audience,
                 claims: claims,
                 expires: DateTime.UtcNow.AddHours(24),
                 signingCredentials: credentials);

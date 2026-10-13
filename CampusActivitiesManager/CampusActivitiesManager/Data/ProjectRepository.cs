@@ -66,16 +66,21 @@ namespace CampusActivitiesManager.Data
         /// <returns>A list of <see cref="Project"/> objects.</returns>
         public async Task<List<Project>> ListAsync()
         {
-            try {
-                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
-                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android ? "https://10.0.2.2:7258/api/v1/events" : "https://localhost:7258/api/v1/events";
-                var response = await httpClient.GetAsync(baseUrl);
-                if (response.IsSuccessStatusCode) {
+            try
+            {
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
+                var response = await httpClient.GetAsync(Constants.EventsApiUrl);
+                if (response.IsSuccessStatusCode)
+                {
                     var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                     var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<List<CampusActivitiesManager.Models.Project>>>(response.Content, options);
                     if (result != null && result.Success && result.Data != null) return result.Data;
                 }
-            } catch (System.Exception ex) { Microsoft.Extensions.Logging.LoggerExtensions.LogWarning(_logger, ex, "L?i API, fallback SQLite"); }
+            }
+            catch (System.Exception ex)
+            {
+                Microsoft.Extensions.Logging.LoggerExtensions.LogWarning(_logger, ex, "Error fetching events from API, falling back to SQLite");
+            }
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -115,11 +120,8 @@ namespace CampusActivitiesManager.Data
         {
             try
             {
-                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
-                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
-                    ? $"https://10.0.2.2:7258/api/v1/events/{id}"
-                    : $"https://localhost:7258/api/v1/events/{id}";
-                var response = await httpClient.GetAsync(baseUrl);
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
+                var response = await httpClient.GetAsync($"{Constants.EventsApiUrl}/{id}");
                 if (response.IsSuccessStatusCode)
                 {
                     var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -130,7 +132,7 @@ namespace CampusActivitiesManager.Data
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Lỗi API GetAsync event, fallback SQLite");
+                _logger.LogWarning(ex, "Error fetching event by ID from API, falling back to SQLite");
             }
 
             await Init();
@@ -169,10 +171,7 @@ namespace CampusActivitiesManager.Data
         {
             try
             {
-                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
-                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
-                    ? "https://10.0.2.2:7258/api/v1/events"
-                    : "https://localhost:7258/api/v1/events";
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
                 var payload = new
                 {
                     name = item.Name,
@@ -184,11 +183,11 @@ namespace CampusActivitiesManager.Data
                 HttpResponseMessage response;
                 if (item.ID == 0)
                 {
-                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PostAsJsonAsync(httpClient, baseUrl, payload);
+                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PostAsJsonAsync(httpClient, Constants.EventsApiUrl, payload);
                 }
                 else
                 {
-                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PutAsJsonAsync(httpClient, $"{baseUrl}/{item.ID}", payload);
+                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PutAsJsonAsync(httpClient, $"{Constants.EventsApiUrl}/{item.ID}", payload);
                 }
 
                 if (response.IsSuccessStatusCode)
@@ -204,7 +203,7 @@ namespace CampusActivitiesManager.Data
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Lỗi API SaveItemAsync event, fallback SQLite");
+                _logger.LogWarning(ex, "Error saving event to API, falling back to SQLite");
             }
 
             await Init();
@@ -249,11 +248,8 @@ namespace CampusActivitiesManager.Data
         {
             try
             {
-                using var httpClient = new System.Net.Http.HttpClient(CampusActivitiesManager.Services.HttpHelper.GetInsecureHandler());
-                var baseUrl = Microsoft.Maui.Devices.DeviceInfo.Platform == Microsoft.Maui.Devices.DevicePlatform.Android
-                    ? $"https://10.0.2.2:7258/api/v1/events/{item.ID}"
-                    : $"https://localhost:7258/api/v1/events/{item.ID}";
-                var response = await httpClient.DeleteAsync(baseUrl);
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
+                var response = await httpClient.DeleteAsync($"{Constants.EventsApiUrl}/{item.ID}");
                 if (response.IsSuccessStatusCode)
                 {
                     return 1;
@@ -261,7 +257,7 @@ namespace CampusActivitiesManager.Data
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Lỗi API DeleteItemAsync event, fallback SQLite");
+                _logger.LogWarning(ex, "Error deleting event from API, falling back to SQLite");
             }
 
             await Init();

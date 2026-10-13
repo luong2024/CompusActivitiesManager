@@ -1,12 +1,10 @@
 using System.Net.Http.Json;
+using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
 namespace CampusActivitiesManager.Services
 {
-    /// <summary>
-    /// Triển khai dịch vụ xác thực người dùng và quản lý phiên làm việc (RBAC).
-    /// </summary>
     public class AuthenticationService : IAuthenticationService
     {
         private readonly IUserService<User> _userService;
@@ -39,10 +37,7 @@ namespace CampusActivitiesManager.Services
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                     return false;
 
-                using var httpClient = new System.Net.Http.HttpClient(HttpHelper.GetInsecureHandler());
-                var baseUrl = DeviceInfo.Platform == DevicePlatform.Android 
-                    ? "https://10.0.2.2:7258/api/v1/auth/login" 
-                    : "https://localhost:7258/api/v1/auth/login";
+                using var httpClient = HttpHelper.CreateApiClient();
 
                 var email = username.Trim();
                 if (!email.Contains('@'))
@@ -51,7 +46,7 @@ namespace CampusActivitiesManager.Services
                 }
 
                 var loginRequest = new { Email = email, Password = password.Trim() };
-                var response = await httpClient.PostAsJsonAsync(baseUrl, loginRequest);
+                var response = await httpClient.PostAsJsonAsync(Constants.AuthLoginUrl, loginRequest);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -60,7 +55,7 @@ namespace CampusActivitiesManager.Services
                         PropertyNameCaseInsensitive = true,
                         Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
                     };
-                    
+
                     var result = await response.Content.ReadFromJsonAsync<ApiResponse<Models.AuthLoginResponse>>(options);
 
                     if (result != null && result.Success && result.Data != null)
@@ -87,17 +82,16 @@ namespace CampusActivitiesManager.Services
                         };
 
                         _currentUser = user;
-                        _logger.LogInformation("Đăng nhập thành công qua API: {Email} với vai trò {Role}", user.Email, user.Role);
+                        _logger.LogInformation("Authenticated session started with role {Role}", user.Role);
                         CurrentUserChanged?.Invoke(this, EventArgs.Empty);
 
                         try
                         {
-                            await SecureStorage.Default.SetAsync("api_auth_token", loginData.Token);
+                            await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, loginData.Token);
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "SecureStorage failed, falling back to Preferences");
-                            Preferences.Default.Set("api_auth_token", loginData.Token);
+                            _logger.LogWarning(ex, "Could not persist token in SecureStorage");
                         }
 
                         return true;
@@ -105,7 +99,7 @@ namespace CampusActivitiesManager.Services
                 }
                 else
                 {
-                    _logger.LogWarning("Đăng nhập thất bại qua API, mã lỗi: {StatusCode}", response.StatusCode);
+                    _logger.LogWarning("Authentication rejected with status code {StatusCode}", response.StatusCode);
                     return false;
                 }
 
@@ -113,7 +107,7 @@ namespace CampusActivitiesManager.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi thực hiện đăng nhập qua API");
+                _logger.LogError(ex, "Error during login request");
                 return false;
             }
         }
@@ -133,7 +127,7 @@ namespace CampusActivitiesManager.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi chuyển đổi người dùng sang {Username}", username);
+                _logger.LogError(ex, "Error switching current user");
                 return false;
             }
         }
@@ -141,9 +135,8 @@ namespace CampusActivitiesManager.Services
         public void Logout()
         {
             _currentUser = null;
-            SecureStorage.Default.Remove("api_auth_token");
-            Preferences.Default.Remove("api_auth_token");
-            _logger.LogInformation("Người dùng đã đăng xuất");
+            SecureStorage.Default.Remove(Constants.AuthTokenKey);
+            _logger.LogInformation("User session ended");
             CurrentUserChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -173,13 +166,12 @@ namespace CampusActivitiesManager.Services
                 if (refreshedUser != null)
                 {
                     _currentUser = refreshedUser;
-                    _logger.LogInformation("Đã làm mới phiên làm việc cho {Username}, vai trò mới: {Role}", _currentUser.Username, _currentUser.Role);
                     CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi làm mới phiên người dùng");
+                _logger.LogError(ex, "Error refreshing current user session");
             }
         }
     }

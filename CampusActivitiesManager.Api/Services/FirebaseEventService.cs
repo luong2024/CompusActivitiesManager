@@ -6,28 +6,24 @@ namespace CampusActivitiesManager.Api.Services
     public class FirebaseEventService : IFirebaseEventService
     {
         private readonly FirestoreDb? _firestoreDb;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<FirebaseEventService> _logger;
 
-        public FirebaseEventService(ILogger<FirebaseEventService> logger)
+        public FirebaseEventService(IConfiguration configuration, ILogger<FirebaseEventService> logger)
         {
+            _configuration = configuration;
             _logger = logger;
             try
             {
                 string? credPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")?.Trim('"', ' ');
-                if (string.IsNullOrEmpty(credPath) || !File.Exists(credPath))
-                {
-                    string defaultKey = @"D:\keys\campusacmanage-df24bcb494c7.json";
-                    if (File.Exists(defaultKey))
-                    {
-                        credPath = defaultKey;
-                    }
-                }
                 if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
                 {
                     Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
                 }
 
-                string projectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT")?.Trim('"', ' ') ?? "campusacmanage";
+                string projectId = _configuration["Firebase:ProjectId"]
+                    ?? Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT")?.Trim('"', ' ')
+                    ?? "campusacmanage";
                 _firestoreDb = FirestoreDb.Create(projectId);
             }
             catch (Exception ex)
@@ -50,9 +46,10 @@ namespace CampusActivitiesManager.Api.Services
                     var defaultCategories = new List<EventCategoryDto>
                     {
                         new() { ID = 1, Title = "Học thuật", Color = "#2563EB" },
-                        new() { ID = 2, Title = "Thể thao", Color = "#059669" },
-                        new() { ID = 3, Title = "Tình nguyện", Color = "#DC2626" },
-                        new() { ID = 4, Title = "Kỹ năng", Color = "#7C3AED" }
+                        new() { ID = 2, Title = "Thể thao", Color = "#10B981" },
+                        new() { ID = 3, Title = "Tình nguyện", Color = "#EF4444" },
+                        new() { ID = 4, Title = "Kỹ năng mềm", Color = "#F59E0B" },
+                        new() { ID = 5, Title = "Văn hóa - Nghệ thuật", Color = "#0EA5E9" }
                     };
 
                     foreach (var cat in defaultCategories)
@@ -72,10 +69,11 @@ namespace CampusActivitiesManager.Api.Services
                 {
                     var defaultEvents = new List<EventDto>
                     {
-                        new() { ID = 1, Name = "Hội thảo Công nghệ Thông tin 2026", Description = "Cập nhật xu hướng AI và Blockchain cho sinh viên toàn trường", Icon = "💻", CategoryID = 1 },
-                        new() { ID = 2, Name = "Giải Bóng đá Sinh viên Toàn trường", Description = "Khai mạc giải đấu thể thao lớn nhất năm học", Icon = "⚽", CategoryID = 2 },
-                        new() { ID = 3, Name = "Mùa Hè Xanh - Tình nguyện Hè", Description = "Hoạt động tình nguyện hỗ trợ cộng đồng và dạy học", Icon = "🌿", CategoryID = 3 },
-                        new() { ID = 4, Name = "Workshop Kỹ năng Thuyết trình", Description = "Phát triển kỹ năng giao tiếp và thuyết trình trước đám đông", Icon = "🗣️", CategoryID = 4 }
+                        new() { ID = 1, Name = "Hội thảo Công nghệ Thông tin 2026", Description = "Cập nhật xu hướng AI và Cloud Computing cho sinh viên toàn trường", Icon = "💻", CategoryID = 1 },
+                        new() { ID = 2, Name = "Giải Bóng đá Sinh viên Toàn trường", Description = "Khai mạc giải đấu thể thao lớn nhất năm học tại sân vận động", Icon = "⚽", CategoryID = 2 },
+                        new() { ID = 3, Name = "Chiến dịch Mùa Hè Xanh 2026", Description = "Hoạt động tình nguyện hỗ trợ cộng đồng và dạy học vùng cao", Icon = "🌿", CategoryID = 3 },
+                        new() { ID = 4, Name = "Workshop Kỹ năng Thuyết trình & Phỏng vấn", Description = "Phát triển kỹ năng giao tiếp và chinh phục nhà tuyển dụng", Icon = "🗣️", CategoryID = 4 },
+                        new() { ID = 5, Name = "Đêm nhạc Acoustic Chào Tân Sinh viên", Description = "Giao lưu âm nhạc giữa các câu lạc bộ nghệ thuật trong trường", Icon = "🎸", CategoryID = 5 }
                     };
 
                     foreach (var evt in defaultEvents)
@@ -194,7 +192,7 @@ namespace CampusActivitiesManager.Api.Services
             return true;
         }
 
-        public async Task<List<EventDto>> GetAllEventsAsync()
+        public async Task<List<EventDto>> GetAllEventsAsync(int limit = 20, int? afterId = null)
         {
             if (_firestoreDb == null) return new List<EventDto>();
 
@@ -202,8 +200,16 @@ namespace CampusActivitiesManager.Api.Services
             var categories = await GetAllCategoriesAsync();
             var catMap = categories.ToDictionary(c => c.ID, c => c);
 
+            int safeLimit = limit <= 0 ? 20 : Math.Min(limit, 100);
+            Query query = _firestoreDb.Collection("events").OrderBy("id");
+            if (afterId.HasValue)
+            {
+                query = query.StartAfter(afterId.Value);
+            }
+            query = query.Limit(safeLimit);
+
             var events = new List<EventDto>();
-            var snapshot = await _firestoreDb.Collection("events").GetSnapshotAsync();
+            var snapshot = await query.GetSnapshotAsync();
             foreach (var doc in snapshot.Documents)
             {
                 var dict = doc.ToDictionary();
