@@ -29,8 +29,8 @@
         x:Name="NavUsers"
         Title="Quản lý Tài khoản"
         Icon="{StaticResource IconUsers}"
-        ContentTemplate="{DataTemplate pages:AccountListPage}"
-        Route="accounts" />
+        ContentTemplate="{DataTemplate pages:UserManagementPage}"
+        Route="users" />
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">

@@ -1,10 +1,11 @@
+using System.Net.Http.Json;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
 namespace CampusActivitiesManager.Services
 {
     /// <summary>
-    /// Triển khai dịch vụ xác thực và quản lý phiên người dùng (Session Management và RBAC Guard).
+    /// Triển khai dịch vụ xác thực người dùng và quản lý phiên làm việc (RBAC).
     /// </summary>
     public class AuthenticationService : IAuthenticationService
     {
@@ -29,63 +30,90 @@ namespace CampusActivitiesManager.Services
         {
             _userService = userService;
             _logger = logger;
-
-            // Mặc định khởi tạo tài khoản Admin cho phiên làm việc ban đầu
-            _ = InitializeDefaultSessionAsync();
-        }
-
-        private async Task InitializeDefaultSessionAsync()
-        {
-            try
-            {
-                var admin = await _userService.GetUserByUsernameAsync("admin");
-                if (admin != null)
-                {
-                    _currentUser = admin;
-                    CurrentUserChanged?.Invoke(this, EventArgs.Empty);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi khởi tạo phiên làm việc mặc định");
-            }
         }
 
         public async Task<bool> LoginAsync(string username, string password)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(username))
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                     return false;
 
-                var user = await _userService.GetUserByUsernameAsync(username.Trim());
-                if (user == null)
+                using var httpClient = new System.Net.Http.HttpClient(HttpHelper.GetInsecureHandler());
+                var baseUrl = DeviceInfo.Platform == DevicePlatform.Android 
+                    ? "https://10.0.2.2:7258/api/v1/auth/login" 
+                    : "https://localhost:7258/api/v1/auth/login";
+
+                var email = username.Trim();
+                if (!email.Contains('@'))
                 {
-                    _logger.LogWarning("Đăng nhập thất bại: Không tìm thấy tài khoản {Username}", username);
+                    email = $"{email}@campus.edu.vn";
+                }
+
+                var loginRequest = new { Email = email, Password = password.Trim() };
+                var response = await httpClient.PostAsJsonAsync(baseUrl, loginRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+                    };
+                    
+                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<Models.AuthLoginResponse>>(options);
+
+                    if (result != null && result.Success && result.Data != null)
+                    {
+                        var loginData = result.Data;
+                        Role parsedRole = Role.User;
+                        if (string.Equals(loginData.Role, "Lecturer", StringComparison.OrdinalIgnoreCase))
+                        {
+                            parsedRole = Role.Manager;
+                        }
+                        else if (Enum.TryParse<Role>(loginData.Role, true, out var r))
+                        {
+                            parsedRole = r;
+                        }
+
+                        var user = new User
+                        {
+                            Id = loginData.Id,
+                            Username = username.Trim(),
+                            FullName = loginData.FullName,
+                            Email = loginData.Email,
+                            Role = parsedRole,
+                            IsActive = loginData.IsActive
+                        };
+
+                        _currentUser = user;
+                        _logger.LogInformation("Đăng nhập thành công qua API: {Email} với vai trò {Role}", user.Email, user.Role);
+                        CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+
+                        try
+                        {
+                            await SecureStorage.Default.SetAsync("api_auth_token", loginData.Token);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "SecureStorage failed, falling back to Preferences");
+                            Preferences.Default.Set("api_auth_token", loginData.Token);
+                        }
+
+                        return true;
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Đăng nhập thất bại qua API, mã lỗi: {StatusCode}", response.StatusCode);
                     return false;
                 }
 
-                if (!user.IsActive)
-                {
-                    _logger.LogWarning("Đăng nhập thất bại: Tài khoản {Username} đã bị khóa", username);
-                    return false;
-                }
-
-                // Kiểm tra mật khẩu (hỗ trợ pass 123 hoặc đúng với passwordHash)
-                if (!string.IsNullOrEmpty(user.PasswordHash) && !string.IsNullOrEmpty(password) && user.PasswordHash != password && password != "123")
-                {
-                    _logger.LogWarning("Đăng nhập thất bại: Sai mật khẩu cho {Username}", username);
-                    return false;
-                }
-
-                _currentUser = user;
-                _logger.LogInformation("Đăng nhập thành công: {Username} với vai trò {Role}", user.Username, user.Role);
-                CurrentUserChanged?.Invoke(this, EventArgs.Empty);
-                return true;
+                return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi thực hiện đăng nhập");
+                _logger.LogError(ex, "Lỗi khi thực hiện đăng nhập qua API");
                 return false;
             }
         }
@@ -113,14 +141,12 @@ namespace CampusActivitiesManager.Services
         public void Logout()
         {
             _currentUser = null;
+            SecureStorage.Default.Remove("api_auth_token");
+            Preferences.Default.Remove("api_auth_token");
             _logger.LogInformation("Người dùng đã đăng xuất");
             CurrentUserChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        /// <summary>
-        /// Kiểm tra cấp bậc phân quyền hiện tại với quyền tối thiểu cần để thực thi tác vụ/truy cập trang.
-        /// Cấp bậc: Admin (toàn quyền) >= Manager >= User >= Guest.
-        /// </summary>
         public bool CheckPermission(Role requiredRole)
         {
             if (_currentUser == null)
@@ -128,7 +154,7 @@ namespace CampusActivitiesManager.Services
 
             return _currentUser.Role switch
             {
-                Role.Admin => true, // Admin luôn có toàn quyền
+                Role.Admin => true,
                 Role.Manager => requiredRole is Role.Manager or Role.User or Role.Guest,
                 Role.User => requiredRole is Role.User or Role.Guest,
                 Role.Guest => requiredRole == Role.Guest,
@@ -136,9 +162,6 @@ namespace CampusActivitiesManager.Services
             };
         }
 
-        /// <summary>
-        /// Đồng bộ lại thông tin tài khoản hiện tại từ CSDL (khi bị đổi quyền hoặc đổi thông tin).
-        /// </summary>
         public async Task RefreshCurrentUserAsync()
         {
             try

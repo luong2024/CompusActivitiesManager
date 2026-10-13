@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
@@ -60,7 +60,6 @@
                                        HeightRequest="44" />
                                 <ImageButton Grid.Column="1"
                                              Command="{Binding TogglePasswordVisibilityCommand}"
-                                             Source="{Binding IsPasswordHidden, Converter={toolkit:InvertedBoolConverter}}"
                                              BackgroundColor="Transparent"
                                              HeightRequest="44" WidthRequest="44"
                                              Opacity="0.6">
@@ -84,8 +83,7 @@
                     </HorizontalStackLayout>
 
                     <!-- Login Button -->
-                    <Button Text="{Binding IsLoading, Converter={toolkit:InvertedBoolConverter}, ConverterParameter='Đang đăng nhập...'}"
-                            Command="{Binding LoginCommand}"
+                    <Button Command="{Binding LoginCommand}"
                             Background="{StaticResource PrimaryGradientBrush}"
                             TextColor="White"
                             FontAttributes="Bold"
@@ -121,30 +119,6 @@
                                 FontSize="13"
                                 Padding="0" />
                     </HorizontalStackLayout>
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- Quick Login for Demo / Testing -->
-            <Border StrokeShape="RoundRectangle 16"
-                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
-                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
-                    Padding="20">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="⚡ Đăng nhập nhanh để kiểm thử:" FontAttributes="Bold" FontSize="13" />
-
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <!-- Admin -->
-                        <Button Grid.Column="0"
-                                Text="👑 Admin"
-                                Command="{Binding LoginAsAdminCommand}"
-                                BackgroundColor="#DC2626" TextColor="White" HeightRequest="44" FontSize="13" CornerRadius="10" />
-
-                        <!-- Student -->
-                        <Button Grid.Column="1"
-                                Text="🎓 Sinh viên"
-                                Command="{Binding LoginAsStudentCommand}"
-                                BackgroundColor="#16A34A" TextColor="White" HeightRequest="44" FontSize="13" CornerRadius="10" />
-                    </Grid>
                 </VerticalStackLayout>
             </Border>
 
