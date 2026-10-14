@@ -12,6 +12,23 @@ namespace CampusActivitiesManager.Api.Models
         public string? AvatarUrl { get; set; }
         public bool IsDisabled { get; set; }
         public bool IsActive { get; set; } = true;
+        public string Status
+        {
+            get => IsDisabled ? "Locked" : (IsActive ? "Active" : "Inactive");
+            set
+            {
+                if (value.Equals("Locked", StringComparison.OrdinalIgnoreCase) || value.Equals("Disabled", StringComparison.OrdinalIgnoreCase))
+                {
+                    IsDisabled = true;
+                    IsActive = false;
+                }
+                else
+                {
+                    IsDisabled = false;
+                    IsActive = true;
+                }
+            }
+        }
         public string CreatedAt { get; set; } = string.Empty;
         public string? UpdatedAt { get; set; }
     }

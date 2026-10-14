@@ -110,6 +110,25 @@ namespace CampusActivitiesManager.Models
         [JsonIgnore]
         public string ParticipantsDisplay => $"👥 Tối đa {MaxParticipants} sinh viên";
 
+        [JsonIgnore]
+        public bool IsRegistered { get; set; } = false;
+
+        [JsonIgnore]
+        public string RegisterButtonText => IsRegistered ? "🎫 Xem Vé QR" : "Đăng Ký Tham Gia";
+
+        [JsonIgnore]
+        public int TrainingPointsReward => CategoryTitle switch
+        {
+            "Học thuật" => 5,
+            "Tình nguyện" => 10,
+            "Thể thao" => 5,
+            "Kỹ năng mềm" => 4,
+            _ => 3
+        };
+
+        [JsonIgnore]
+        public string TrainingPointsRewardDisplay => $"+{TrainingPointsReward} ĐRL";
+
         public override string ToString() => Name;
     }
 }
