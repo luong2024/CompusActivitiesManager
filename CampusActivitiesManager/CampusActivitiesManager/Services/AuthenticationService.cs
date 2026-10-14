@@ -108,21 +108,6 @@ namespace CampusActivitiesManager.Services
             }
 
             // Local fallback for offline / demo mode
-            try
-            {
-                var fallbackUser = await _userService.GetUserByUsernameAsync(username.Trim());
-                if (fallbackUser != null)
-                {
-                    _currentUser = fallbackUser;
-                    _logger.LogInformation("Authenticated local session with role {Role}", fallbackUser.Role);
-                    CurrentUserChanged?.Invoke(this, EventArgs.Empty);
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Could not query local user service");
-            }
 
             var cleanUser = username.Trim().ToLower();
             if (cleanUser == "admin" || cleanUser == "admin@campus.edu.vn" || cleanUser == "admin@campus.edu")
