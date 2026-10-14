@@ -19,6 +19,7 @@
     <Color x:Key="DarkBackground">#0F172A</Color>
     <Color x:Key="LightSecondaryBackground">#FFFFFF</Color>
     <Color x:Key="DarkSecondaryBackground">#1E293B</Color>
+    <Color x:Key="DarkCardBackground">#1E293B</Color>
     <Color x:Key="DarkOnLightBackground">#0F172A</Color>
     <Color x:Key="LightOnDarkBackground">#F8FAFC</Color>
 
@@ -68,6 +69,7 @@
     <Color x:Key="InfoTextDark">#93C5FD</Color>
 
     <Color x:Key="TranslucentWhite">#33FFFFFF</Color>
+    <Color x:Key="TranslucentBlack">#80000000</Color>
     <Color x:Key="HeaderSubtitleColor">#DBEAFE</Color>
     <Color x:Key="OverlayBackdrop">#80000000</Color>
 
@@ -91,6 +93,8 @@
     <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
     <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
     <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+    <SolidColorBrush x:Key="DarkCardBackgroundBrush" Color="{StaticResource DarkCardBackground}"/>
+    <SolidColorBrush x:Key="TranslucentBlackBrush" Color="{StaticResource TranslucentBlack}"/>
 
     <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
     <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>

@@ -84,8 +84,4 @@
 		<PackageReference Include="Xamarin.AndroidX.Navigation.Common" Version="2.8.9.1" />
 	</ItemGroup>
 
-	<Target Name="_EnsureMauiXamlCodeGenBeforeWinUI"
-	        BeforeTargets="MarkupCompilePass1;XamlPreCompile"
-	        DependsOnTargets="_MauiInjectXamlCssAdditionalFiles;GenerateMSBuildEditorConfigFile" />
-	
 </Project>
