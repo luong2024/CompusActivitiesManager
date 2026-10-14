@@ -88,7 +88,7 @@ namespace CampusActivitiesManager.PageModels
 
         private void UpdateStudentProfile()
         {
-            if (_authService?.CurrentUser != null && _authService.CurrentUser.Username.StartsWith("student", StringComparison.OrdinalIgnoreCase))
+            if (_authService?.CurrentUser != null)
             {
                 var u = _authService.CurrentUser;
                 CurrentStudent = new Account
@@ -106,18 +106,18 @@ namespace CampusActivitiesManager.PageModels
             }
             else
             {
-                // Default Cổng Sinh Viên student profile matching design specification
+                // Default placeholder when no user is signed in
                 CurrentStudent = new Account
                 {
-                    FullName = "Nguyễn An Cương",
-                    StudentCode = "B20DCCN001",
-                    Email = "cuong.na@campus.edu.vn",
-                    PhoneNumber = "0987123456",
-                    ClassName = "D20CNTT1",
-                    AcademicYear = "K20 (2020–2025)",
-                    Role = AccountRole.LopTruong,
+                    FullName = "Sinh viên",
+                    StudentCode = "SV000000",
+                    Email = "",
+                    PhoneNumber = "",
+                    ClassName = "",
+                    AcademicYear = "",
+                    Role = AccountRole.SinhVien,
                     Status = AccountStatus.DangHoc,
-                    TrainingPoints = 92
+                    TrainingPoints = 0
                 };
             }
 

@@ -91,26 +91,6 @@ namespace CampusActivitiesManager.Services
                     };
                     await _accountRepository.SaveItemAsync(account);
                 }
-                else if (usernameOrEmail.Trim().ToLower() == "student" || 
-                         usernameOrEmail.Trim().ToLower() == "cuong.na@campus.edu.vn" || 
-                         usernameOrEmail.Trim().ToLower() == "student@campus.edu.vn" ||
-                         usernameOrEmail.Trim().ToLower() == "cuong.na" ||
-                         usernameOrEmail.Trim().ToLower() == "b20dccn001")
-                {
-                    account = new Account
-                    {
-                        FullName = "Nguyễn An Cương",
-                        StudentCode = "B20DCCN001",
-                        Email = "cuong.na@campus.edu.vn",
-                        PhoneNumber = "0987123456",
-                        Role = AccountRole.LopTruong,
-                        Status = AccountStatus.DangHoc,
-                        ClassName = "D20CNTT1",
-                        AcademicYear = "K20",
-                        TrainingPoints = 92
-                    };
-                    await _accountRepository.SaveItemAsync(account);
-                }
                 else
                 {
                     return (false, "Tên đăng nhập hoặc mật khẩu không chính xác.", null);

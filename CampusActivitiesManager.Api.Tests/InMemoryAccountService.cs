@@ -229,5 +229,29 @@ namespace CampusActivitiesManager.Api.Tests
                 IsActive = account.IsActive && !account.IsDisabled
             });
         }
+
+        public Task<bool> DeleteAccountAsync(string id)
+        {
+            if (_accounts.TryRemove(id, out var removed))
+            {
+                _passwords.TryRemove(removed.Email.ToLowerInvariant(), out _);
+                return Task.FromResult(true);
+            }
+            return Task.FromResult(false);
+        }
+
+        public Task<UserAccountDto> EnsureAdminAccountAsync()
+        {
+            var admin = _accounts.Values.FirstOrDefault(a => a.Role == "Admin");
+            return Task.FromResult(admin ?? new UserAccountDto
+            {
+                Id = "mock_admin_01",
+                Email = "admin@campus.edu",
+                FullName = "Quản trị viên Hệ thống",
+                Role = "Admin",
+                IsActive = true,
+                IsDisabled = false
+            });
+        }
     }
 }

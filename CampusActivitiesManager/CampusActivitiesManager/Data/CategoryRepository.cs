@@ -58,6 +58,23 @@ namespace CampusActivitiesManager.Data
         /// <returns>A list of <see cref="Category"/> objects.</returns>
         public async Task<List<Category>> ListAsync()
         {
+            try
+            {
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
+                var response = await httpClient.GetAsync(Constants.CategoriesApiUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<List<Category>>>(response.Content, options);
+                    if (result != null && result.Success && result.Data != null)
+                        return result.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error fetching categories from API, falling back to SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -83,10 +100,25 @@ namespace CampusActivitiesManager.Data
         /// <summary>
         /// Retrieves a specific category by its ID.
         /// </summary>
-        /// <param name="id">The ID of the category.</param>
-        /// <returns>A <see cref="Category"/> object if found; otherwise, null.</returns>
         public async Task<Category?> GetAsync(int id)
         {
+            try
+            {
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
+                var response = await httpClient.GetAsync($"{Constants.CategoriesApiUrl}/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<Category>>(response.Content, options);
+                    if (result != null && result.Success && result.Data != null)
+                        return result.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error fetching category by ID from API, falling back to SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -110,12 +142,45 @@ namespace CampusActivitiesManager.Data
         }
 
         /// <summary>
-        /// Saves a category to the database. If the category ID is 0, a new category is created; otherwise, the existing category is updated.
+        /// Saves a category to the Firebase API and database.
         /// </summary>
-        /// <param name="item">The category to save.</param>
-        /// <returns>The ID of the saved category.</returns>
         public async Task<int> SaveItemAsync(Category item)
         {
+            try
+            {
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
+                var payload = new
+                {
+                    title = item.Title,
+                    color = string.IsNullOrWhiteSpace(item.Color) ? "#2563EB" : item.Color
+                };
+
+                HttpResponseMessage response;
+                if (item.ID == 0)
+                {
+                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PostAsJsonAsync(httpClient, Constants.CategoriesApiUrl, payload);
+                }
+                else
+                {
+                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PutAsJsonAsync(httpClient, $"{Constants.CategoriesApiUrl}/{item.ID}", payload);
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<Category>>(response.Content, options);
+                    if (result?.Data != null && result.Data.ID > 0)
+                    {
+                        item.ID = result.Data.ID;
+                        return item.ID;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error saving category to API, falling back to SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -139,22 +204,34 @@ namespace CampusActivitiesManager.Data
             saveCmd.Parameters.AddWithValue("@Title", item.Title);
             saveCmd.Parameters.AddWithValue("@Color", item.Color);
 
-            var result = await saveCmd.ExecuteScalarAsync();
+            var dbResult = await saveCmd.ExecuteScalarAsync();
             if (item.ID == 0)
             {
-                item.ID = Convert.ToInt32(result);
+                item.ID = Convert.ToInt32(dbResult);
             }
 
             return item.ID;
         }
 
         /// <summary>
-        /// Deletes a category from the database.
+        /// Deletes a category from the Firebase API and database.
         /// </summary>
-        /// <param name="item">The category to delete.</param>
-        /// <returns>The number of rows affected.</returns>
         public async Task<int> DeleteItemAsync(Category item)
         {
+            try
+            {
+                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
+                var response = await httpClient.DeleteAsync($"{Constants.CategoriesApiUrl}/{item.ID}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error deleting category from API, falling back to SQLite");
+            }
+
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
