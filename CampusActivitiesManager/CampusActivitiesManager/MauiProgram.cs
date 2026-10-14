@@ -91,6 +91,7 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<EventManagementPage>();
             builder.Services.AddTransient<ProfilePage>();
             builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<ManageMetaPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
             builder.Services.AddTransientWithShellRoute<CreateUserPage, CreateUserViewModel>("createuser");
@@ -98,6 +99,7 @@ namespace CampusActivitiesManager
             builder.Services.AddTransientWithShellRoute<AccessDeniedPage, AccessDeniedViewModel>("accessdenied");
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
+            builder.Services.AddTransientWithShellRoute<ManageMetaPage, ManageMetaPageModel>("meta");
 
 #if WINDOWS && DEBUG
             EnsureLocalBackendRunning();

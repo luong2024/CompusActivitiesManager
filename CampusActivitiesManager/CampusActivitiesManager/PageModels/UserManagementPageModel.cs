@@ -412,6 +412,8 @@ namespace CampusActivitiesManager.PageModels
             if (success)
             {
                 user.IsActive = !user.IsActive;
+                UpdateStatistics();
+                ApplyFilter();
                 await AppShell.DisplayToastAsync(
                     user.IsActive ? $"Đã kích hoạt tài khoản {user.FullName}" : $"Đã khóa tài khoản {user.FullName}");
             }

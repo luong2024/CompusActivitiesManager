@@ -107,17 +107,24 @@ namespace CampusActivitiesManager.Services
 
             // Generate mock JWT token
             string token = GenerateJwtToken(account);
-            await SecureStorage.SetAsync(TokenKey, token);
+            try
+            {
+                await SecureStorage.SetAsync(TokenKey, token);
 
-            if (rememberMe)
-            {
-                await SecureStorage.SetAsync(RememberMeKey, "true");
-                await SecureStorage.SetAsync(UserKey, JsonSerializer.Serialize(account));
+                if (rememberMe)
+                {
+                    await SecureStorage.SetAsync(RememberMeKey, "true");
+                    await SecureStorage.SetAsync(UserKey, JsonSerializer.Serialize(account));
+                }
+                else
+                {
+                    SecureStorage.Remove(RememberMeKey);
+                    SecureStorage.Remove(UserKey);
+                }
             }
-            else
+            catch (Exception)
             {
-                SecureStorage.Remove(RememberMeKey);
-                SecureStorage.Remove(UserKey);
+                // In headless tests or unsupported platform modes, avoid breaking login flow
             }
 
             return (true, "Đăng nhập thành công!", account);
@@ -168,9 +175,15 @@ namespace CampusActivitiesManager.Services
         public async Task LogoutAsync()
         {
             _currentUser = null;
-            SecureStorage.Remove(TokenKey);
-            SecureStorage.Remove(UserKey);
-            SecureStorage.Remove(RememberMeKey);
+            try
+            {
+                SecureStorage.Remove(TokenKey);
+                SecureStorage.Remove(UserKey);
+                SecureStorage.Remove(RememberMeKey);
+            }
+            catch (Exception)
+            {
+            }
             await Task.CompletedTask;
         }
 

@@ -14,8 +14,11 @@ namespace CampusActivitiesManager
             InitializeComponent();
             RegisterRoutes();
 
-            var currentTheme = Application.Current!.RequestedTheme;
-            ThemeSegmentedControl.SelectedIndex = currentTheme == AppTheme.Light ? 0 : 1;
+            var currentTheme = Application.Current?.RequestedTheme ?? AppTheme.Light;
+            if (ThemeSegmentedControl != null)
+            {
+                ThemeSegmentedControl.SelectedIndex = currentTheme == AppTheme.Dark ? 1 : 0;
+            }
         }
 
         protected override void OnHandlerChanged()
@@ -61,10 +64,26 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute(nameof(CreateUserPage), typeof(CreateUserPage));
             Routing.RegisterRoute(nameof(AccessDeniedPage), typeof(AccessDeniedPage));
             Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
+            Routing.RegisterRoute(nameof(ProfilePage), typeof(ProfilePage));
+            Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
+            Routing.RegisterRoute(nameof(ProjectDetailPage), typeof(ProjectDetailPage));
+            Routing.RegisterRoute(nameof(TaskDetailPage), typeof(TaskDetailPage));
+            Routing.RegisterRoute(nameof(ManageMetaPage), typeof(ManageMetaPage));
+
+            // URL alias routes for GoToAsync calls
+            Routing.RegisterRoute("createuser", typeof(CreateUserPage));
+            Routing.RegisterRoute("editrole", typeof(EditUserRolePage));
+            Routing.RegisterRoute("accessdenied", typeof(AccessDeniedPage));
+            Routing.RegisterRoute("project", typeof(ProjectDetailPage));
+            Routing.RegisterRoute("task", typeof(TaskDetailPage));
+            Routing.RegisterRoute("meta", typeof(ManageMetaPage));
+            Routing.RegisterRoute("profile", typeof(ProfilePage));
         }
 
         public static async Task NavigateWithGuardAsync(string route, Role requiredRole, IAuthenticationService authService)
         {
+            if (Shell.Current == null) return;
+
             if (!authService.CheckPermission(requiredRole))
             {
                 await Shell.Current.GoToAsync(nameof(AccessDeniedPage));
@@ -109,7 +128,10 @@ namespace CampusActivitiesManager
 
         private void SfSegmentedControl_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs e)
         {
-            Application.Current!.UserAppTheme = e.NewIndex == 0 ? AppTheme.Light : AppTheme.Dark;
+            if (Application.Current != null && e.NewIndex >= 0)
+            {
+                Application.Current.UserAppTheme = e.NewIndex == 0 ? AppTheme.Light : AppTheme.Dark;
+            }
         }
     }
 }

@@ -215,11 +215,11 @@ namespace CampusActivitiesManager.PageModels
         {
             if (string.IsNullOrWhiteSpace(SelectedCategoryFilter) || SelectedCategoryFilter == "Tất cả")
             {
-                DisplayEvents = new List<CampusEvent>(AllEvents);
+                DisplayEvents = new List<CampusEvent>(AllEvents ?? []);
             }
             else
             {
-                DisplayEvents = AllEvents.Where(e => e.CategoryTitle.Equals(SelectedCategoryFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+                DisplayEvents = (AllEvents ?? []).Where(e => string.Equals(e.CategoryTitle, SelectedCategoryFilter, StringComparison.OrdinalIgnoreCase)).ToList();
             }
         }
 
@@ -238,18 +238,21 @@ namespace CampusActivitiesManager.PageModels
             }
 
             evt.IsRegistered = true;
-            MyRegisteredEvents = AllEvents.Where(e => e.IsRegistered).ToList();
+            MyRegisteredEvents = (AllEvents ?? []).Where(e => e.IsRegistered).ToList();
             RegisteredCount = MyRegisteredEvents.Count;
-            AllEvents = new List<CampusEvent>(AllEvents);
+            AllEvents = new List<CampusEvent>(AllEvents ?? []);
             ApplyCategoryFilter();
 
-            await Shell.Current.DisplayAlert(
-                "Đăng ký thành công 🎉",
-                $"Bạn đã đăng ký tham gia: {evt.Name}\n" +
-                $"Địa điểm: {evt.Location}\n" +
-                $"Quyền lợi: +{evt.TrainingPointsReward} Điểm rèn luyện\n\n" +
-                "Vé điện tử QR của bạn đã sẵn sàng!",
-                "Xem vé ngay");
+            if (Shell.Current != null)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Đăng ký thành công 🎉",
+                    $"Bạn đã đăng ký tham gia: {evt.Name}\n" +
+                    $"Địa điểm: {evt.Location}\n" +
+                    $"Quyền lợi: +{evt.TrainingPointsReward} Điểm rèn luyện\n\n" +
+                    "Vé điện tử QR của bạn đã sẵn sàng!",
+                    "Xem vé ngay");
+            }
 
             SelectedActivityForQr = evt.Name;
             QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-EVT{evt.ID}";
@@ -277,29 +280,45 @@ namespace CampusActivitiesManager.PageModels
         [RelayCommand]
         private async Task NavigateToEvents()
         {
-            await Shell.Current.GoToAsync("//events");
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//events");
+            }
         }
 
         [RelayCommand]
         private async Task NavigateToProfile()
         {
-            await Shell.Current.GoToAsync("//profile");
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//profile");
+            }
         }
 
         [RelayCommand]
         private async Task NavigateToLogin()
         {
-            await Shell.Current.GoToAsync("//login");
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//login");
+            }
         }
 
         [RelayCommand]
         private async Task Logout()
         {
-            bool confirm = await Shell.Current.DisplayAlert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Sinh viên?", "Đăng xuất", "Hủy");
-            if (confirm)
+            if (Shell.Current != null)
+            {
+                bool confirm = await Shell.Current.DisplayAlert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Sinh viên?", "Đăng xuất", "Hủy");
+                if (confirm)
+                {
+                    _authService?.Logout();
+                    await Shell.Current.GoToAsync("//login");
+                }
+            }
+            else
             {
                 _authService?.Logout();
-                await Shell.Current.GoToAsync("//login");
             }
         }
     }

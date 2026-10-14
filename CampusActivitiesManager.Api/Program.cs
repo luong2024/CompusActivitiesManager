@@ -26,6 +26,11 @@ if (FirebaseApp.DefaultInstance == null)
 {
     try
     {
+        if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
+        {
+            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+        }
+
         FirebaseApp.Create(new AppOptions
         {
             Credential = GoogleCredential.GetApplicationDefault(),

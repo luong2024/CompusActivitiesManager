@@ -207,20 +207,20 @@ namespace CampusActivitiesManager.PageModels
 
         private void ApplyFilter()
         {
-            IEnumerable<CampusEvent> query = Events;
+            IEnumerable<CampusEvent> query = Events ?? [];
 
             if (!string.IsNullOrWhiteSpace(SelectedCategoryFilter) && SelectedCategoryFilter != "Tất cả")
             {
-                query = query.Where(e => e.CategoryTitle.Equals(SelectedCategoryFilter, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(e => string.Equals(e.CategoryTitle, SelectedCategoryFilter, StringComparison.OrdinalIgnoreCase));
             }
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                var lower = SearchText.Trim().ToLowerInvariant();
+                var lower = SearchText.Trim();
                 query = query.Where(e =>
-                    e.Name.ToLowerInvariant().Contains(lower) ||
-                    e.Description.ToLowerInvariant().Contains(lower) ||
-                    e.Location.ToLowerInvariant().Contains(lower));
+                    (!string.IsNullOrEmpty(e.Name) && e.Name.Contains(lower, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(e.Description) && e.Description.Contains(lower, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(e.Location) && e.Location.Contains(lower, StringComparison.OrdinalIgnoreCase)));
             }
 
             FilteredEvents = query.OrderBy(e => e.ID).ToList();
