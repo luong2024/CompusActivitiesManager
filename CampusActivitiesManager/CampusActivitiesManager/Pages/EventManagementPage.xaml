@@ -140,14 +140,7 @@
                                            Text="{Binding SearchText}"
                                            FontSize="13"
                                            VerticalOptions="Center"
-                                           ClearButtonVisibility="WhileEditing">
-                                        <Entry.Behaviors>
-                                            <toolkit:EventToCommandBehavior
-                                                EventName="TextChanged"
-                                                Command="{Binding PerformSearchCommand}"
-                                                CommandParameter="{Binding Source={RelativeSource Self}, Path=Text}" />
-                                        </Entry.Behaviors>
-                                    </Entry>
+                                           ClearButtonVisibility="WhileEditing" />
                                 </Grid>
                             </Border>
 

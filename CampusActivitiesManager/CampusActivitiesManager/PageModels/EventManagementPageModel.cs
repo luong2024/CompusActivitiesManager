@@ -198,6 +198,11 @@ namespace CampusActivitiesManager.PageModels
             ApplyFilter();
         }
 
+        partial void OnSearchTextChanged(string value)
+        {
+            ApplyFilter();
+        }
+
         [RelayCommand]
         private void PerformSearch(string query)
         {
