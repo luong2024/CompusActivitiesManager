@@ -44,16 +44,19 @@ namespace CampusActivitiesManager
 
             bool isLoggedIn = authService.CurrentUser != null;
             bool isAdmin = authService.IsAdmin;
+            bool isManagerOrAdmin = isAdmin || (authService.CurrentUser != null && (authService.CurrentUser.Role == Role.Manager || authService.CurrentUser.Role == Role.Admin));
 
             NavLogin.IsVisible = true;
             NavStudentDashboard.IsVisible = isLoggedIn;
             NavProfile.IsVisible = isLoggedIn;
             NavUsers.IsVisible = isAdmin;
+            NavEvents.IsVisible = isManagerOrAdmin;
         }
 
         private void RegisterRoutes()
         {
             Routing.RegisterRoute(nameof(UserManagementPage), typeof(UserManagementPage));
+            Routing.RegisterRoute(nameof(EventManagementPage), typeof(EventManagementPage));
             Routing.RegisterRoute(nameof(EditUserRolePage), typeof(EditUserRolePage));
             Routing.RegisterRoute(nameof(CreateUserPage), typeof(CreateUserPage));
             Routing.RegisterRoute(nameof(AccessDeniedPage), typeof(AccessDeniedPage));

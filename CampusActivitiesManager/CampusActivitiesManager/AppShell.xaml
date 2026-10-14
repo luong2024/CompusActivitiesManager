@@ -55,6 +55,14 @@
         ContentTemplate="{DataTemplate pages:UserManagementPage}"
         Route="users" />
 
+    <!-- 5. Quản lý Sự kiện -->
+    <ShellContent
+        x:Name="NavEvents"
+        Title="Quản lý Sự kiện"
+        Icon="{StaticResource IconCalendar}"
+        ContentTemplate="{DataTemplate pages:EventManagementPage}"
+        Route="events" />
+
     <Shell.FlyoutFooter>
         <Grid Padding="15">
             <sf:SfSegmentedControl x:Name="ThemeSegmentedControl" 

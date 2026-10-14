@@ -343,6 +343,24 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
+        private async Task NavigateToEvents()
+        {
+            if (_authService == null || !_authService.IsAuthenticated)
+            {
+                await Shell.Current.DisplayAlert("Yêu cầu đăng nhập", "Bạn cần đăng nhập để truy cập trang Quản lý sự kiện.", "Đóng");
+                return;
+            }
+
+            if (!_authService.IsAdmin && _authService.CurrentUser?.Role != Role.Manager)
+            {
+                await Shell.Current.DisplayAlert("Không có quyền truy cập", "Chỉ tài khoản Admin hoặc Manager mới có thể truy cập trang Quản lý sự kiện.", "Đã hiểu");
+                return;
+            }
+
+            await Shell.Current.GoToAsync("//events");
+        }
+
+        [RelayCommand]
         private Task NavigateToLogin() => Shell.Current.GoToAsync("//login");
     }
 }

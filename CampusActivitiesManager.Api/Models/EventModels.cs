@@ -17,6 +17,11 @@ namespace CampusActivitiesManager.Api.Models
         public string Icon { get; set; } = "📅";
         public int CategoryID { get; set; }
         public EventCategoryDto? Category { get; set; }
+        public string Location { get; set; } = "Hội trường A2";
+        public string StartDate { get; set; } = DateTime.Now.AddDays(3).ToString("dd/MM/yyyy");
+        public string EndDate { get; set; } = DateTime.Now.AddDays(3).ToString("dd/MM/yyyy");
+        public int MaxParticipants { get; set; } = 150;
+        public string Status { get; set; } = "Sắp diễn ra";
     }
 
     public class CreateEventRequest
@@ -30,6 +35,11 @@ namespace CampusActivitiesManager.Api.Models
         public string Icon { get; set; } = "📅";
 
         public int? CategoryId { get; set; }
+        public string? Location { get; set; }
+        public string? StartDate { get; set; }
+        public string? EndDate { get; set; }
+        public int? MaxParticipants { get; set; }
+        public string? Status { get; set; }
     }
 
     public class UpdateEventRequest
@@ -38,6 +48,11 @@ namespace CampusActivitiesManager.Api.Models
         public string? Description { get; set; }
         public string? Icon { get; set; }
         public int? CategoryId { get; set; }
+        public string? Location { get; set; }
+        public string? StartDate { get; set; }
+        public string? EndDate { get; set; }
+        public int? MaxParticipants { get; set; }
+        public string? Status { get; set; }
     }
 
     public class CreateCategoryRequest

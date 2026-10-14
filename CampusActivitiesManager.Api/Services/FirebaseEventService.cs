@@ -228,7 +228,12 @@ namespace CampusActivitiesManager.Api.Services
                     Description = dict.TryGetValue("description", out var d) ? d?.ToString() ?? "" : "",
                     Icon = dict.TryGetValue("icon", out var ic) ? ic?.ToString() ?? "📅" : "📅",
                     CategoryID = catId,
-                    Category = catDto
+                    Category = catDto,
+                    Location = dict.TryGetValue("location", out var loc) ? loc?.ToString() ?? "Hội trường A2" : "Hội trường A2",
+                    StartDate = dict.TryGetValue("startDate", out var sd) ? sd?.ToString() ?? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
+                    EndDate = dict.TryGetValue("endDate", out var ed) ? ed?.ToString() ?? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
+                    MaxParticipants = dict.TryGetValue("maxParticipants", out var mp) && mp != null ? Convert.ToInt32(mp) : 150,
+                    Status = dict.TryGetValue("status", out var st) ? st?.ToString() ?? "Sắp diễn ra" : "Sắp diễn ra"
                 });
             }
 
@@ -254,7 +259,12 @@ namespace CampusActivitiesManager.Api.Services
                 Description = dict.TryGetValue("description", out var d) ? d?.ToString() ?? "" : "",
                 Icon = dict.TryGetValue("icon", out var ic) ? ic?.ToString() ?? "📅" : "📅",
                 CategoryID = catId,
-                Category = category
+                Category = category,
+                Location = dict.TryGetValue("location", out var loc) ? loc?.ToString() ?? "Hội trường A2" : "Hội trường A2",
+                StartDate = dict.TryGetValue("startDate", out var sd) ? sd?.ToString() ?? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
+                EndDate = dict.TryGetValue("endDate", out var ed) ? ed?.ToString() ?? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
+                MaxParticipants = dict.TryGetValue("maxParticipants", out var mp) && mp != null ? Convert.ToInt32(mp) : 150,
+                Status = dict.TryGetValue("status", out var st) ? st?.ToString() ?? "Sắp diễn ra" : "Sắp diễn ra"
             };
         }
 
@@ -272,7 +282,12 @@ namespace CampusActivitiesManager.Api.Services
                 Description = request.Description,
                 Icon = string.IsNullOrWhiteSpace(request.Icon) ? "📅" : request.Icon,
                 CategoryID = catId,
-                Category = category
+                Category = category,
+                Location = string.IsNullOrWhiteSpace(request.Location) ? "Hội trường A2" : request.Location,
+                StartDate = string.IsNullOrWhiteSpace(request.StartDate) ? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : request.StartDate,
+                EndDate = string.IsNullOrWhiteSpace(request.EndDate) ? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : request.EndDate,
+                MaxParticipants = request.MaxParticipants ?? 150,
+                Status = string.IsNullOrWhiteSpace(request.Status) ? "Sắp diễn ra" : request.Status
             };
 
             if (_firestoreDb != null)
@@ -283,7 +298,12 @@ namespace CampusActivitiesManager.Api.Services
                     ["name"] = newEvent.Name,
                     ["description"] = newEvent.Description,
                     ["icon"] = newEvent.Icon,
-                    ["categoryId"] = newEvent.CategoryID
+                    ["categoryId"] = newEvent.CategoryID,
+                    ["location"] = newEvent.Location,
+                    ["startDate"] = newEvent.StartDate,
+                    ["endDate"] = newEvent.EndDate,
+                    ["maxParticipants"] = newEvent.MaxParticipants,
+                    ["status"] = newEvent.Status
                 });
             }
 
@@ -303,6 +323,11 @@ namespace CampusActivitiesManager.Api.Services
                 existing.CategoryID = request.CategoryId.Value;
                 existing.Category = await GetCategoryByIdAsync(existing.CategoryID);
             }
+            if (!string.IsNullOrWhiteSpace(request.Location)) existing.Location = request.Location;
+            if (!string.IsNullOrWhiteSpace(request.StartDate)) existing.StartDate = request.StartDate;
+            if (!string.IsNullOrWhiteSpace(request.EndDate)) existing.EndDate = request.EndDate;
+            if (request.MaxParticipants.HasValue) existing.MaxParticipants = request.MaxParticipants.Value;
+            if (!string.IsNullOrWhiteSpace(request.Status)) existing.Status = request.Status;
 
             if (_firestoreDb != null)
             {
@@ -312,7 +337,12 @@ namespace CampusActivitiesManager.Api.Services
                     ["name"] = existing.Name,
                     ["description"] = existing.Description,
                     ["icon"] = existing.Icon,
-                    ["categoryId"] = existing.CategoryID
+                    ["categoryId"] = existing.CategoryID,
+                    ["location"] = existing.Location,
+                    ["startDate"] = existing.StartDate,
+                    ["endDate"] = existing.EndDate,
+                    ["maxParticipants"] = existing.MaxParticipants,
+                    ["status"] = existing.Status
                 }, SetOptions.MergeAll);
             }
 

@@ -65,6 +65,7 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<UserService>();
             builder.Services.AddSingleton<IUserService<User>, UserService>();
             builder.Services.AddSingleton<IUserService, UserService>();
+            builder.Services.AddSingleton<IEventService, EventService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
@@ -74,6 +75,7 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<ProjectListPageModel>();
             builder.Services.AddSingleton<ManageMetaPageModel>();
             builder.Services.AddSingleton<UserManagementPageModel>();
+            builder.Services.AddTransient<EventManagementPageModel>();
             builder.Services.AddTransient<LoginPageModel>();
             builder.Services.AddTransient<ProfilePageModel>();
             builder.Services.AddTransient<RegisterViewModel>();
@@ -86,7 +88,8 @@ namespace CampusActivitiesManager
             // Pages
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<UserManagementPage>();
-        builder.Services.AddTransient<ProfilePage>();
+            builder.Services.AddTransient<EventManagementPage>();
+            builder.Services.AddTransient<ProfilePage>();
             builder.Services.AddTransient<LoginPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");

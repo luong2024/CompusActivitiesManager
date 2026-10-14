@@ -8,6 +8,7 @@ namespace CampusActivitiesManager.Api.Tests
     public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         public InMemoryAccountService AccountService { get; } = new();
+        public InMemoryEventService EventService { get; } = new();
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -19,8 +20,14 @@ namespace CampusActivitiesManager.Api.Tests
                 {
                     services.Remove(descriptor);
                 }
-
                 services.AddSingleton<IFirebaseAccountService>(AccountService);
+
+                var eventDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IFirebaseEventService));
+                if (eventDescriptor != null)
+                {
+                    services.Remove(eventDescriptor);
+                }
+                services.AddSingleton<IFirebaseEventService>(EventService);
             });
         }
     }

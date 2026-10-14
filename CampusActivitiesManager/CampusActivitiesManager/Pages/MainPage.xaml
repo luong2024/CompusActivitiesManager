@@ -75,20 +75,34 @@
                     </HorizontalStackLayout>
                 </Grid>
 
-                <!-- Row 2: Top Navigation Tabs (Cổng Sinh Viên, Quản Trị Admin, Đăng Nhập) -->
-                <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ColumnSpacing="6">
+                <!-- Row 2: Top Navigation Tabs (Cổng Sinh Viên, Sự Kiện, Quản Trị Admin, Đăng Nhập) -->
+                <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" ColumnSpacing="6">
                     <!-- Tab 1: Cổng Sinh Viên (Active) -->
                     <Border Grid.Column="0" StrokeShape="RoundRectangle 12"
                             Background="#EEF2FF" Stroke="#C7D2FE" StrokeThickness="1"
                             Padding="6,7">
                         <HorizontalStackLayout Spacing="4" HorizontalOptions="Center" VerticalOptions="Center">
                             <Label Text="🎓" FontSize="11" VerticalOptions="Center" />
-                            <Label Text="Cổng Sinh Viên" FontSize="11" FontAttributes="Bold" TextColor="#4F46E5" VerticalOptions="Center" />
+                            <Label Text="Cổng SV" FontSize="11" FontAttributes="Bold" TextColor="#4F46E5" VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </Border>
 
-                    <!-- Tab 2: Quản Trị (Admin) -->
+                    <!-- Tab 2: Sự Kiện (Events) -->
                     <Border Grid.Column="1" StrokeShape="RoundRectangle 12"
+                            Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
+                            StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                            Padding="6,7">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding NavigateToEventsCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="4" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="🎪" FontSize="11" VerticalOptions="Center" />
+                            <Label Text="Sự Kiện" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- Tab 3: Quản Trị (Admin) -->
+                    <Border Grid.Column="2" StrokeShape="RoundRectangle 12"
                             Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
                             StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                             Padding="6,7">
@@ -97,12 +111,12 @@
                         </Border.GestureRecognizers>
                         <HorizontalStackLayout Spacing="4" HorizontalOptions="Center" VerticalOptions="Center">
                             <Label Text="👥" FontSize="11" VerticalOptions="Center" />
-                            <Label Text="Quản Trị (Admin)" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" VerticalOptions="Center" />
+                            <Label Text="Quản Trị" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </Border>
 
-                    <!-- Tab 3: Đăng Nhập -->
-                    <Border Grid.Column="2" StrokeShape="RoundRectangle 12"
+                    <!-- Tab 4: Đăng Nhập -->
+                    <Border Grid.Column="3" StrokeShape="RoundRectangle 12"
                             Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
                             StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                             Padding="6,7">
