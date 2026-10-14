@@ -239,5 +239,19 @@ namespace CampusActivitiesManager.Api.Tests
             }
             return Task.FromResult(false);
         }
+
+        public Task<UserAccountDto> EnsureAdminAccountAsync()
+        {
+            var admin = _accounts.Values.FirstOrDefault(a => a.Role == "Admin");
+            return Task.FromResult(admin ?? new UserAccountDto
+            {
+                Id = "mock_admin_01",
+                Email = "admin@campus.edu",
+                FullName = "Quản trị viên Hệ thống",
+                Role = "Admin",
+                IsActive = true,
+                IsDisabled = false
+            });
+        }
     }
 }

@@ -8,9 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Sanitize GOOGLE_APPLICATION_CREDENTIALS if surrounding quotes are present in the environment variable
 string? credPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")?.Trim('"', ' ');
-if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
+if (string.IsNullOrEmpty(credPath) || !File.Exists(credPath))
 {
-    Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+    if (File.Exists(@"D:\keys\campusacmanage-df24bcb494c7.json"))
+    {
+        credPath = @"D:\keys\campusacmanage-df24bcb494c7.json";
+        Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+    }
 }
 
 string firebaseProjectId = builder.Configuration["Firebase:ProjectId"]
@@ -95,6 +99,18 @@ app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", firebaseConnected = FirebaseApp.DefaultInstance != null, timestamp = DateTime.UtcNow }));
 
 app.MapControllers();
+
+// Bootstrap master Admin account directly to Firebase Auth & Cloud Firestore if needed
+try
+{
+    using var scope = app.Services.CreateScope();
+    var accountService = scope.ServiceProvider.GetRequiredService<IFirebaseAccountService>();
+    await accountService.EnsureAdminAccountAsync();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[Startup] EnsureAdminAccountAsync notice: {ex.Message}");
+}
 
 app.Run();
 

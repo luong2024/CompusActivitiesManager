@@ -153,20 +153,6 @@ namespace CampusActivitiesManager.Services
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
-            else if (cleanUser == "student" || cleanUser == "cuong.na@campus.edu.vn" || cleanUser == "cuong.na" || cleanUser == "b20dccn001")
-            {
-                _currentUser = new User
-                {
-                    Id = "student-sys-03",
-                    Username = "cuong.na",
-                    FullName = "Nguyễn An Cương (Student)",
-                    Email = "cuong.na@campus.edu.vn",
-                    Role = Role.User,
-                    IsActive = true
-                };
-                CurrentUserChanged?.Invoke(this, EventArgs.Empty);
-                return true;
-            }
 
             return false;
         }

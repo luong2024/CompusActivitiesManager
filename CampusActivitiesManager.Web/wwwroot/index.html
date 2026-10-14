@@ -322,7 +322,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-regular fa-user"></i>
                             </div>
-                            <input type="text" id="login-username" value="cuong.na@campus.edu.vn" placeholder="Mã sinh viên hoặc email..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                            <input type="text" id="login-username" value="admin@campus.edu.vn" placeholder="Mã sinh viên hoặc email..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
                         </div>
                     </div>
 
@@ -332,7 +332,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-lock"></i>
                             </div>
-                            <input type="password" id="login-password" value="password123" placeholder="Nhập mật khẩu..." class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                            <input type="password" id="login-password" value="Admin@123456" placeholder="Nhập mật khẩu..." class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
                             <button type="button" onclick="togglePasswordVisibility('login-password', 'eye-login')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
                                 <i id="eye-login" class="fa-regular fa-eye"></i>
                             </button>
@@ -479,8 +479,7 @@
     <script>
         // Accounts State
         let accounts = [
-            { id: 1, fullName: "Nguyễn An Cương", studentCode: "B20DCCN001", email: "cuong.na@campus.edu.vn", phone: "0987123456", className: "D20CNTT1", year: "K20", role: "Lớp trưởng", status: "DangHoc", statusText: "Đang học", points: 92, rank: "Xuất sắc" },
-            { id: 2, fullName: "Trần Thị Mai", studentCode: "B21DCCN045", email: "mai.tt@campus.edu.vn", phone: "0912345678", className: "D21CNTT2", year: "K21", role: "Sinh viên", status: "DangHoc", statusText: "Đang học", points: 85, rank: "Tốt" },
+            { id: 1, fullName: "Trần Thị Mai", studentCode: "B21DCCN045", email: "mai.tt@campus.edu.vn", phone: "0912345678", className: "D21CNTT2", year: "K21", role: "Sinh viên", status: "DangHoc", statusText: "Đang học", points: 85, rank: "Tốt" },
             { id: 3, fullName: "Lê Hoàng Nam", studentCode: "B20DCCN112", email: "nam.lh@campus.edu.vn", phone: "0934567890", className: "D20CNTT1", year: "K20", role: "Ban chủ nhiệm", status: "BaoLuu", statusText: "Bảo lưu", points: 74, rank: "Khá" },
             { id: 4, fullName: "Phạm Quốc Bảo", studentCode: "B19DCCN089", email: "bao.pq@campus.edu.vn", phone: "0978901234", className: "D19CNTT3", year: "K19", role: "Sinh viên", status: "BiKhoa", statusText: "Bị khóa", points: 45, rank: "Trung bình" },
             { id: 5, fullName: "Vũ Minh Tuấn", studentCode: "B22DCCN201", email: "tuan.vm@campus.edu.vn", phone: "0901234567", className: "D22CNTT1", year: "K22", role: "Sinh viên", status: "DangHoc", statusText: "Đang học", points: 88, rank: "Tốt" },

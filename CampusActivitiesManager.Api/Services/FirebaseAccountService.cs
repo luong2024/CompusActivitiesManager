@@ -23,9 +23,13 @@ namespace CampusActivitiesManager.Api.Services
             _logger = logger;
 
             string? credPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")?.Trim('"', ' ');
-            if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
+            if (string.IsNullOrEmpty(credPath) || !File.Exists(credPath))
             {
-                Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+                if (File.Exists(@"D:\keys\campusacmanage-df24bcb494c7.json"))
+                {
+                    credPath = @"D:\keys\campusacmanage-df24bcb494c7.json";
+                    Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+                }
             }
 
             string projectId = _configuration["Firebase:ProjectId"]
@@ -212,21 +216,6 @@ namespace CampusActivitiesManager.Api.Services
                         CreatedAt = "2026-01-02T00:00:00Z"
                     };
                 }
-                if (id == "student-sys-03")
-                {
-                    return new UserAccountDto
-                    {
-                        Id = "student-sys-03",
-                        Email = "cuong.na@campus.edu.vn",
-                        FullName = "Nguyễn An Cương",
-                        Role = "Student",
-                        PhoneNumber = "0987123456",
-                        StudentCode = "B20DCCN001",
-                        IsDisabled = false,
-                        IsActive = true,
-                        CreatedAt = "2026-01-03T00:00:00Z"
-                    };
-                }
                 return null;
             }
 
@@ -309,12 +298,6 @@ namespace CampusActivitiesManager.Api.Services
                 string.Equals(email, "manager", StringComparison.OrdinalIgnoreCase))
             {
                 return await GetAccountByIdAsync("manager-sys-02");
-            }
-            if (string.Equals(email, "student@campus.edu.vn", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(email, "cuong.na@campus.edu.vn", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(email, "student", StringComparison.OrdinalIgnoreCase))
-            {
-                return await GetAccountByIdAsync("student-sys-03");
             }
 
             return null;
@@ -421,11 +404,6 @@ namespace CampusActivitiesManager.Api.Services
             {
                 var manager = await GetAccountByIdAsync("manager-sys-02");
                 if (manager != null) usersById["manager-sys-02"] = manager;
-            }
-            if (!usersById.ContainsKey("student-sys-03"))
-            {
-                var student = await GetAccountByIdAsync("student-sys-03");
-                if (student != null) usersById["student-sys-03"] = student;
             }
 
             return usersById.Values.ToList();
@@ -656,6 +634,119 @@ namespace CampusActivitiesManager.Api.Services
             }
 
             return deletedAny;
+        }
+
+        public async Task<UserAccountDto> EnsureAdminAccountAsync()
+        {
+            const string adminEmail = "admin@campus.edu.vn";
+            const string adminPass = "Admin@123456";
+            const string adminName = "Quản trị viên Hệ thống";
+            const string adminRole = "Admin";
+            const string adminPhone = "0901234567";
+            const string adminCode = "ADMIN01";
+
+            // Cleanup any old hardcoded demo student account from Firebase if present
+            if (_firebaseAuth != null)
+            {
+                try
+                {
+                    var demoStudent = await _firebaseAuth.GetUserByEmailAsync("cuong.na@campus.edu.vn");
+                    if (demoStudent != null)
+                    {
+                        await _firebaseAuth.DeleteUserAsync(demoStudent.Uid);
+                        if (_firestoreDb != null)
+                        {
+                            await _firestoreDb.Collection("users").Document(demoStudent.Uid).DeleteAsync();
+                        }
+                        _logger.LogInformation("Purged old demo student account {Email} from Firebase Auth & Firestore", demoStudent.Email);
+                    }
+                }
+                catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+                {
+                    // No demo student found in Firebase Auth, all clear
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not purge old demo student account from Firebase");
+                }
+            }
+
+            UserRecord? adminRecord = null;
+            if (_firebaseAuth != null)
+            {
+                try
+                {
+                    adminRecord = await _firebaseAuth.GetUserByEmailAsync(adminEmail);
+                }
+                catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.UserNotFound)
+                {
+                    try
+                    {
+                        var userArgs = new UserRecordArgs
+                        {
+                            Email = adminEmail,
+                            Password = adminPass,
+                            DisplayName = adminName,
+                            EmailVerified = true,
+                            Disabled = false
+                        };
+                        adminRecord = await _firebaseAuth.CreateUserAsync(userArgs);
+                        _logger.LogInformation("Successfully created master Admin account {Email} in Firebase Auth (UID: {Uid})", adminEmail, adminRecord.Uid);
+                    }
+                    catch (Exception createEx)
+                    {
+                        _logger.LogWarning(createEx, "Could not create Admin account in Firebase Auth");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error checking Admin account in Firebase Auth");
+                }
+            }
+
+            string adminUid = adminRecord?.Uid ?? "admin-sys-01";
+            string createdIso = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+            if (_firestoreDb != null)
+            {
+                try
+                {
+                    DocumentReference docRef = _firestoreDb.Collection("users").Document(adminUid);
+                    var snapshot = await docRef.GetSnapshotAsync();
+                    if (!snapshot.Exists)
+                    {
+                        await docRef.SetAsync(new Dictionary<string, object?>
+                        {
+                            ["email"] = adminEmail,
+                            ["fullName"] = adminName,
+                            ["role"] = adminRole,
+                            ["phoneNumber"] = adminPhone,
+                            ["studentCode"] = adminCode,
+                            ["isActive"] = true,
+                            ["isLocked"] = false,
+                            ["createdAt"] = createdIso
+                        });
+                        _logger.LogInformation("Successfully stored master Admin profile in Cloud Firestore 'users/{Uid}'", adminUid);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not persist master Admin profile in Cloud Firestore");
+                }
+            }
+
+            return new UserAccountDto
+            {
+                Id = adminUid,
+                Email = adminEmail,
+                FullName = adminName,
+                Role = adminRole,
+                PhoneNumber = adminPhone,
+                StudentCode = adminCode,
+                IsDisabled = false,
+                IsActive = true,
+                CreatedAt = createdIso
+            };
         }
     }
 }

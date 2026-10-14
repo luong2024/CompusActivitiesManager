@@ -14,7 +14,7 @@ namespace CampusActivitiesManager.PageModels
         private string _usernameOrEmail = "admin@campus.edu.vn";
 
         [ObservableProperty]
-        private string _password = "admin";
+        private string _password = "Admin@123456";
 
         [ObservableProperty]
         private bool _isPasswordHidden = true;
@@ -109,16 +109,7 @@ namespace CampusActivitiesManager.PageModels
         public async Task LoginAsAdmin()
         {
             UsernameOrEmail = "admin@campus.edu.vn";
-            Password = "admin";
-            await Login();
-        }
-
-        // Quick Demo 1-Click Login for Student
-        [RelayCommand]
-        public async Task LoginAsStudent()
-        {
-            UsernameOrEmail = "cuong.na@campus.edu.vn";
-            Password = "password123";
+            Password = "Admin@123456";
             await Login();
         }
 
@@ -129,7 +120,7 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 await Task.Delay(400);
-                bool success = await _authService.LoginAsync("admin@campus.edu.vn", "123456");
+                bool success = await _authService.LoginAsync("admin@campus.edu.vn", "Admin@123456");
                 if (success)
                 {
                     await Shell.Current.GoToAsync("//users");
@@ -144,7 +135,10 @@ namespace CampusActivitiesManager.PageModels
         [RelayCommand]
         public async Task NavigateToRegister()
         {
-            await Shell.Current.GoToAsync("register");
+            await Shell.Current.DisplayAlert(
+                "Đăng ký tài khoản",
+                "Tài khoản sinh viên do Quản trị viên (Admin) cấp và quản lý tập trung trên hệ thống Firebase theo quy chế nhà trường.\n\nSinh viên vui lòng liên hệ Ban Quản trị hoặc Phòng Công tác Sinh viên để nhận thông tin tài khoản.",
+                "Đã hiểu");
         }
 
         [RelayCommand]

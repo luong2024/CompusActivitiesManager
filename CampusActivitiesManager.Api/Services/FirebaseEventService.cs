@@ -16,9 +16,13 @@ namespace CampusActivitiesManager.Api.Services
             try
             {
                 string? credPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")?.Trim('"', ' ');
-                if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
+                if (string.IsNullOrEmpty(credPath) || !File.Exists(credPath))
                 {
-                    Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+                    if (File.Exists(@"D:\keys\campusacmanage-df24bcb494c7.json"))
+                    {
+                        credPath = @"D:\keys\campusacmanage-df24bcb494c7.json";
+                        Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+                    }
                 }
 
                 string projectId = _configuration["Firebase:ProjectId"]

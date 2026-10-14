@@ -12,5 +12,6 @@ namespace CampusActivitiesManager.Api.Services
         Task<AccountStatusResponse> SetAccountLockStatusAsync(string id, bool isLocked);
         Task<bool> DeleteAccountAsync(string id);
         Task<LoginResponse?> AuthenticateAsync(string email, string password);
+        Task<UserAccountDto> EnsureAdminAccountAsync();
     }
 }
