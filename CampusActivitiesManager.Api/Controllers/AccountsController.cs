@@ -41,7 +41,7 @@ namespace CampusActivitiesManager.Api.Controllers
 
             try
             {
-                _logger.LogInformation("Creating account for email: {Email}", request.Email);
+                _logger.LogInformation("Creating new user account");
                 var user = await _accountService.CreateAccountAsync(request);
 
                 var responseData = new
@@ -63,7 +63,7 @@ namespace CampusActivitiesManager.Api.Controllers
             }
             catch (FirebaseAuthException ex) when (ex.AuthErrorCode == AuthErrorCode.EmailAlreadyExists)
             {
-                _logger.LogWarning("Create account conflict: Email already registered ({Email})", request.Email);
+                _logger.LogWarning("Create account conflict: Email already registered");
                 return StatusCode(StatusCodes.Status409Conflict, new ApiErrorResponse
                 {
                     Success = false,
@@ -85,7 +85,7 @@ namespace CampusActivitiesManager.Api.Controllers
             }
             catch (FirebaseAuthException ex)
             {
-                _logger.LogError(ex, "FirebaseAuthException creating account for {Email}", request.Email);
+                _logger.LogError(ex, "FirebaseAuthException creating account");
                 return StatusCode(StatusCodes.Status400BadRequest, new ApiErrorResponse
                 {
                     Success = false,
@@ -96,7 +96,7 @@ namespace CampusActivitiesManager.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled exception creating account for {Email}", request.Email);
+                _logger.LogError(ex, "Unhandled exception creating account");
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiErrorResponse
                 {
                     Success = false,
@@ -509,6 +509,56 @@ namespace CampusActivitiesManager.Api.Controllers
             };
 
             return BadRequest(response);
+        }
+        [HttpDelete("{id}")]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteAccount(string id)
+        {
+            try
+            {
+                var existingUser = await _accountService.GetAccountByIdAsync(id);
+                if (existingUser == null)
+                {
+                    return NotFound(new ApiErrorResponse
+                    {
+                        Success = false,
+                        StatusCode = StatusCodes.Status404NotFound,
+                        Error = "NOT_FOUND",
+                        Message = $"Account with ID {id} not found"
+                    });
+                }
+
+                var success = await _accountService.DeleteAccountAsync(id);
+                if (success)
+                {
+                    return Ok(new ApiResponse<object>
+                    {
+                        Success = true,
+                        StatusCode = StatusCodes.Status200OK,
+                        Message = "Account deleted successfully"
+                    });
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Error = "SERVER_ERROR",
+                    Message = "Failed to delete account"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting account {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Error = "SERVER_ERROR",
+                    Message = "An unexpected error occurred while deleting the account"
+                });
+            }
         }
     }
 }

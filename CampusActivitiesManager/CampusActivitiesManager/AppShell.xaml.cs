@@ -18,20 +18,50 @@ namespace CampusActivitiesManager
             ThemeSegmentedControl.SelectedIndex = currentTheme == AppTheme.Light ? 0 : 1;
         }
 
+        protected override void OnHandlerChanged()
+        {
+            base.OnHandlerChanged();
+
+            if (Handler != null)
+            {
+                UpdateMenuVisibility();
+
+                var authService = Handler.MauiContext?.Services.GetService<IAuthenticationService>();
+                if (authService != null)
+                {
+                    authService.CurrentUserChanged += (s, e) =>
+                    {
+                        MainThread.BeginInvokeOnMainThread(() => UpdateMenuVisibility());
+                    };
+                }
+            }
+        }
+
+        private void UpdateMenuVisibility()
+        {
+            var authService = Handler?.MauiContext?.Services.GetService<IAuthenticationService>();
+            if (authService == null) return;
+
+            bool isLoggedIn = authService.CurrentUser != null;
+            bool isAdmin = authService.IsAdmin;
+
+            NavLogin.IsVisible = true;
+            NavStudentDashboard.IsVisible = isLoggedIn;
+            NavProfile.IsVisible = isLoggedIn;
+            NavUsers.IsVisible = isAdmin;
+        }
+
         private void RegisterRoutes()
         {
             Routing.RegisterRoute(nameof(UserManagementPage), typeof(UserManagementPage));
             Routing.RegisterRoute(nameof(EditUserRolePage), typeof(EditUserRolePage));
+            Routing.RegisterRoute(nameof(CreateUserPage), typeof(CreateUserPage));
             Routing.RegisterRoute(nameof(AccessDeniedPage), typeof(AccessDeniedPage));
             Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
             Routing.RegisterRoute(nameof(EventFormPage), typeof(EventFormPage));
             Routing.RegisterRoute("eventform", typeof(EventFormPage));
         }
 
-        /// <summary>
-        /// Navigation Guard: Kiểm tra thẩm quyền trước khi chuyển hướng (Task.md mục 5).
-        /// Nếu không đủ quyền, tự động chuyển hướng về //AccessDeniedPage.
-        /// </summary>
         public static async Task NavigateWithGuardAsync(string route, Role requiredRole, IAuthenticationService authService)
         {
             if (!authService.CheckPermission(requiredRole))
@@ -42,6 +72,7 @@ namespace CampusActivitiesManager
 
             await Shell.Current.GoToAsync(route);
         }
+
         public static async Task DisplaySnackbarAsync(string message)
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -63,7 +94,6 @@ namespace CampusActivitiesManager
 
         public static async Task DisplayToastAsync(string message)
         {
-            // Toast is currently not working in MCT on Windows, fallback to Snackbar
             if (OperatingSystem.IsWindows())
             {
                 await DisplaySnackbarAsync(message);
