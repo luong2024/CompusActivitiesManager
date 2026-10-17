@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pagemodels="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
+             x:Class="CampusActivitiesManager.Pages.EventAttendanceReportPage"
+             x:DataType="pagemodels:EventAttendanceReportViewModel"
+             Title="Báo Cáo Điểm Danh"
+             BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="16">
+
+                <!-- 1. Header Banner -->
+                <Border StrokeShape="RoundRectangle 20"
+                        Background="{StaticResource PrimaryGradientBrush}"
+                        Padding="20"
+                        StrokeThickness="0">
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="📊" FontSize="22" VerticalOptions="Center" />
+                            <Label Text="Báo Cáo Điểm Danh Thời Gian Thực"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource White}"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <Label Text="Theo dõi tỷ lệ tham dự, xuất báo cáo CSV gửi Nhà trường và kiểm soát check-in sự kiện."
+                               FontSize="12"
+                               TextColor="#E0E7FF"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 2. Event Picker -->
+                <Border StrokeShape="RoundRectangle 16"
+                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        StrokeThickness="1"
+                        Padding="16,10">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="CHỌN SỰ KIỆN THEO DÕI"
+                               FontSize="11"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}" />
+                        <Picker Title="-- Chọn sự kiện --"
+                                ItemsSource="{Binding Events}"
+                                ItemDisplayBinding="{Binding Name, x:DataType='models:CampusEvent'}"
+                                SelectedItem="{Binding SelectedEvent}"
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                FontSize="13.5" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 3. Metrics Cards (2x2 Grid) -->
+                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
+                    <!-- Metric 1: Total Checked In -->
+                    <Border Grid.Row="0" Grid.Column="0"
+                            StrokeShape="RoundRectangle 16"
+                            Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                            StrokeThickness="1"
+                            Padding="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="TỔNG CHECK-IN" FontSize="10.5" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                            <Label Text="{Binding TotalCheckedIn}" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                            <Label Text="{Binding AttendanceRateDisplay, StringFormat='Tỷ lệ: {0}'}" FontSize="11" TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Metric 2: QR Check-in -->
+                    <Border Grid.Row="0" Grid.Column="1"
+                            StrokeShape="RoundRectangle 16"
+                            Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                            StrokeThickness="1"
+                            Padding="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="QUÉT MÃ QR" FontSize="10.5" FontAttributes="Bold" TextColor="#16A34A" />
+                            <Label Text="{Binding QrCheckInCount}" FontSize="24" FontAttributes="Bold" TextColor="#16A34A" />
+                            <Label Text="Vé QR điện tử" FontSize="11" TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Metric 3: Photo Check-in -->
+                    <Border Grid.Row="1" Grid.Column="0"
+                            StrokeShape="RoundRectangle 16"
+                            Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                            StrokeThickness="1"
+                            Padding="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="ẢNH MINH CHỨNG" FontSize="10.5" FontAttributes="Bold" TextColor="#D97706" />
+                            <Label Text="{Binding PhotoCheckInCount}" FontSize="24" FontAttributes="Bold" TextColor="#D97706" />
+                            <Label Text="Camera sự kiện" FontSize="11" TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Metric 4: Manual Check-in -->
+                    <Border Grid.Row="1" Grid.Column="1"
+                            StrokeShape="RoundRectangle 16"
+                            Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                            StrokeThickness="1"
+                            Padding="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="THỦ CÔNG (BTC)" FontSize="10.5" FontAttributes="Bold" TextColor="#7C3AED" />
+                            <Label Text="{Binding ManualCheckInCount}" FontSize="24" FontAttributes="Bold" TextColor="#7C3AED" />
+                            <Label Text="Bổ sung tại chỗ" FontSize="11" TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- 4. Action Buttons -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Grid.Column="0"
+                            Text="📥 Xuất Báo Cáo CSV"
+                            Command="{Binding ExportCsvCommand}"
+                            Background="{StaticResource PrimaryGradientBrush}"
+                            TextColor="{StaticResource White}"
+                            FontAttributes="Bold"
+                            CornerRadius="12"
+                            HeightRequest="44" />
+
+                    <Button Grid.Column="1"
+                            Text="➕ Điểm Danh Bổ Sung"
+                            Command="{Binding AddManualAttendanceCommand}"
+                            Background="#F1F5F9"
+                            TextColor="{StaticResource DarkOnLightBackground}"
+                            FontAttributes="Bold"
+                            CornerRadius="12"
+                            HeightRequest="44" />
+                </Grid>
+
+                <!-- 5. Search Bar -->
+                <Border StrokeShape="RoundRectangle 14"
+                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        StrokeThickness="1"
+                        Padding="12,4">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Label Text="🔍" FontSize="14" VerticalOptions="Center" Margin="0,0,8,0" />
+                        <Entry Grid.Column="1"
+                               Placeholder="Tìm kiếm theo mã sinh viên hoặc họ tên..."
+                               Text="{Binding SearchKeyword}"
+                               FontSize="12.5"
+                               ClearButtonVisibility="WhileEditing" />
+                    </Grid>
+                </Border>
+
+                <!-- 6. Attendees List -->
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="DANH SÁCH SINH VIÊN ĐÃ ĐIỂM DANH"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}" />
+
+                    <CollectionView ItemsSource="{Binding Records}" SelectionMode="None">
+                        <CollectionView.EmptyView>
+                            <Border StrokeShape="RoundRectangle 16"
+                                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                    Padding="28"
+                                    Margin="0,10">
+                                <Label Text="Chưa có lượt điểm danh nào cho sự kiện này"
+                                       FontSize="13"
+                                       TextColor="{StaticResource Gray500}"
+                                       HorizontalOptions="Center" />
+                            </Border>
+                        </CollectionView.EmptyView>
+
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:AttendanceRecord">
+                                <Border StrokeShape="RoundRectangle 14"
+                                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        StrokeThickness="1"
+                                        Padding="14"
+                                        Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                            <HorizontalStackLayout Spacing="6">
+                                                <Label Text="{Binding StudentName}" FontSize="13.5" FontAttributes="Bold" />
+                                                <Label Text="{Binding StudentCode, StringFormat='({0})'}" FontSize="12" TextColor="{StaticResource Primary}" FontAttributes="Bold" />
+                                            </HorizontalStackLayout>
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Label Text="{Binding MethodDisplay}" FontSize="11" TextColor="{StaticResource Gray500}" />
+                                                <Label Text="•" FontSize="11" TextColor="{StaticResource Gray400}" />
+                                                <Label Text="{Binding FormattedCheckInTime}" FontSize="11" TextColor="{StaticResource Gray500}" />
+                                            </HorizontalStackLayout>
+                                            <Label Text="{Binding Notes}" FontSize="11" TextColor="#64748B" LineBreakMode="TailTruncation" MaxLines="1" />
+                                        </VerticalStackLayout>
+
+                                        <Border Grid.Column="1"
+                                                StrokeShape="RoundRectangle 8"
+                                                Background="{Binding StatusBadgeBg}"
+                                                Padding="8,4"
+                                                StrokeThickness="0"
+                                                VerticalOptions="Center">
+                                            <Label Text="{Binding PointsDisplay}"
+                                                   FontSize="11.5"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{Binding StatusColor}" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

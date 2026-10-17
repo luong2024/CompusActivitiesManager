@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="pageModels:RegisterViewModel"
+             x:Class="CampusActivitiesManager.Pages.RegisterPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="24" Padding="24,36" MaximumWidthRequest="460" HorizontalOptions="Center" VerticalOptions="Center">
+
+            <!-- Logo & Title Header -->
+            <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                <Border HeightRequest="64" WidthRequest="64" StrokeShape="RoundRectangle 20" StrokeThickness="0" Background="{StaticResource EmeraldGradientBrush}" HorizontalOptions="Center" Padding="0">
+                    <Label Text="📝" FontSize="30" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label Text="Tạo Tài Khoản Mới" Style="{StaticResource Title2}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                <Label Text="Đăng ký tài khoản để tham gia các hoạt động sinh viên" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- Form Đăng ký -->
+            <Border StrokeShape="RoundRectangle 20"
+                    Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
+                    StrokeThickness="1"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
+                    Padding="28">
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- Error Alert -->
+                    <Border StrokeShape="RoundRectangle 10"
+                            Stroke="{StaticResource ErrorBorderLight}"
+                            StrokeThickness="1"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}"
+                            Padding="12,10"
+                            IsVisible="{Binding HasError}">
+                        <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorDark}" FontSize="13" />
+                    </Border>
+
+                    <!-- Full Name -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Họ và Tên" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
+                                StrokeThickness="1"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                Padding="12,2">
+                            <Entry Text="{Binding FullName}" Placeholder="Nguyễn Văn A" FontSize="14" HeightRequest="42" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Email -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Email" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
+                                StrokeThickness="1"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                Padding="12,2">
+                            <Entry Text="{Binding Email}" Placeholder="email@truong.edu.vn" Keyboard="Email" FontSize="14" HeightRequest="42" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Username -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Tên đăng nhập" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
+                                StrokeThickness="1"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                Padding="12,2">
+                            <Entry Text="{Binding Username}" Placeholder="Nhập tên đăng nhập / MSSV" FontSize="14" HeightRequest="42" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Password -->
+                    <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Mật khẩu" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
+                            <Label Grid.Column="1" Text="{Binding PasswordStrength}" TextColor="{Binding PasswordStrengthColor}" FontSize="12" FontAttributes="Bold" VerticalOptions="Center" />
+                        </Grid>
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
+                                StrokeThickness="1"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                Padding="12,2">
+                            <Entry Text="{Binding Password}" IsPassword="True" Placeholder="Mật khẩu (ít nhất 6 ký tự)" FontSize="14" HeightRequest="42" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Confirm Password -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Xác nhận Mật khẩu" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
+                                StrokeThickness="1"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                Padding="12,2">
+                            <Entry Text="{Binding ConfirmPassword}" IsPassword="True" Placeholder="Nhập lại mật khẩu" FontSize="14" HeightRequest="42" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Register Button -->
+                    <Button Text="Đăng ký tài khoản"
+                            Command="{Binding RegisterCommand}"
+                            Background="{StaticResource EmeraldGradientBrush}"
+                            TextColor="{StaticResource White}"
+                            FontAttributes="Bold"
+                            FontSize="15"
+                            HeightRequest="48"
+                            CornerRadius="12"
+                            Margin="0,8,0,0" />
+
+                    <!-- Go back to login -->
+                    <Button Text="Đã có tài khoản? Quay lại đăng nhập"
+                            Command="{Binding GoBackCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource Primary}"
+                            FontAttributes="Bold"
+                            FontSize="13"
+                            Margin="0,2,0,0" />
+                            
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

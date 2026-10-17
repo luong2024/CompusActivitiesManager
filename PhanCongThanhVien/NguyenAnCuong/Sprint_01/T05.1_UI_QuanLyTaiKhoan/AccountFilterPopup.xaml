@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
+             x:Class="CampusActivitiesManager.Pages.Controls.AccountFilterPopup"
+             x:DataType="pageModels:AccountListPageModel">
+
+    <!-- Modal Backdrop Overlay -->
+    <Grid BackgroundColor="#80000000"
+          IsVisible="{Binding IsFilterPopupVisible}"
+          Padding="{OnIdiom 20, Desktop=40}"
+          HorizontalOptions="FillAndExpand"
+          VerticalOptions="FillAndExpand">
+
+        <!-- Tap Backdrop to Close -->
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding CloseFilterPopupCommand}" />
+        </Grid.GestureRecognizers>
+
+        <!-- Popup Container Card -->
+        <Border StrokeShape="RoundRectangle 24"
+                Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                WidthRequest="{OnIdiom 340, Desktop=460}"
+                Padding="24">
+            <Border.Shadow>
+                <Shadow Brush="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource Black}}"
+                        Offset="0,8"
+                        Radius="20"
+                        Opacity="0.3" />
+            </Border.Shadow>
+
+            <!-- Prevent click inside card from closing backdrop -->
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer />
+            </Border.GestureRecognizers>
+
+            <VerticalStackLayout Spacing="16">
+                <!-- Header -->
+                <Grid ColumnDefinitions="*,Auto">
+                    <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                        <Image Source="{StaticResource IconFilter}"
+                               WidthRequest="22" HeightRequest="22"
+                               VerticalOptions="Center" />
+                        <Label Text="Bộ lọc nâng cao"
+                               Style="{StaticResource Title3}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <Button Grid.Column="1"
+                            ImageSource="{StaticResource IconDismiss}"
+                            Background="Transparent"
+                            WidthRequest="32" HeightRequest="32"
+                            Padding="0"
+                            Command="{Binding CloseFilterPopupCommand}"
+                            SemanticProperties.Description="Đóng bộ lọc" />
+                </Grid>
+
+                <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+
+                <!-- Filter Field: Lớp (Class) -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Lớp học / Đơn vị" Style="{StaticResource Caption1Strong}" />
+                    <Border StrokeShape="RoundRectangle 12"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                            Background="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
+                            Padding="12,2">
+                        <Picker ItemsSource="{Binding ClassOptions}"
+                                SelectedItem="{Binding SelectedClassFilter}"
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                Title="Chọn lớp học" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Filter Field: Khóa học (Academic Year) -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Khóa học (Niên khóa)" Style="{StaticResource Caption1Strong}" />
+                    <Border StrokeShape="RoundRectangle 12"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                            Background="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
+                            Padding="12,2">
+                        <Picker ItemsSource="{Binding AcademicYearOptions}"
+                                SelectedItem="{Binding SelectedAcademicYearFilter}"
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                Title="Chọn khóa học" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Filter Field: Quyền hạn (Role) -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Quyền hạn / Vai trò" Style="{StaticResource Caption1Strong}" />
+                    <Border StrokeShape="RoundRectangle 12"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                            Background="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
+                            Padding="12,2">
+                        <Picker ItemsSource="{Binding RoleOptions}"
+                                SelectedItem="{Binding SelectedRoleFilter}"
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                Title="Chọn quyền hạn" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Action Buttons -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                    <Button Grid.Column="0"
+                            Text="Đặt lại"
+                            TextColor="{StaticResource Primary}"
+                            Background="Transparent"
+                            BorderColor="{StaticResource Primary}"
+                            BorderWidth="1"
+                            HeightRequest="46"
+                            CornerRadius="12"
+                            Command="{Binding ResetAdvancedFilterCommand}" />
+
+                    <Button Grid.Column="1"
+                            Text="Áp dụng"
+                            Background="{StaticResource PrimaryBrush}"
+                            TextColor="{StaticResource White}"
+                            HeightRequest="46"
+                            CornerRadius="12"
+                            Command="{Binding ApplyAdvancedFilterCommand}" />
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentView>

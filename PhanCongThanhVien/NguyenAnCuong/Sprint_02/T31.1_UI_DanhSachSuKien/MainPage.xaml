@@ -1,0 +1,944 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"             
+             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
+             xmlns:pullToRefresh="clr-namespace:Syncfusion.Maui.Toolkit.PullToRefresh;assembly=Syncfusion.Maui.Toolkit"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="CampusActivitiesManager.Pages.MainPage"
+             x:DataType="pageModels:MainPageModel"
+             x:Name="OverviewPage"
+             BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark={StaticResource DarkBackground}}"
+             Shell.NavBarIsVisible="False"
+             NavigationPage.HasNavigationBar="False"
+             Title="Cổng Sinh Viên">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding Path=BindingContext, Source={x:Reference OverviewPage}, x:DataType=ContentPage}"
+            EventName="Appearing"                
+            Command="{Binding AppearingCommand}" />
+    </ContentPage.Behaviors>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- 1. TOP APP BAR / BRAND HEADER -->
+        <Border Grid.Row="0"
+                Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                StrokeThickness="0"
+                Padding="18,14">
+            <Border.Shadow>
+                <Shadow Brush="{StaticResource Black}" Offset="0,2" Radius="6" Opacity="0.05" />
+            </Border.Shadow>
+
+            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                <!-- Left: Branding & Greeting -->
+                <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                    <Border WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 12"
+                            Background="{StaticResource PrimaryGradientBrush}" StrokeThickness="0" VerticalOptions="Center">
+                        <Label Text="🎓" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <VerticalStackLayout Spacing="1" VerticalOptions="Center">
+                        <Label Text="Cổng Sinh Viên" FontSize="16" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                        <Label Text="{Binding StudentGreeting}" FontSize="12" 
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+
+                <!-- Right: Profile Shortcut Badge -->
+                <Border Grid.Column="1" StrokeShape="RoundRectangle 20" 
+                        Background="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
+                        StrokeThickness="1" Stroke="{StaticResource Gray200}" Padding="10,4" VerticalOptions="Center">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding NavigateToProfileCommand}" />
+                    </Border.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                        <Border WidthRequest="24" HeightRequest="24" StrokeShape="RoundRectangle 12" Background="#2563EB" StrokeThickness="0">
+                            <Label Text="{Binding CurrentStudent.Initials}" FontSize="10" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <Label Text="Hồ sơ" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Primary}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- 2. SCROLLABLE MAIN CONTENT -->
+        <pullToRefresh:SfPullToRefresh
+            Grid.Row="1"
+            IsRefreshing="{Binding IsRefreshing}"
+            RefreshCommand="{Binding RefreshCommand}">
+            <pullToRefresh:SfPullToRefresh.PullableContent>
+                <ScrollView>
+                    <VerticalStackLayout Spacing="18" Padding="16,16,16,40">
+
+                        <!-- ============================================== -->
+                        <!-- 1. VIP DIGITAL STUDENT PASS (THẺ SINH VIÊN)   -->
+                        <!-- ============================================== -->
+                        <Border StrokeShape="RoundRectangle 22"
+                                Background="{StaticResource StudentCardGradient}"
+                                Padding="20"
+                                StrokeThickness="0">
+                            <Border.Shadow>
+                                <Shadow Brush="{StaticResource MidnightBlue}"
+                                        Offset="0,8"
+                                        Radius="20"
+                                        Opacity="0.35" />
+                            </Border.Shadow>
+
+                            <VerticalStackLayout Spacing="16">
+                                <!-- Student Info Row -->
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                    
+                                    <!-- Avatar Initials Box -->
+                                    <Border Grid.Column="0"
+                                            WidthRequest="54" HeightRequest="54"
+                                            StrokeShape="RoundRectangle 16"
+                                            Background="#30FFFFFF"
+                                            StrokeThickness="1.5"
+                                            Stroke="#60FFFFFF"
+                                            VerticalOptions="Center">
+                                        <Label Text="{Binding CurrentStudent.Initials}"
+                                               FontSize="20"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource White}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Border>
+
+                                    <!-- Name, MSV, Class, Year -->
+                                    <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Label Text="{Binding CurrentStudent.FullName}"
+                                                   FontSize="17"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource White}"
+                                                   LineBreakMode="TailTruncation" />
+                                            <Border StrokeShape="RoundRectangle 8"
+                                                    Background="#2510B981"
+                                                    StrokeThickness="1"
+                                                    Stroke="#5010B981"
+                                                    Padding="6,2"
+                                                    VerticalOptions="Center">
+                                                <Label Text="{Binding CurrentStudent.StatusName}"
+                                                       FontSize="10"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#34D399" />
+                                            </Border>
+                                        </HorizontalStackLayout>
+                                        
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Label Text="{Binding CurrentStudent.StudentCode, StringFormat='MSV: {0}'}"
+                                                   FontSize="11"
+                                                   FontAttributes="Bold"
+                                                   TextColor="#CBD5E1" />
+                                            <Label Text="•" TextColor="#94A3B8" FontSize="11" />
+                                            <Label Text="{Binding CurrentStudent.ClassName}"
+                                                   FontSize="11"
+                                                   TextColor="#CBD5E1" />
+                                            <Label Text="•" TextColor="#94A3B8" FontSize="11" />
+                                            <Label Text="{Binding CurrentStudent.AcademicYear}"
+                                                   FontSize="11"
+                                                   TextColor="#CBD5E1" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+
+                                    <!-- QR Attendance Ticket Button -->
+                                    <Border Grid.Column="2"
+                                            StrokeShape="RoundRectangle 14"
+                                            Background="#FFFFFF"
+                                            StrokeThickness="0"
+                                            Padding="12,8"
+                                            VerticalOptions="Center">
+                                        <Border.Shadow>
+                                            <Shadow Brush="{StaticResource Black}" Offset="0,2" Radius="6" Opacity="0.15" />
+                                        </Border.Shadow>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding ShowQrTicketCommand}" />
+                                        </Border.GestureRecognizers>
+                                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                                            <Label Text="🎫" FontSize="13" VerticalOptions="Center" />
+                                            <Label Text="Vé QR" FontSize="12" FontAttributes="Bold" TextColor="#1E3A8A" VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Training Points Progress Bar Row -->
+                                <VerticalStackLayout Spacing="6">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="★ Điểm rèn luyện tích lũy học kỳ"
+                                               FontSize="12"
+                                               TextColor="#CBD5E1" />
+                                        <HorizontalStackLayout Grid.Column="1" Spacing="4">
+                                            <Label Text="{Binding CurrentStudent.TrainingPoints, StringFormat='{0}/100 Điểm'}"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource White}" />
+                                            <Label Text="{Binding CurrentStudent.PointRank, StringFormat='({0})'}"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   TextColor="#34D399" />
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                    <ProgressBar Progress="{Binding TrainingPointsProgress}"
+                                                 ProgressColor="#10B981"
+                                                 HeightRequest="7" />
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- ============================================== -->
+                        <!-- 1.5. SLIDE QUẢNG BÁ SỰ KIỆN NỔI BẬT (CAROUSEL) -->
+                        <!-- ============================================== -->
+                        <VerticalStackLayout Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="🔥" FontSize="16" VerticalOptions="Center" />
+                                    <Label Text="Sự Kiện Nổi Bật Trong Tuần" FontSize="15" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <IndicatorView Grid.Column="1"
+                                               x:Name="EventCarouselIndicator"
+                                               IndicatorColor="#CBD5E1"
+                                               SelectedIndicatorColor="{StaticResource Primary}"
+                                               IndicatorSize="6"
+                                               VerticalOptions="Center" />
+                            </Grid>
+
+                            <CarouselView ItemsSource="{Binding PromotionalEvents}"
+                                          IndicatorView="EventCarouselIndicator"
+                                          HeightRequest="170"
+                                          Loop="True"
+                                          PeekAreaInsets="10">
+                                <CarouselView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:CampusEvent">
+                                        <Border StrokeShape="RoundRectangle 20"
+                                                Background="{StaticResource PrimaryGradientBrush}"
+                                                Padding="18,16"
+                                                Margin="6,0"
+                                                StrokeThickness="0">
+                                            <Border.Shadow>
+                                                <Shadow Brush="{StaticResource Primary}" Offset="0,6" Radius="12" Opacity="0.25" />
+                                            </Border.Shadow>
+                                            <Grid RowDefinitions="Auto,*,Auto">
+                                                <!-- Top Row: Badge & Points -->
+                                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                                    <Border StrokeShape="RoundRectangle 8" Background="#3B82F6" Padding="8,3" StrokeThickness="0">
+                                                        <Label Text="🌟 SỰ KIỆN TIÊU BIỂU" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                                    </Border>
+                                                    <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#10B981" Padding="8,3" StrokeThickness="0">
+                                                        <Label Text="+5 ĐRL" FontSize="10.5" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- Center: Title & Description -->
+                                                <VerticalStackLayout Grid.Row="1" Spacing="4" VerticalOptions="Center">
+                                                    <Label Text="{Binding Name}"
+                                                           FontSize="15"
+                                                           FontAttributes="Bold"
+                                                           TextColor="{StaticResource White}"
+                                                           LineBreakMode="TailTruncation"
+                                                           MaxLines="2" />
+                                                    <Label Text="{Binding TimeLocationDisplay}"
+                                                           FontSize="11"
+                                                           TextColor="#E0E7FF"
+                                                           LineBreakMode="TailTruncation" />
+                                                </VerticalStackLayout>
+
+                                                <!-- Bottom Row: Action button -->
+                                                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" VerticalOptions="End">
+                                                    <Label Text="{Binding ParticipantsDisplay}"
+                                                           FontSize="10.5"
+                                                           TextColor="#CBD5E1"
+                                                           VerticalOptions="Center" />
+                                                    <Button Grid.Column="1"
+                                                            Text="{Binding RegisterButtonText}"
+                                                            Command="{Binding Source={x:Reference OverviewPage}, Path=BindingContext.RegisterEventCommand}"
+                                                            CommandParameter="{Binding .}"
+                                                            Background="{StaticResource White}"
+                                                            TextColor="{StaticResource Primary}"
+                                                            FontAttributes="Bold"
+                                                            FontSize="11"
+                                                            HeightRequest="32"
+                                                            CornerRadius="10"
+                                                            Padding="12,0" />
+                                                </Grid>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CarouselView.ItemTemplate>
+                            </CarouselView>
+                        </VerticalStackLayout>
+
+                        <!-- ============================================== -->
+                        <!-- 2. QUICK ACTIONS / TIỆN ÍCH SINH VIÊN          -->
+                        <!-- ============================================== -->
+                        <VerticalStackLayout Spacing="8">
+                            <!-- Row 1: Core Activities & Attendance -->
+                            <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+                                <!-- Action 1: Khám phá sự kiện -->
+                                <Border Grid.Column="0" StrokeShape="RoundRectangle 16"
+                                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        Padding="6,12">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding NavigateToEventsCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Border WidthRequest="34" HeightRequest="34" StrokeShape="RoundRectangle 10" Background="#EFF6FF" StrokeThickness="0" HorizontalOptions="Center">
+                                            <Label Text="🎪" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Label Text="Sự Kiện" FontSize="10.5" FontAttributes="Bold" TextColor="{StaticResource Primary}" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Action 2: Quét QR Check-in -->
+                                <Border Grid.Column="1" StrokeShape="RoundRectangle 16"
+                                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        Padding="6,12">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding NavigateToQrScannerCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Border WidthRequest="34" HeightRequest="34" StrokeShape="RoundRectangle 10" Background="#EFF6FF" StrokeThickness="0" HorizontalOptions="Center">
+                                            <Label Text="📷" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Label Text="Quét QR" FontSize="10.5" FontAttributes="Bold" TextColor="{StaticResource Primary}" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Action 3: Điểm danh hình ảnh -->
+                                <Border Grid.Column="2" StrokeShape="RoundRectangle 16"
+                                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        Padding="6,12">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding NavigateToPhotoAttendanceCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Border WidthRequest="34" HeightRequest="34" StrokeShape="RoundRectangle 10" Background="#FFFBEB" StrokeThickness="0" HorizontalOptions="Center">
+                                            <Label Text="📸" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Label Text="Điểm Danh Ảnh" FontSize="10" FontAttributes="Bold" TextColor="#D97706" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Action 4: Sổ điểm danh -->
+                                <Border Grid.Column="3" StrokeShape="RoundRectangle 16"
+                                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        Padding="6,12">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding NavigateToAttendanceHistoryCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Border WidthRequest="34" HeightRequest="34" StrokeShape="RoundRectangle 10" Background="#ECFDF5" StrokeThickness="0" HorizontalOptions="Center">
+                                            <Label Text="🏅" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Label Text="Sổ Điểm Danh" FontSize="10" FontAttributes="Bold" TextColor="#059669" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+
+                            <!-- Row 2: Secondary Utilities -->
+                            <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+                                <!-- Action 5: Vé QR cá nhân -->
+                                <Border Grid.Column="0" StrokeShape="RoundRectangle 16"
+                                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        Padding="6,10">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding ShowQrTicketCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Border WidthRequest="30" HeightRequest="30" StrokeShape="RoundRectangle 8" Background="#ECFDF5" StrokeThickness="0" HorizontalOptions="Center">
+                                            <Label Text="🎫" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Label Text="Vé Của Tôi" FontSize="10" FontAttributes="Bold" TextColor="#059669" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Action 6: Báo cáo điểm danh (BTC) -->
+                                <Border Grid.Column="1" StrokeShape="RoundRectangle 16"
+                                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        Padding="6,10">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding NavigateToAttendanceReportCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Border WidthRequest="30" HeightRequest="30" StrokeShape="RoundRectangle 8" Background="#F5F3FF" StrokeThickness="0" HorizontalOptions="Center">
+                                            <Label Text="📊" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Label Text="Báo Cáo" FontSize="10" FontAttributes="Bold" TextColor="#7C3AED" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Action 7: Hồ sơ sinh viên -->
+                                <Border Grid.Column="2" StrokeShape="RoundRectangle 16"
+                                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        Padding="6,10">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding NavigateToProfileCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Border WidthRequest="30" HeightRequest="30" StrokeShape="RoundRectangle 8" Background="#FAF5FF" StrokeThickness="0" HorizontalOptions="Center">
+                                            <Label Text="👤" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Label Text="Hồ Sơ" FontSize="10" FontAttributes="Bold" TextColor="#7C3AED" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Action 8: Đăng xuất -->
+                                <Border Grid.Column="3" StrokeShape="RoundRectangle 16"
+                                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        Padding="6,10">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding LogoutCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Border WidthRequest="30" HeightRequest="30" StrokeShape="RoundRectangle 8" Background="#FEF2F2" StrokeThickness="0" HorizontalOptions="Center">
+                                            <Label Text="🚪" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <Label Text="Đăng Xuất" FontSize="10" FontAttributes="Bold" TextColor="#DC2626" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+                        </VerticalStackLayout>
+
+                        <!-- ============================================== -->
+                        <!-- 3. BẢNG THỐNG KÊ HOẠT ĐỘNG (4 METRIC CARDS)    -->
+                        <!-- ============================================== -->
+                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                            <!-- Card 1: Sự kiện sắp tới -->
+                            <Border Grid.Column="0" StrokeShape="RoundRectangle 16"
+                                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                    StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                    Padding="8,12">
+                                <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                                    <Label Text="SỰ KIỆN MỞ" FontSize="9" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                                    <Label Text="{Binding UpcomingCount}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource Primary}" HorizontalOptions="Center" />
+                                    <Label Text="Đang diễn ra" FontSize="9" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <!-- Card 2: Đã đăng ký -->
+                            <Border Grid.Column="1" StrokeShape="RoundRectangle 16"
+                                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                    StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                    Padding="8,12">
+                                <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                                    <Label Text="ĐÃ ĐĂNG KÝ" FontSize="9" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                                    <Label Text="{Binding RegisteredCount}" FontSize="20" FontAttributes="Bold" TextColor="#10B981" HorizontalOptions="Center" />
+                                    <Label Text="Vé sẵn sàng" FontSize="9" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <!-- Card 3: Điểm rèn luyện -->
+                            <Border Grid.Column="2" StrokeShape="RoundRectangle 16"
+                                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                    StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                    Padding="8,12">
+                                <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                                    <Label Text="ĐIỂM RÈN LUYỆN" FontSize="9" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                                    <Label Text="{Binding CurrentStudent.TrainingPoints, StringFormat='{0}⭐'}" FontSize="20" FontAttributes="Bold" TextColor="#7C3AED" HorizontalOptions="Center" />
+                                    <Label Text="Kỳ 1 (2026)" FontSize="9" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <!-- Card 4: Xếp loại -->
+                            <Border Grid.Column="3" StrokeShape="RoundRectangle 16"
+                                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                    StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                    Padding="8,12">
+                                <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                                    <Label Text="XẾP LOẠI" FontSize="9" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                                    <Label Text="{Binding CurrentStudent.PointRank}" FontSize="15" FontAttributes="Bold" TextColor="#D97706" HorizontalOptions="Center" Margin="0,3" />
+                                    <Label Text="Xuất sắc" FontSize="9" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </Grid>
+
+                        <!-- ============================================== -->
+                        <!-- 4. THÔNG BÁO QUAN TRỌNG (CAMPUS NOTICES)       -->
+                        <!-- ============================================== -->
+                        <Border StrokeShape="RoundRectangle 16" Stroke="#DBEAFE" Background="#EFF6FF" Padding="14,12">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                                <Label Text="📢" FontSize="20" Grid.Column="0" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <Label Text="Thông báo từ Ban Công Tác Sinh Viên" FontSize="13" FontAttributes="Bold" TextColor="#1E40AF" />
+                                    <Label Text="Đăng ký tham gia hoạt động ngoại khóa để tích lũy điểm rèn luyện đợt 1 năm học 2026. Quét mã QR điểm danh nhận điểm ngay!" FontSize="11.5" TextColor="#3B82F6" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+
+                        <!-- ============================================== -->
+                        <!-- 5. DANH SÁCH SỰ KIỆN ĐANG MỞ (LIVE EVENTS)     -->
+                        <!-- ============================================== -->
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <Label Text="🔥 Hoạt động đang mở đăng ký" FontSize="16" FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
+                                   VerticalOptions="Center" />
+                            <Button Grid.Column="1" Text="Xem tất cả ➔" 
+                                    Command="{Binding NavigateToEventsCommand}" 
+                                    Background="Transparent" 
+                                    TextColor="{StaticResource Primary}" 
+                                    FontSize="12" FontAttributes="Bold" Padding="0" HeightRequest="32" />
+                        </Grid>
+
+                        <!-- Category Filter Chips (US15 & US34) -->
+                        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                            <HorizontalStackLayout Spacing="8">
+                                <Border StrokeShape="RoundRectangle 20" Stroke="Transparent" Padding="12,6"
+                                        BackgroundColor="{StaticResource Primary}">
+                                    <Label Text="Tất cả" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding FilterCategoryCommand}" CommandParameter="Tất cả" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <Border StrokeShape="RoundRectangle 20" Stroke="#DBEAFE" StrokeThickness="1" Padding="12,6" BackgroundColor="#EFF6FF">
+                                    <Label Text="📘 Học thuật" FontSize="12" FontAttributes="Bold" TextColor="#2563EB" />
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding FilterCategoryCommand}" CommandParameter="Học thuật" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <Border StrokeShape="RoundRectangle 20" Stroke="#D1FAE5" StrokeThickness="1" Padding="12,6" BackgroundColor="#ECFDF5">
+                                    <Label Text="⚽ Thể thao" FontSize="12" FontAttributes="Bold" TextColor="#059669" />
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding FilterCategoryCommand}" CommandParameter="Thể thao" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <Border StrokeShape="RoundRectangle 20" Stroke="#FEE2E2" StrokeThickness="1" Padding="12,6" BackgroundColor="#FEF2F2">
+                                    <Label Text="🌿 Tình nguyện" FontSize="12" FontAttributes="Bold" TextColor="#DC2626" />
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding FilterCategoryCommand}" CommandParameter="Tình nguyện" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <Border StrokeShape="RoundRectangle 20" Stroke="#F3E8FF" StrokeThickness="1" Padding="12,6" BackgroundColor="#FAF5FF">
+                                    <Label Text="💡 Kỹ năng mềm" FontSize="12" FontAttributes="Bold" TextColor="#7C3AED" />
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding FilterCategoryCommand}" CommandParameter="Kỹ năng mềm" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </HorizontalStackLayout>
+                        </ScrollView>
+
+                        <!-- Event Cards (Horizontal Carousel) -->
+                        <ScrollView Orientation="Horizontal" Margin="-16,0" HorizontalScrollBarVisibility="Never">
+                            <HorizontalStackLayout Spacing="14" Padding="16,4" BindableLayout.ItemsSource="{Binding DisplayEvents}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="models:CampusEvent">
+                                        <Border StrokeShape="RoundRectangle 18"
+                                                WidthRequest="250"
+                                                Padding="16"
+                                                Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                                StrokeThickness="1"
+                                                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                                            <Border.Shadow>
+                                                <Shadow Brush="{StaticResource Black}"
+                                                        Offset="0,4"
+                                                        Radius="10"
+                                                        Opacity="0.06" />
+                                            </Border.Shadow>
+
+                                            <VerticalStackLayout Spacing="10">
+                                                <!-- Category Tag & Points Tag -->
+                                                <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                                    <!-- Category Tag Pill (US15) -->
+                                                    <Border Grid.Column="0" StrokeShape="RoundRectangle 10"
+                                                            Padding="8,4"
+                                                            BackgroundColor="{Binding CategoryTagBg}"
+                                                            Stroke="{Binding CategoryTagBorderColor}"
+                                                            StrokeThickness="1"
+                                                            HorizontalOptions="Start">
+                                                        <Label Text="{Binding CategoryTitle}"
+                                                               FontSize="11"
+                                                               FontAttributes="Bold"
+                                                               TextColor="{Binding CategoryTagTextColor}" />
+                                                    </Border>
+
+                                                    <!-- Reward points tag -->
+                                                    <Border Grid.Column="1" StrokeShape="RoundRectangle 8" Background="#ECFDF5" Padding="6,2">
+                                                        <Label Text="{Binding TrainingPointsRewardDisplay}" FontSize="10" FontAttributes="Bold" TextColor="#059669" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- Activity Title -->
+                                                <Label Text="{Binding Name}"
+                                                       FontSize="14"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                                       MaxLines="2"
+                                                       LineBreakMode="TailTruncation" />
+
+                                                <!-- Description -->
+                                                <Label Text="{Binding Description}"
+                                                       FontSize="11.5"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                                       MaxLines="2"
+                                                       LineBreakMode="TailTruncation" />
+
+                                                <!-- Location and Date -->
+                                                <Label Text="{Binding TimeLocationDisplay}"
+                                                       FontSize="11"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+
+                                                <!-- Action Button: Register or View QR -->
+                                                <Button Text="{Binding RegisterButtonText}"
+                                                        FontSize="12"
+                                                        FontAttributes="Bold"
+                                                        HeightRequest="38"
+                                                        CornerRadius="10"
+                                                        Background="{StaticResource PrimaryGradientBrush}"
+                                                        TextColor="{StaticResource White}"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=RegisterEventCommand, x:DataType=pageModels:MainPageModel}"
+                                                        CommandParameter="{Binding .}">
+                                                    <Button.Shadow>
+                                                        <Shadow Brush="{StaticResource Primary}" Offset="0,2" Radius="6" Opacity="0.2" />
+                                                    </Button.Shadow>
+                                                </Button>
+                                            </VerticalStackLayout>
+                                        </Border>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </HorizontalStackLayout>
+                        </ScrollView>
+
+                        <!-- ============================================== -->
+                        <!-- 5.5. BÀI VIẾT & TIN TỨC HỌC ĐƯỜNG (US 22)      -->
+                        <!-- ============================================== -->
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="📰" FontSize="16" VerticalOptions="Center" />
+                                    <Label Text="Tin Tức &amp; Bài Viết Học Đường" FontSize="16" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Label Grid.Column="1" Text="Mới nhất" FontSize="12" TextColor="{StaticResource Primary}" FontAttributes="Bold" VerticalOptions="Center" />
+                            </Grid>
+
+                            <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding CampusPosts}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="models:CampusPost">
+                                        <Border StrokeShape="RoundRectangle 16"
+                                                Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                                StrokeThickness="1"
+                                                Padding="16">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={x:Reference OverviewPage}, Path=BindingContext.OpenPostDetailCommand}"
+                                                                      CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
+                                            <VerticalStackLayout Spacing="8">
+                                                <!-- Category & Metadata Header -->
+                                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                                    <Border Grid.Column="0"
+                                                            StrokeShape="RoundRectangle 8"
+                                                            Background="{Binding CategoryBg}"
+                                                            Padding="8,3"
+                                                            StrokeThickness="0">
+                                                        <Label Text="{Binding Category}"
+                                                               FontSize="10.5"
+                                                               FontAttributes="Bold"
+                                                               TextColor="{Binding CategoryTextColor}" />
+                                                    </Border>
+                                                    <Label Grid.Column="1"
+                                                           Text="{Binding Author}"
+                                                           FontSize="11"
+                                                           TextColor="{StaticResource Gray500}"
+                                                           VerticalOptions="Center"
+                                                           Margin="8,0,0,0"
+                                                           LineBreakMode="TailTruncation" />
+                                                    <Label Grid.Column="2"
+                                                           Text="{Binding FormattedDate}"
+                                                           FontSize="11"
+                                                           TextColor="{StaticResource Gray400}"
+                                                           VerticalOptions="Center" />
+                                                </Grid>
+
+                                                <!-- Post Title -->
+                                                <Label Text="{Binding Title}"
+                                                       FontSize="14"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                                       LineBreakMode="WordWrap"
+                                                       MaxLines="2" />
+
+                                                <!-- Post Excerpt -->
+                                                <Label Text="{Binding Excerpt}"
+                                                       FontSize="12"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                                       LineBreakMode="WordWrap"
+                                                       MaxLines="2" />
+
+                                                <!-- Footer Actions -->
+                                                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
+                                                    <!-- Likes button -->
+                                                    <HorizontalStackLayout Grid.Column="0" Spacing="4" VerticalOptions="Center">
+                                                        <Button Text="{Binding LikesCount, StringFormat='❤️ {0}'}"
+                                                                Command="{Binding Source={x:Reference OverviewPage}, Path=BindingContext.LikePostCommand}"
+                                                                CommandParameter="{Binding .}"
+                                                                Background="Transparent"
+                                                                TextColor="#DC2626"
+                                                                FontSize="11.5"
+                                                                FontAttributes="Bold"
+                                                                Padding="0"
+                                                                HeightRequest="28" />
+                                                    </HorizontalStackLayout>
+
+                                                    <Label Grid.Column="1"
+                                                           Text="{Binding ReadTimeMinutes, StringFormat='⏱️ {0} phút đọc'}"
+                                                           FontSize="11"
+                                                           TextColor="{StaticResource Gray400}"
+                                                           VerticalOptions="Center"
+                                                           Margin="10,0,0,0" />
+
+                                                    <!-- Read More button -->
+                                                    <Button Grid.Column="2"
+                                                            Text="Đọc bài viết ➔"
+                                                            Command="{Binding Source={x:Reference OverviewPage}, Path=BindingContext.OpenPostDetailCommand}"
+                                                            CommandParameter="{Binding .}"
+                                                            Background="Transparent"
+                                                            TextColor="{StaticResource Primary}"
+                                                            FontSize="11.5"
+                                                            FontAttributes="Bold"
+                                                            Padding="0"
+                                                            HeightRequest="28" />
+                                                </Grid>
+                                            </VerticalStackLayout>
+                                        </Border>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+
+                        <!-- ============================================== -->
+                        <!-- 6. HOẠT ĐỘNG ĐÃ ĐĂNG KÝ CỦA TÔI (MY EVENTS)   -->
+                        <!-- ============================================== -->
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                            <Label Text="🎫 Hoạt động đã đăng ký của bạn" FontSize="16" FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                            <Label Grid.Column="1" Text="{Binding RegisteredCount, StringFormat='{0} hoạt động'}" FontSize="12" 
+                                   TextColor="{StaticResource Primary}" FontAttributes="Bold" VerticalOptions="Center" />
+                        </Grid>
+
+                        <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding MyRegisteredEvents}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:CampusEvent">
+                                    <Border StrokeShape="RoundRectangle 16"
+                                            Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                            StrokeThickness="1"
+                                            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                            Padding="14">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                            <!-- Event Icon -->
+                                            <Border Grid.Column="0" WidthRequest="44" HeightRequest="44" StrokeShape="RoundRectangle 12" Background="#EFF6FF" StrokeThickness="0">
+                                                <Label Text="{Binding Icon}" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center" />
+                                            </Border>
+
+                                            <!-- Event Details -->
+                                            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                                <Label Text="{Binding Name}" FontSize="13.5" FontAttributes="Bold" 
+                                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
+                                                       LineBreakMode="TailTruncation" />
+                                                <Label Text="{Binding TimeLocationDisplay}" FontSize="11" 
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                            </VerticalStackLayout>
+
+                                            <!-- QR View Button -->
+                                            <Button Grid.Column="2" 
+                                                    Text="Xem Vé" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=ShowQrTicketCommand, x:DataType=pageModels:MainPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="34" 
+                                                    CornerRadius="8" 
+                                                    FontSize="11.5" 
+                                                    Padding="10,0" 
+                                                    Background="{StaticResource PrimaryGradientBrush}" 
+                                                    TextColor="{StaticResource White}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+            </pullToRefresh:SfPullToRefresh.PullableContent>
+        </pullToRefresh:SfPullToRefresh>
+
+        <!-- ============================================== -->
+        <!-- 7. STUDENT QR ATTENDANCE TICKET MODAL (US 17)  -->
+        <!-- ============================================== -->
+        <Grid Grid.Row="0" Grid.RowSpan="2"
+              BackgroundColor="#90000000"
+              IsVisible="{Binding IsQrModalVisible}"
+              Padding="24"
+              HorizontalOptions="FillAndExpand"
+              VerticalOptions="FillAndExpand">
+            
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseQrTicketCommand}" />
+            </Grid.GestureRecognizers>
+
+            <Border StrokeShape="RoundRectangle 26"
+                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    WidthRequest="320"
+                    Padding="22">
+                <Border.Shadow>
+                    <Shadow Brush="{StaticResource Black}" Offset="0,10" Radius="30" Opacity="0.35" />
+                </Border.Shadow>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer />
+                </Border.GestureRecognizers>
+
+                <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
+                    <!-- Modal Header -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Vé Điểm Danh QR" FontSize="17" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="✕" Background="Transparent" TextColor="{StaticResource Gray500}" WidthRequest="32" HeightRequest="32" Padding="0" Command="{Binding CloseQrTicketCommand}" />
+                    </Grid>
+
+                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+
+                    <!-- Simulated QR Code Card -->
+                    <Border StrokeShape="RoundRectangle 18"
+                            Background="{StaticResource White}"
+                            Padding="18"
+                            StrokeThickness="2"
+                            Stroke="{StaticResource Primary}"
+                            HorizontalOptions="Center">
+                        <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                            <!-- Authentic Scannable QR Code Image -->
+                            <Border WidthRequest="180" HeightRequest="180" Background="{StaticResource White}" StrokeShape="RoundRectangle 12" Padding="8" StrokeThickness="1" Stroke="{StaticResource Gray200}">
+                                <Image Source="{Binding QrImageSource}"
+                                       Aspect="AspectFit"
+                                       WidthRequest="164"
+                                       HeightRequest="164"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </Border>
+
+                            <Label Text="{Binding QrTicketCode}"
+                                   FontSize="10.5"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}"
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Ticket Details -->
+                    <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                        <Label Text="{Binding CurrentStudent.FullName}" FontSize="15" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Label Text="{Binding CurrentStudent.StudentCode, StringFormat='MSV: {0}'}" FontSize="11.5" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" HorizontalOptions="Center" />
+                        <Label Text="{Binding SelectedActivityForQr}" FontSize="12.5" FontAttributes="Bold" TextColor="{StaticResource Primary}" HorizontalOptions="Center" LineBreakMode="TailTruncation" MaxLines="2" />
+                    </VerticalStackLayout>
+
+                    <Button Text="Đóng vé"
+                            Background="{StaticResource PrimaryGradientBrush}"
+                            TextColor="{StaticResource White}"
+                            FontAttributes="Bold"
+                            HeightRequest="42"
+                            CornerRadius="12"
+                            Command="{Binding CloseQrTicketCommand}">
+                        <Button.Shadow>
+                            <Shadow Brush="{StaticResource Primary}" Offset="0,4" Radius="8" Opacity="0.25" />
+                        </Button.Shadow>
+                    </Button>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- ============================================== -->
+        <!-- 8. ARTICLE READER MODAL (US 22)                -->
+        <!-- ============================================== -->
+        <Grid Grid.Row="0" Grid.RowSpan="2"
+              BackgroundColor="#90000000"
+              IsVisible="{Binding IsPostModalVisible}"
+              Padding="18"
+              HorizontalOptions="FillAndExpand"
+              VerticalOptions="FillAndExpand">
+
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding ClosePostDetailCommand}" />
+            </Grid.GestureRecognizers>
+
+            <Border StrokeShape="RoundRectangle 24"
+                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    MaximumWidthRequest="460"
+                    Padding="22">
+                <Border.Shadow>
+                    <Shadow Brush="{StaticResource Black}" Offset="0,10" Radius="30" Opacity="0.35" />
+                </Border.Shadow>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer />
+                </Border.GestureRecognizers>
+
+                <VerticalStackLayout Spacing="14">
+                    <!-- Modal Header -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Border Grid.Column="0" StrokeShape="RoundRectangle 8" Background="{Binding SelectedPost.CategoryBg}" Padding="8,3" StrokeThickness="0" HorizontalOptions="Start">
+                            <Label Text="{Binding SelectedPost.Category}" FontSize="11" FontAttributes="Bold" TextColor="{Binding SelectedPost.CategoryTextColor}" />
+                        </Border>
+                        <Button Grid.Column="1" Text="✕" Background="Transparent" TextColor="{StaticResource Gray500}" WidthRequest="32" HeightRequest="32" Padding="0" Command="{Binding ClosePostDetailCommand}" />
+                    </Grid>
+
+                    <Label Text="{Binding SelectedPost.Title}"
+                           FontSize="17"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                           LineBreakMode="WordWrap" />
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Label Text="{Binding SelectedPost.Author, StringFormat='✍️ {0}'}" FontSize="11.5" TextColor="{StaticResource Gray500}" />
+                        <Label Text="•" FontSize="11.5" TextColor="{StaticResource Gray400}" />
+                        <Label Text="{Binding SelectedPost.FormattedDate}" FontSize="11.5" TextColor="{StaticResource Gray500}" />
+                    </HorizontalStackLayout>
+
+                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+
+                    <!-- Article Body -->
+                    <ScrollView HeightRequest="260">
+                        <Label Text="{Binding SelectedPost.Content}"
+                               FontSize="13"
+                               LineHeight="1.45"
+                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                               LineBreakMode="WordWrap" />
+                    </ScrollView>
+
+                    <Button Text="Đóng bài viết"
+                            Background="{StaticResource PrimaryGradientBrush}"
+                            TextColor="{StaticResource White}"
+                            FontAttributes="Bold"
+                            HeightRequest="42"
+                            CornerRadius="12"
+                            Command="{Binding ClosePostDetailCommand}">
+                        <Button.Shadow>
+                            <Shadow Brush="{StaticResource Primary}" Offset="0,4" Radius="8" Opacity="0.25" />
+                        </Button.Shadow>
+                    </Button>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+    </Grid>
+</ContentPage>
