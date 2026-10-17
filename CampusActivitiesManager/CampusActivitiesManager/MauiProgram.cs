@@ -96,7 +96,92 @@ namespace CampusActivitiesManager
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
 
+#if WINDOWS && DEBUG
+            EnsureLocalBackendRunning();
+#endif
+
             return builder.Build();
         }
+
+#if WINDOWS && DEBUG
+        private static void EnsureLocalBackendRunning()
+        {
+            try
+            {
+                using var tcpClient = new System.Net.Sockets.TcpClient();
+                var connectTask = tcpClient.ConnectAsync("127.0.0.1", 7258);
+                if (connectTask.Wait(TimeSpan.FromMilliseconds(150)) && tcpClient.Connected)
+                {
+                    return;
+                }
+            }
+            catch
+            {
+                // Port 7258 is not listening yet; launch background API server
+            }
+
+            try
+            {
+                var dir = new DirectoryInfo(AppContext.BaseDirectory);
+                while (dir != null)
+                {
+                    var candidateApiDir = Path.Combine(dir.FullName, "CampusActivitiesManager.Api");
+                    var candidateCsproj = Path.Combine(candidateApiDir, "CampusActivitiesManager.Api.csproj");
+                    if (File.Exists(candidateCsproj))
+                    {
+                        var apiExe = Path.Combine(candidateApiDir, "bin", "Debug", "net9.0", "CampusActivitiesManager.Api.exe");
+                        var startInfo = new System.Diagnostics.ProcessStartInfo
+                        {
+                            WorkingDirectory = candidateApiDir,
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        };
+
+                        if (File.Exists(apiExe))
+                        {
+                            startInfo.FileName = apiExe;
+                            startInfo.Arguments = "--urls \"https://localhost:7258;http://localhost:5073\"";
+                        }
+                        else
+                        {
+                            startInfo.FileName = "dotnet";
+                            startInfo.Arguments = $"run --project \"{candidateCsproj}\" --no-launch-profile --urls \"https://localhost:7258;http://localhost:5073\"";
+                        }
+
+                        var launchSettingsPath = Path.Combine(candidateApiDir, "Properties", "launchSettings.json");
+                        if (File.Exists(launchSettingsPath))
+                        {
+                            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(launchSettingsPath));
+                            if (doc.RootElement.TryGetProperty("profiles", out var profiles))
+                            {
+                                foreach (var profile in profiles.EnumerateObject())
+                                {
+                                    if (profile.Value.TryGetProperty("environmentVariables", out var envVars))
+                                    {
+                                        foreach (var envVar in envVars.EnumerateObject())
+                                        {
+                                            if (envVar.Value.ValueKind == System.Text.Json.JsonValueKind.String)
+                                            {
+                                                startInfo.EnvironmentVariables[envVar.Name] = envVar.Value.GetString();
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                        System.Diagnostics.Process.Start(startInfo);
+                        break;
+                    }
+                    dir = dir.Parent;
+                }
+            }
+            catch
+            {
+                // Ignore if background launcher cannot start
+            }
+        }
+#endif
     }
 }

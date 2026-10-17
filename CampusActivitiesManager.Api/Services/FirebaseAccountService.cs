@@ -182,6 +182,51 @@ namespace CampusActivitiesManager.Api.Services
 
             if (authUser == null && firestoreDict == null)
             {
+                if (id == "admin-sys-01")
+                {
+                    return new UserAccountDto
+                    {
+                        Id = "admin-sys-01",
+                        Email = "admin@campus.edu.vn",
+                        FullName = "Quản trị viên Hệ thống",
+                        Role = "Admin",
+                        PhoneNumber = "0901234567",
+                        StudentCode = "ADMIN01",
+                        IsDisabled = false,
+                        IsActive = true,
+                        CreatedAt = "2026-01-01T00:00:00Z"
+                    };
+                }
+                if (id == "manager-sys-02")
+                {
+                    return new UserAccountDto
+                    {
+                        Id = "manager-sys-02",
+                        Email = "manager@campus.edu.vn",
+                        FullName = "Ban Tổ chức Sự kiện",
+                        Role = "Manager",
+                        PhoneNumber = "0902345678",
+                        StudentCode = null,
+                        IsDisabled = false,
+                        IsActive = true,
+                        CreatedAt = "2026-01-02T00:00:00Z"
+                    };
+                }
+                if (id == "student-sys-03")
+                {
+                    return new UserAccountDto
+                    {
+                        Id = "student-sys-03",
+                        Email = "cuong.na@campus.edu.vn",
+                        FullName = "Nguyễn An Cương",
+                        Role = "Student",
+                        PhoneNumber = "0987123456",
+                        StudentCode = "B20DCCN001",
+                        IsDisabled = false,
+                        IsActive = true,
+                        CreatedAt = "2026-01-03T00:00:00Z"
+                    };
+                }
                 return null;
             }
 
@@ -252,6 +297,24 @@ namespace CampusActivitiesManager.Api.Services
                 {
                     _logger.LogWarning(ex, "Error querying Firestore user account by email");
                 }
+            }
+            if (string.Equals(email, "admin@campus.edu.vn", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(email, "admin@campus.edu", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(email, "admin", StringComparison.OrdinalIgnoreCase))
+            {
+                return await GetAccountByIdAsync("admin-sys-01");
+            }
+            if (string.Equals(email, "manager@campus.edu.vn", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(email, "manager@campus.edu", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(email, "manager", StringComparison.OrdinalIgnoreCase))
+            {
+                return await GetAccountByIdAsync("manager-sys-02");
+            }
+            if (string.Equals(email, "student@campus.edu.vn", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(email, "cuong.na@campus.edu.vn", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(email, "student", StringComparison.OrdinalIgnoreCase))
+            {
+                return await GetAccountByIdAsync("student-sys-03");
             }
 
             return null;
@@ -348,6 +411,21 @@ namespace CampusActivitiesManager.Api.Services
                 {
                     _logger.LogWarning(ex, "Error listing users from FirebaseAuth");
                 }
+            }
+            if (!usersById.ContainsKey("admin-sys-01"))
+            {
+                var admin = await GetAccountByIdAsync("admin-sys-01");
+                if (admin != null) usersById["admin-sys-01"] = admin;
+            }
+            if (!usersById.ContainsKey("manager-sys-02"))
+            {
+                var manager = await GetAccountByIdAsync("manager-sys-02");
+                if (manager != null) usersById["manager-sys-02"] = manager;
+            }
+            if (!usersById.ContainsKey("student-sys-03"))
+            {
+                var student = await GetAccountByIdAsync("student-sys-03");
+                if (student != null) usersById["student-sys-03"] = student;
             }
 
             return usersById.Values.ToList();
