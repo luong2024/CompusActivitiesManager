@@ -11,10 +11,10 @@ namespace CampusActivitiesManager.PageModels
         private readonly IAuthenticationService _authService;
 
         [ObservableProperty]
-        private string _usernameOrEmail = string.Empty;
+        private string _usernameOrEmail = "admin@campus.edu.vn";
 
         [ObservableProperty]
-        private string _password = string.Empty;
+        private string _password = "admin";
 
         [ObservableProperty]
         private bool _isPasswordHidden = true;

@@ -120,6 +120,42 @@
                         </Button.Triggers>
                     </Button>
 
+                    <!-- Quick Demo Login Buttons -->
+                    <Border StrokeShape="RoundRectangle 12"
+                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
+                            StrokeThickness="1"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
+                            Padding="12,10"
+                            Margin="0,4,0,0">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="⚡ Đăng nhập nhanh (Tài khoản mẫu):" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                <Button Grid.Column="0"
+                                        Text="🛡️ Admin"
+                                        Command="{Binding LoginAsAdminCommand}"
+                                        BackgroundColor="{StaticResource PrimaryDark}"
+                                        TextColor="{StaticResource White}"
+                                        FontSize="12"
+                                        FontAttributes="Bold"
+                                        HeightRequest="38"
+                                        CornerRadius="8" />
+                                <Button Grid.Column="1"
+                                        Text="🎓 Sinh viên"
+                                        Command="{Binding LoginAsStudentCommand}"
+                                        BackgroundColor="{StaticResource Tertiary}"
+                                        TextColor="{StaticResource White}"
+                                        FontSize="12"
+                                        FontAttributes="Bold"
+                                        HeightRequest="38"
+                                        CornerRadius="8" />
+                            </Grid>
+                            <Label Text="Tài khoản Admin: admin@campus.edu.vn | Mật khẩu: admin"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
                     <!-- Register & Forgot Password -->
                     <HorizontalStackLayout HorizontalOptions="Center" Spacing="16" Margin="0,4,0,0">
                         <Button Text="Đăng ký tài khoản"
