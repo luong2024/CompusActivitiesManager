@@ -67,14 +67,21 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private string _qrTicketCode = "CAMPUS-TK-B20DCCN001-71965";
 
+        [ObservableProperty]
+        private ImageSource _qrImageSource;
+
+        private readonly IQrCodeService _qrCodeService;
+
         public MainPageModel(
             IEventService eventService,
             IAuthenticationService authService,
-            ModalErrorHandler errorHandler)
+            ModalErrorHandler errorHandler,
+            IQrCodeService qrCodeService)
         {
             _eventService = eventService;
             _authService = authService;
             _errorHandler = errorHandler;
+            _qrCodeService = qrCodeService;
 
             UpdateStudentProfile();
         }
@@ -232,7 +239,8 @@ namespace CampusActivitiesManager.PageModels
             if (evt.IsRegistered)
             {
                 SelectedActivityForQr = evt.Name;
-                QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-EVT{evt.ID}";
+                QrTicketCode = _qrCodeService.GenerateTicketPayload(evt.ID, CurrentStudent.StudentCode, evt.Name);
+                QrImageSource = _qrCodeService.GenerateQrCodeImageSource(QrTicketCode, 20);
                 IsQrModalVisible = true;
                 return;
             }
@@ -255,7 +263,8 @@ namespace CampusActivitiesManager.PageModels
             }
 
             SelectedActivityForQr = evt.Name;
-            QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-EVT{evt.ID}";
+            QrTicketCode = _qrCodeService.GenerateTicketPayload(evt.ID, CurrentStudent.StudentCode, evt.Name);
+            QrImageSource = _qrCodeService.GenerateQrCodeImageSource(QrTicketCode, 20);
             IsQrModalVisible = true;
         }
 
@@ -265,8 +274,13 @@ namespace CampusActivitiesManager.PageModels
             if (evt != null)
             {
                 SelectedActivityForQr = evt.Name;
-                QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-EVT{evt.ID}";
+                QrTicketCode = _qrCodeService.GenerateTicketPayload(evt.ID, CurrentStudent.StudentCode, evt.Name);
             }
+            else
+            {
+                QrTicketCode = _qrCodeService.GenerateTicketPayload(1, CurrentStudent.StudentCode, SelectedActivityForQr);
+            }
+            QrImageSource = _qrCodeService.GenerateQrCodeImageSource(QrTicketCode, 20);
             IsQrModalVisible = true;
         }
 
@@ -274,6 +288,42 @@ namespace CampusActivitiesManager.PageModels
         private void CloseQrTicket()
         {
             IsQrModalVisible = false;
+        }
+
+        [RelayCommand]
+        private async Task NavigateToQrScanner()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//qrscan");
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToPhotoAttendance()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//photoattendance");
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToAttendanceHistory()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//attendancehistory");
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToAttendanceReport()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//attendancereport");
+            }
         }
 
         // Navigation Commands

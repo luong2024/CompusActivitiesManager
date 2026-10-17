@@ -54,6 +54,10 @@ namespace CampusActivitiesManager
             NavProfile.IsVisible = isLoggedIn;
             NavUsers.IsVisible = isAdmin;
             NavEvents.IsVisible = isManagerOrAdmin;
+            NavQrScanner.IsVisible = isLoggedIn;
+            NavPhotoAttendance.IsVisible = isLoggedIn;
+            NavAttendanceHistory.IsVisible = isLoggedIn;
+            NavAttendanceReport.IsVisible = isManagerOrAdmin;
         }
 
         private void RegisterRoutes()
@@ -69,6 +73,10 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute(nameof(ProjectDetailPage), typeof(ProjectDetailPage));
             Routing.RegisterRoute(nameof(TaskDetailPage), typeof(TaskDetailPage));
             Routing.RegisterRoute(nameof(ManageMetaPage), typeof(ManageMetaPage));
+            Routing.RegisterRoute(nameof(QrScannerPage), typeof(QrScannerPage));
+            Routing.RegisterRoute(nameof(PhotoAttendancePage), typeof(PhotoAttendancePage));
+            Routing.RegisterRoute(nameof(AttendanceHistoryPage), typeof(AttendanceHistoryPage));
+            Routing.RegisterRoute(nameof(EventAttendanceReportPage), typeof(EventAttendanceReportPage));
 
             // URL alias routes for GoToAsync calls
             Routing.RegisterRoute("createuser", typeof(CreateUserPage));
@@ -78,6 +86,10 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute("task", typeof(TaskDetailPage));
             Routing.RegisterRoute("meta", typeof(ManageMetaPage));
             Routing.RegisterRoute("profile", typeof(ProfilePage));
+            Routing.RegisterRoute("qrscan", typeof(QrScannerPage));
+            Routing.RegisterRoute("photoattendance", typeof(PhotoAttendancePage));
+            Routing.RegisterRoute("attendancehistory", typeof(AttendanceHistoryPage));
+            Routing.RegisterRoute("attendancereport", typeof(EventAttendanceReportPage));
         }
 
         public static async Task NavigateWithGuardAsync(string route, Role requiredRole, IAuthenticationService authService)

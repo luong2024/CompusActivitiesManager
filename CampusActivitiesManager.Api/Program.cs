@@ -66,6 +66,7 @@ builder.Services.AddCors(options =>
 // Register Firebase Services (DI)
 builder.Services.AddScoped<IFirebaseAccountService, FirebaseAccountService>();
 builder.Services.AddScoped<IFirebaseEventService, FirebaseEventService>();
+builder.Services.AddScoped<IFirebaseAttendanceService, FirebaseAttendanceService>();
 
 // Configure Firebase JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

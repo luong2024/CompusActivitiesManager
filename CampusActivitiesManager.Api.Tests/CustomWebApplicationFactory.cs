@@ -28,6 +28,13 @@ namespace CampusActivitiesManager.Api.Tests
                     services.Remove(eventDescriptor);
                 }
                 services.AddSingleton<IFirebaseEventService>(EventService);
+
+                var attDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IFirebaseAttendanceService));
+                if (attDescriptor != null)
+                {
+                    services.Remove(attDescriptor);
+                }
+                services.AddSingleton<IFirebaseAttendanceService>(new FirebaseAttendanceService());
             });
         }
     }
