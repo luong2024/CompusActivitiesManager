@@ -63,6 +63,38 @@
         ContentTemplate="{DataTemplate pages:EventManagementPage}"
         Route="events" />
 
+    <!-- 6. Quét QR Điểm Danh -->
+    <ShellContent
+        x:Name="NavQrScanner"
+        Title="Quét QR Điểm Danh"
+        Icon="{StaticResource IconDashboard}"
+        ContentTemplate="{DataTemplate pages:QrScannerPage}"
+        Route="qrscan" />
+
+    <!-- 7. Điểm Danh Bằng Ảnh -->
+    <ShellContent
+        x:Name="NavPhotoAttendance"
+        Title="Điểm Danh Bằng Ảnh"
+        Icon="{StaticResource IconProjects}"
+        ContentTemplate="{DataTemplate pages:PhotoAttendancePage}"
+        Route="photoattendance" />
+
+    <!-- 8. Sổ Điểm Danh -->
+    <ShellContent
+        x:Name="NavAttendanceHistory"
+        Title="Sổ Điểm Danh Cá Nhân"
+        Icon="{StaticResource IconAccount}"
+        ContentTemplate="{DataTemplate pages:AttendanceHistoryPage}"
+        Route="attendancehistory" />
+
+    <!-- 9. Báo Cáo Điểm Danh (Ban tổ chức / Admin) -->
+    <ShellContent
+        x:Name="NavAttendanceReport"
+        Title="Báo Cáo Điểm Danh (BTC)"
+        Icon="{StaticResource IconUsers}"
+        ContentTemplate="{DataTemplate pages:EventAttendanceReportPage}"
+        Route="attendancereport" />
+
     <Shell.FlyoutFooter>
         <Grid Padding="15">
             <sf:SfSegmentedControl x:Name="ThemeSegmentedControl" 
