@@ -57,6 +57,20 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private string _today = DateTime.Now.ToString("dddd, dd/MM/yyyy");
 
+        // Promotional Event Slider (US 16 / US 01)
+        [ObservableProperty]
+        private List<CampusEvent> _promotionalEvents = [];
+
+        // Campus Articles / News (US 22)
+        [ObservableProperty]
+        private List<CampusPost> _campusPosts = [];
+
+        [ObservableProperty]
+        private CampusPost _selectedPost;
+
+        [ObservableProperty]
+        private bool _isPostModalVisible;
+
         // QR Attendance Ticket Modal (US 17)
         [ObservableProperty]
         private bool _isQrModalVisible;
@@ -176,6 +190,48 @@ namespace CampusActivitiesManager.PageModels
                 MyRegisteredEvents = AllEvents.Where(e => e.IsRegistered).ToList();
                 RegisteredCount = MyRegisteredEvents.Count;
 
+                PromotionalEvents = (AllEvents ?? []).Take(4).ToList();
+
+                CampusPosts =
+                [
+                    new CampusPost
+                    {
+                        Id = "POST-01",
+                        Title = "Chiến dịch Tình nguyện Mùa Hè Xanh 2026 chính thức khởi động toàn trường",
+                        Excerpt = "Đoàn trường phát động chiến dịch tình nguyện hè với hơn 500 đoàn viên thanh niên tham gia tại các mặt trận trọng điểm.",
+                        Content = "Sáng ngày 15/10/2026, tại Quảng trường Trung tâm trường, Ban Chấp hành Đoàn trường đã long trọng tổ chức Lễ ra quân Chiến dịch Tình nguyện Mùa Hè Xanh 2026.\n\nChiến dịch năm nay quy tụ hơn 500 đoàn viên, sinh viên tiêu biểu đến từ các khoa, viện trong toàn trường. Các đội hình chuyên sẽ triển khai thực hiện các công trình thanh niên: xây dựng cầu dân sinh, phổ cập tin học cho thiếu nhi, chuyển đổi số cộng đồng và hướng dẫn kỹ năng phòng chống tai nạn thương tích.\n\nĐồng chí Bí thư Đoàn trường nhấn mạnh: 'Mùa Hè Xanh không chỉ là môi trường rèn luyện thực tiễn quý báu mà còn là cơ hội để mỗi sinh viên thể hiện trách nhiệm xã hội và cống hiến sức trẻ cho cộng đồng.'",
+                        Category = "Hoạt động",
+                        Author = "Ban Truyền thông Đoàn trường",
+                        PublishDate = DateTime.Now.AddDays(-1),
+                        ReadTimeMinutes = 4,
+                        LikesCount = 128
+                    },
+                    new CampusPost
+                    {
+                        Id = "POST-02",
+                        Title = "Sinh viên Khoa CNTT xuất sắc giành giải Nhất Cuộc thi Hackathon AI 2026",
+                        Excerpt = "Dự án Campus Activity Manager tích hợp Firebase và AI nhận diện điểm danh thông minh đã thuyết phục toàn bộ hội đồng giám khảo.",
+                        Content = "Vượt qua hơn 40 đội thi đến từ các trường Đại học công nghệ hàng đầu, nhóm sinh viên Khoa Công nghệ Thông tin đã xuất sắc giành ngôi vị Quán quân tại Chung kết Hackathon AI Innovation 2026.\n\nGiải pháp ứng dụng di động đa nền tảng .NET MAUI kết hợp nền tảng đám mây Firebase giúp tự động hóa quy trình quản lý hoạt động ngoại khóa, tạo mã QR bảo mật động và điểm danh minh chứng ảnh bằng thị giác máy tính đã nhận được sự đánh giá rất cao từ các chuyên gia đầu ngành.\n\nGiải thưởng bao gồm Cúp vô địch, tiền thưởng 50.000.000 VNĐ cùng cơ hội ươm tạo khởi nghiệp tại Trung tâm Đổi mới Sáng tạo Quốc gia.",
+                        Category = "Gương sáng",
+                        Author = "CLB Sáng tạo Trẻ",
+                        PublishDate = DateTime.Now.AddDays(-3),
+                        ReadTimeMinutes = 3,
+                        LikesCount = 256
+                    },
+                    new CampusPost
+                    {
+                        Id = "POST-03",
+                        Title = "Cẩm nang hướng dẫn tích lũy trọn vẹn 100 Điểm rèn luyện trong năm học",
+                        Excerpt = "Bí quyết cân bằng giữa học tập trên lớp và tham gia các hoạt động ngoại khóa, tình nguyện, nghiên cứu khoa học đạt kết quả Xuất sắc.",
+                        Content = "Điểm rèn luyện là một trong những tiêu chí quan trọng quyết định học bổng khuyến khích học tập cũng như danh hiệu 'Sinh viên 5 Tốt' các cấp.\n\nĐể đạt mức xếp loại Xuất sắc (từ 90 - 100 điểm), sinh viên cần lưu ý:\n1. Tham gia tối thiểu 3 hoạt động học thuật và hội thảo chuyên môn (+15 đến +20 điểm).\n2. Góp mặt trong các giải đấu thể thao, ngày hội văn hóa nghệ thuật của trường (+10 đến +15 điểm).\n3. Tích cực tham gia các chiến dịch tình nguyện, hiến máu nhân đạo (+15 điểm).\n4. Chấp hành tốt quy chế đào tạo, nội quy ký túc xá và an ninh trật tự (+40 đến +50 điểm).\n\nHãy thường xuyên theo dõi Cổng Sinh Viên để không bỏ lỡ bất kỳ sự kiện hấp dẫn nào!",
+                        Category = "Hướng dẫn",
+                        Author = "Phòng Công tác Sinh viên",
+                        PublishDate = DateTime.Now.AddDays(-5),
+                        ReadTimeMinutes = 5,
+                        LikesCount = 340
+                    }
+                ];
+
                 ApplyCategoryFilter();
                 UpdateChartData();
             }
@@ -187,6 +243,31 @@ namespace CampusActivitiesManager.PageModels
             {
                 IsBusy = false;
             }
+        }
+
+        [RelayCommand]
+        private void OpenPostDetail(CampusPost post)
+        {
+            if (post != null)
+            {
+                SelectedPost = post;
+                IsPostModalVisible = true;
+            }
+        }
+
+        [RelayCommand]
+        private void ClosePostDetail()
+        {
+            IsPostModalVisible = false;
+        }
+
+        [RelayCommand]
+        private void LikePost(CampusPost post)
+        {
+            if (post == null) return;
+            post.IsLiked = !post.IsLiked;
+            post.LikesCount += post.IsLiked ? 1 : -1;
+            CampusPosts = new List<CampusPost>(CampusPosts);
         }
 
         private void UpdateChartData()
