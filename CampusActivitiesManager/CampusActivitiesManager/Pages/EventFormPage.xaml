@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pageModels="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
+             x:DataType="pageModels:EventFormPageModel"
+             x:Class="CampusActivitiesManager.Pages.EventFormPage"
+             Title="{Binding PageTitle}">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="24" MaximumWidthRequest="700" HorizontalOptions="Center">
+
+            <!-- Card chính chứa toàn bộ form nhập liệu -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
+                    Padding="24">
+                
+                <VerticalStackLayout Spacing="18">
+
+                    <!-- Header của Form (Tiêu đề thay đổi linh hoạt theo IsEditMode) -->
+                    <VerticalStackLayout Spacing="6" Margin="0,0,0,8">
+                        <Label Text="{Binding PageTitle}"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                        <Label Text="Vui lòng điền đầy đủ và chính xác các thông tin sự kiện bên dưới."
+                               FontSize="13"
+                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                    </VerticalStackLayout>
+
+                    <!-- Trường 1: Tiêu đề sự kiện (Title) -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Tên / Tiêu đề sự kiện (*)"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <Border StrokeShape="RoundRectangle 8"
+                                Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                Padding="12,2"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
+                            <Entry Text="{Binding Title}"
+                                   Placeholder="Ví dụ: Hội thảo Ứng dụng AI trong Học tập 2026"
+                                   HeightRequest="44"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Trường 2: Danh mục sự kiện (Category Picker) -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Danh mục sự kiện (*)"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <Border StrokeShape="RoundRectangle 8"
+                                Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                Padding="12,2"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
+                            <Picker ItemsSource="{Binding Categories}"
+                                    SelectedItem="{Binding Category, Mode=TwoWay}"
+                                    ItemDisplayBinding="{Binding Title, x:DataType=models:Category}"
+                                    Title="-- Chọn danh mục sự kiện --"
+                                    HeightRequest="44"
+                                    FontSize="14"
+                                    TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Trường 3: Thời gian bắt đầu (DatePicker & TimePicker) -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Thời gian bắt đầu (*)"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <!-- DatePicker Ngày bắt đầu -->
+                            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                <Label Text="Ngày bắt đầu" FontSize="12" TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                                <Border StrokeShape="RoundRectangle 8"
+                                        Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                        Padding="10,2"
+                                        BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
+                                    <DatePicker Date="{Binding StartDate, Mode=TwoWay}"
+                                                Format="dd/MM/yyyy"
+                                                HeightRequest="44"
+                                                FontSize="14"
+                                                TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- TimePicker Giờ bắt đầu -->
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="Giờ bắt đầu" FontSize="12" TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                                <Border StrokeShape="RoundRectangle 8"
+                                        Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                        Padding="10,2"
+                                        BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
+                                    <TimePicker Time="{Binding StartTime, Mode=TwoWay}"
+                                                Format="HH:mm"
+                                                HeightRequest="44"
+                                                FontSize="14"
+                                                TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                                </Border>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <!-- Trường 4: Thời gian kết thúc (DatePicker & TimePicker) -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Thời gian kết thúc (*)"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <!-- DatePicker Ngày kết thúc -->
+                            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                <Label Text="Ngày kết thúc" FontSize="12" TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                                <Border StrokeShape="RoundRectangle 8"
+                                        Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                        Padding="10,2"
+                                        BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
+                                    <DatePicker Date="{Binding EndDate, Mode=TwoWay}"
+                                                Format="dd/MM/yyyy"
+                                                HeightRequest="44"
+                                                FontSize="14"
+                                                TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- TimePicker Giờ kết thúc -->
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="Giờ kết thúc" FontSize="12" TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                                <Border StrokeShape="RoundRectangle 8"
+                                        Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                        Padding="10,2"
+                                        BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
+                                    <TimePicker Time="{Binding EndTime, Mode=TwoWay}"
+                                                Format="HH:mm"
+                                                HeightRequest="44"
+                                                FontSize="14"
+                                                TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                                </Border>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <!-- Trường 5: Địa điểm tổ chức (Location) -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Địa điểm tổ chức (*)"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <Border StrokeShape="RoundRectangle 8"
+                                Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                Padding="12,2"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
+                            <Entry Text="{Binding Location}"
+                                   Placeholder="Ví dụ: Hội trường Beethoven - Nhà A"
+                                   HeightRequest="44"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Trường 6: Số lượng người tham gia tối đa (MaxParticipants) -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Số người tham gia tối đa"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <Border StrokeShape="RoundRectangle 8"
+                                Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                Padding="12,2"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
+                            <Entry Text="{Binding MaxParticipants}"
+                                   Placeholder="Ví dụ: 150"
+                                   Keyboard="Numeric"
+                                   HeightRequest="44"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Trường 7: Mô tả chi tiết (Description) -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Mô tả sự kiện"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <Border StrokeShape="RoundRectangle 8"
+                                Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                Padding="12,8"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
+                            <Editor Text="{Binding Description}"
+                                    Placeholder="Nhập mô tả nội dung chương trình, quyền lợi tham gia, diễn giả và lưu ý..."
+                                    AutoSize="TextChanges"
+                                    MinimumHeightRequest="100"
+                                    HeightRequest="120"
+                                    FontSize="14"
+                                    TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Hai nút hành động: Hủy và Lưu -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="14" Margin="0,12,0,0">
+                        <!-- Nút Hủy -->
+                        <Button Grid.Column="0"
+                                Text="Hủy bỏ"
+                                Command="{Binding CancelCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#F3F4F6, Dark=#374151}"
+                                TextColor="{AppThemeBinding Light=#374151, Dark=#F9FAFB}"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                HeightRequest="48"
+                                CornerRadius="8" />
+
+                        <!-- Nút Lưu -->
+                        <Button Grid.Column="1"
+                                Text="{Binding SaveButtonText}"
+                                Command="{Binding SaveCommand}"
+                                BackgroundColor="#4F46E5"
+                                TextColor="White"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                HeightRequest="48"
+                                CornerRadius="8" />
+                    </Grid>
+
+                    <!-- Chỉ báo đang xử lý (IsBusy) -->
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       Color="#4F46E5"
+                                       HorizontalOptions="Center"
+                                       Margin="0,6,0,0" />
+
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

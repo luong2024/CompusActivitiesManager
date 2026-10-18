@@ -74,6 +74,7 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute(nameof(PhotoAttendancePage), typeof(PhotoAttendancePage));
             Routing.RegisterRoute(nameof(AttendanceHistoryPage), typeof(AttendanceHistoryPage));
             Routing.RegisterRoute(nameof(EventAttendanceReportPage), typeof(EventAttendanceReportPage));
+            Routing.RegisterRoute(nameof(EventFormPage), typeof(EventFormPage));
 
             // URL alias routes for GoToAsync calls
             Routing.RegisterRoute("createuser", typeof(CreateUserPage));
@@ -87,6 +88,7 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute("photoattendance", typeof(PhotoAttendancePage));
             Routing.RegisterRoute("attendancehistory", typeof(AttendanceHistoryPage));
             Routing.RegisterRoute("attendancereport", typeof(EventAttendanceReportPage));
+            Routing.RegisterRoute("eventform", typeof(EventFormPage));
         }
 
         public static async Task NavigateWithGuardAsync(string route, Role requiredRole, IAuthenticationService authService)
