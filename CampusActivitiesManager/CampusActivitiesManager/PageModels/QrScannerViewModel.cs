@@ -6,12 +6,13 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CampusActivitiesManager.PageModels
 {
-    public partial class QrScannerViewModel : ObservableObject
+    public partial class QrScannerViewModel : ObservableObject, IQueryAttributable
     {
         private readonly IAttendanceService _attendanceService;
         private readonly IEventService _eventService;
         private readonly IAuthenticationService _authService;
         private readonly IQrCodeService _qrCodeService;
+        private int? _targetEventId;
 
         [ObservableProperty]
         private string _studentCode = "B20DCCN001";
@@ -57,6 +58,30 @@ namespace CampusActivitiesManager.PageModels
             InitializeStudentInfo();
         }
 
+        public void ApplyQueryAttributes(IDictionary<string, object> query)
+        {
+            if (query.TryGetValue("eventId", out var eventIdObj) && eventIdObj != null)
+            {
+                if (int.TryParse(eventIdObj.ToString(), out int id))
+                {
+                    _targetEventId = id;
+                    SelectTargetEventIfLoaded();
+                }
+            }
+        }
+
+        private void SelectTargetEventIfLoaded()
+        {
+            if (_targetEventId.HasValue && ActiveEvents.Count > 0)
+            {
+                var match = ActiveEvents.FirstOrDefault(e => e.ID == _targetEventId.Value);
+                if (match != null)
+                {
+                    SelectedEvent = match;
+                }
+            }
+        }
+
         private void InitializeStudentInfo()
         {
             if (_authService?.CurrentUser != null)
@@ -85,9 +110,17 @@ namespace CampusActivitiesManager.PageModels
                 {
                     ActiveEvents.Add(evt);
                 }
-                if (ActiveEvents.Count > 0 && SelectedEvent == null)
+                if (ActiveEvents.Count > 0)
                 {
-                    SelectedEvent = ActiveEvents[0];
+                    if (_targetEventId.HasValue)
+                    {
+                        var match = ActiveEvents.FirstOrDefault(e => e.ID == _targetEventId.Value);
+                        SelectedEvent = match ?? ActiveEvents[0];
+                    }
+                    else if (SelectedEvent == null)
+                    {
+                        SelectedEvent = ActiveEvents[0];
+                    }
                 }
             }
             finally

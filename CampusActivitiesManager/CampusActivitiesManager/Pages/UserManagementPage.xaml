@@ -65,47 +65,47 @@
                     </Grid>
                 </Border>
 
-                <!-- 4 Thẻ Thống kê Số lượng Tài khoản -->
-                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="14">
+                <!-- 4 Thẻ Thống kê Số lượng Tài khoản (2x2 Responsive Grid) -->
+                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
                     <!-- Total -->
-                    <Border Grid.Column="0" StrokeShape="RoundRectangle 16" Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}" Padding="18,16">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="TỔNG SỐ TÀI KHOẢN" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
-                            <Label Text="{Binding TotalUsersCount}" FontSize="28" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
-                            <Label Text="Toàn hệ thống" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
+                    <Border Grid.Row="0" Grid.Column="0" StrokeShape="RoundRectangle 14" Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}" Padding="14,12">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="TỔNG TÀI KHOẢN" FontSize="10" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                            <Label Text="{Binding TotalUsersCount}" FontSize="24" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                            <Label Text="Toàn hệ thống" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}" />
                         </VerticalStackLayout>
                     </Border>
 
                     <!-- Admin -->
-                    <Border Grid.Column="1" StrokeShape="RoundRectangle 16" Stroke="{AppThemeBinding Light={StaticResource ErrorBorderLight}, Dark={StaticResource ErrorBorderDark}}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}" Padding="18,16">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="QUẢN TRỊ VIÊN (ADMIN)" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource ErrorDark}" />
-                            <Label Text="{Binding AdminCount}" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource ErrorDark}" />
-                            <Label Text="Toàn quyền hệ thống" FontSize="12" TextColor="{StaticResource ErrorColor}" />
+                    <Border Grid.Row="0" Grid.Column="1" StrokeShape="RoundRectangle 14" Stroke="{AppThemeBinding Light={StaticResource ErrorBorderLight}, Dark={StaticResource ErrorBorderDark}}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}" Padding="14,12">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="ADMIN" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource ErrorDark}" />
+                            <Label Text="{Binding AdminCount}" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource ErrorDark}" />
+                            <Label Text="Toàn quyền" FontSize="11" TextColor="{StaticResource ErrorColor}" />
                         </VerticalStackLayout>
                     </Border>
 
                     <!-- Manager -->
-                    <Border Grid.Column="2" StrokeShape="RoundRectangle 16" Stroke="{AppThemeBinding Light={StaticResource InfoBorderLight}, Dark={StaticResource InfoBorderDark}}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light={StaticResource InfoBgLight}, Dark={StaticResource InfoBgDark}}" Padding="18,16">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="QUẢN LÝ (MANAGER)" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
-                            <Label Text="{Binding ManagerCount}" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
-                            <Label Text="Tổ chức hoạt động" FontSize="12" TextColor="{StaticResource Tertiary}" />
+                    <Border Grid.Row="1" Grid.Column="0" StrokeShape="RoundRectangle 14" Stroke="{AppThemeBinding Light={StaticResource InfoBorderLight}, Dark={StaticResource InfoBorderDark}}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light={StaticResource InfoBgLight}, Dark={StaticResource InfoBgDark}}" Padding="14,12">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="MANAGER" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                            <Label Text="{Binding ManagerCount}" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                            <Label Text="Tổ chức sự kiện" FontSize="11" TextColor="{StaticResource Tertiary}" />
                         </VerticalStackLayout>
                     </Border>
 
                     <!-- User/Student -->
-                    <Border Grid.Column="3" StrokeShape="RoundRectangle 16" Stroke="{AppThemeBinding Light={StaticResource SuccessBorderLight}, Dark={StaticResource SuccessBorderDark}}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBgLight}, Dark={StaticResource SuccessBgDark}}" Padding="18,16">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="SINH VIÊN (USER)" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource SuccessDark}" />
-                            <Label Text="{Binding UserCount}" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource SuccessDark}" />
-                            <Label Text="Thành viên tham gia" FontSize="12" TextColor="{StaticResource SuccessColor}" />
+                    <Border Grid.Row="1" Grid.Column="1" StrokeShape="RoundRectangle 14" Stroke="{AppThemeBinding Light={StaticResource SuccessBorderLight}, Dark={StaticResource SuccessBorderDark}}" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBgLight}, Dark={StaticResource SuccessBgDark}}" Padding="14,12">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="SINH VIÊN" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource SuccessDark}" />
+                            <Label Text="{Binding UserCount}" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource SuccessDark}" />
+                            <Label Text="Thành viên" FontSize="11" TextColor="{StaticResource SuccessColor}" />
                         </VerticalStackLayout>
                     </Border>
                 </Grid>
 
-                <!-- Tìm kiếm & Bộ lọc Vai trò -->
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <!-- Tìm kiếm & Thêm mới -->
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                     <Border Grid.Column="0"
                             StrokeShape="RoundRectangle 12"
                             Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
@@ -113,41 +113,46 @@
                             BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
                             Padding="4,0">
                         <SearchBar Text="{Binding SearchText}"
-                                   Placeholder="Tìm theo họ tên, username, email, khoa..."
-                                   HeightRequest="44" />
+                                   Placeholder="Tìm họ tên, username, email..."
+                                   HeightRequest="42" />
                     </Border>
 
-                    <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                    <!-- Add Account Button -->
+                    <Button Grid.Column="1"
+                            Text="+ Thêm tài khoản"
+                            Command="{Binding NavigateToCreateUserPageCommand}"
+                            Background="{StaticResource EmeraldGradientBrush}"
+                            TextColor="{StaticResource White}"
+                            FontAttributes="Bold"
+                            Padding="14,0"
+                            FontSize="12"
+                            HeightRequest="42"
+                            CornerRadius="10"
+                            VerticalOptions="Center" />
+                </Grid>
+
+                <!-- Bộ lọc Vai trò (Horizontal Scroll) -->
+                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Margin="0,2,0,0">
+                    <HorizontalStackLayout Spacing="8">
                         <Button Text="Tất cả"
                                 Command="{Binding SetFilterRoleCommand}" CommandParameter="All"
-                                HeightRequest="40" Padding="14,0" FontSize="13" CornerRadius="10"
+                                HeightRequest="36" Padding="14,0" FontSize="12" CornerRadius="10"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource BorderDividerDark}}"
                                 TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource LightOnDarkBackground}}" />
                         <Button Text="Admin"
                                 Command="{Binding SetFilterRoleCommand}" CommandParameter="Admin"
-                                HeightRequest="40" Padding="14,0" FontSize="13" CornerRadius="10"
+                                HeightRequest="36" Padding="14,0" FontSize="12" CornerRadius="10"
                                 BackgroundColor="{StaticResource ErrorDark}" TextColor="{StaticResource White}" />
                         <Button Text="Manager"
                                 Command="{Binding SetFilterRoleCommand}" CommandParameter="Manager"
-                                HeightRequest="40" Padding="14,0" FontSize="13" CornerRadius="10"
+                                HeightRequest="36" Padding="14,0" FontSize="12" CornerRadius="10"
                                 BackgroundColor="{StaticResource Primary}" TextColor="{StaticResource White}" />
                         <Button Text="User"
                                 Command="{Binding SetFilterRoleCommand}" CommandParameter="User"
-                                HeightRequest="40" Padding="14,0" FontSize="13" CornerRadius="10"
+                                HeightRequest="36" Padding="14,0" FontSize="12" CornerRadius="10"
                                 BackgroundColor="{StaticResource SuccessDark}" TextColor="{StaticResource White}" />
-                        
-                        <!-- Add Account Button -->
-                        <Button Text="+ Thêm tài khoản"
-                                Command="{Binding NavigateToCreateUserPageCommand}"
-                                Background="{StaticResource EmeraldGradientBrush}"
-                                TextColor="{StaticResource White}"
-                                FontAttributes="Bold"
-                                Padding="18,0"
-                                HeightRequest="42"
-                                CornerRadius="10"
-                                VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                </Grid>
+                </ScrollView>
 
                     <!-- Danh sách Người dùng (CollectionView Header Title) -->
                     <Label Text="Danh sách Tài khoản &amp; Vai trò" Style="{StaticResource Title3}" Margin="0,6,0,0" />
@@ -231,64 +236,76 @@
                                         </Border>
                                     </Grid>
 
-                                    <!-- Nút Thao tác Phân quyền & Quản trị -->
-                                    <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="8" VerticalOptions="Center">
-                                        <!-- Nút Phân quyền chính (AC 05.3.1) -->
-                                        <Button Grid.Column="0"
-                                                Text="⚡ Phân quyền"
-                                                FontSize="12"
-                                                HeightRequest="36"
-                                                Padding="12,0"
-                                                BackgroundColor="{StaticResource Primary}"
-                                                TextColor="{StaticResource White}"
-                                                FontAttributes="Bold"
-                                                Command="{Binding SelectUserForRoleAssignmentCommand, Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, x:DataType=pageModels:UserManagementPageModel}"
-                                                CommandParameter="{Binding .}" />
+                                    <!-- Nút Thao tác Phân quyền & Quản trị (2 Tầng Responsive) -->
+                                    <VerticalStackLayout Grid.Row="1" Spacing="8">
+                                        <!-- Hàng 1: Thao tác quyền chính -->
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                            <!-- Nút Phân quyền chính (AC 05.3.1) -->
+                                            <Button Grid.Column="0"
+                                                    Text="⚡ Phân quyền"
+                                                    FontSize="12"
+                                                    FontAttributes="Bold"
+                                                    HeightRequest="36"
+                                                    CornerRadius="8"
+                                                    Padding="6,0"
+                                                    BackgroundColor="{StaticResource Primary}"
+                                                    TextColor="{StaticResource White}"
+                                                    Command="{Binding SelectUserForRoleAssignmentCommand, Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, x:DataType=pageModels:UserManagementPageModel}"
+                                                    CommandParameter="{Binding .}" />
 
-                                        <!-- Nút Đổi nhanh ActionSheet -->
-                                        <Button Grid.Column="1"
-                                                Text="Đổi nhanh"
-                                                FontSize="12"
-                                                HeightRequest="36"
-                                                Padding="10,0"
-                                                BackgroundColor="{AppThemeBinding Light={StaticResource InfoBgLight}, Dark={StaticResource InfoBgDark}}"
-                                                TextColor="{AppThemeBinding Light={StaticResource InfoTextLight}, Dark={StaticResource InfoTextDark}}"
-                                                Command="{Binding QuickChangeRoleActionSheetCommand, Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, x:DataType=pageModels:UserManagementPageModel}"
-                                                CommandParameter="{Binding .}" />
+                                            <!-- Nút Đổi nhanh ActionSheet -->
+                                            <Button Grid.Column="1"
+                                                    Text="Đổi nhanh"
+                                                    FontSize="12"
+                                                    FontAttributes="Bold"
+                                                    HeightRequest="36"
+                                                    CornerRadius="8"
+                                                    Padding="6,0"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource InfoBgLight}, Dark={StaticResource InfoBgDark}}"
+                                                    TextColor="{AppThemeBinding Light={StaticResource InfoTextLight}, Dark={StaticResource InfoTextDark}}"
+                                                    Command="{Binding QuickChangeRoleActionSheetCommand, Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, x:DataType=pageModels:UserManagementPageModel}"
+                                                    CommandParameter="{Binding .}" />
+                                        </Grid>
 
-                                        <!-- Nút Trang Edit chi tiết (QueryProperty) -->
-                                        <Button Grid.Column="2"
-                                                Text="Chi tiết"
-                                                FontSize="12"
-                                                HeightRequest="36"
-                                                Padding="10,0"
-                                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource BorderDividerDark}}"
-                                                TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource LightOnDarkBackground}}"
-                                                Command="{Binding NavigateToEditRolePageCommand, Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, x:DataType=pageModels:UserManagementPageModel}"
-                                                CommandParameter="{Binding .}" />
+                                        <!-- Hàng 2: Chi tiết, Khóa, Xóa -->
+                                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                                            <!-- Nút Trang Edit chi tiết (QueryProperty) -->
+                                            <Button Grid.Column="0"
+                                                    Text="Chi tiết"
+                                                    FontSize="12"
+                                                    HeightRequest="34"
+                                                    CornerRadius="8"
+                                                    Padding="4,0"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource BorderDividerDark}}"
+                                                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource LightOnDarkBackground}}"
+                                                    Command="{Binding NavigateToEditRolePageCommand, Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, x:DataType=pageModels:UserManagementPageModel}"
+                                                    CommandParameter="{Binding .}" />
 
-                                        <!-- Nút Khóa / Mở tài khoản -->
-                                        <Button Grid.Column="3"
-                                                Text="{Binding IsActive, Converter={toolkit:BoolToObjectConverter TrueObject='Khóa', FalseObject='Mở khóa'}}"
-                                                FontSize="12"
-                                                HeightRequest="36"
-                                                Padding="10,0"
-                                                BackgroundColor="{AppThemeBinding Light={StaticResource WarningBgLight}, Dark={StaticResource WarningBgDark}}"
-                                                TextColor="{AppThemeBinding Light={StaticResource WarningTextLight}, Dark={StaticResource WarningTextDark}}"
-                                                Command="{Binding ToggleUserStatusCommand, Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, x:DataType=pageModels:UserManagementPageModel}"
-                                                CommandParameter="{Binding .}" />
+                                            <!-- Nút Khóa / Mở tài khoản -->
+                                            <Button Grid.Column="1"
+                                                    Text="{Binding IsActive, Converter={toolkit:BoolToObjectConverter TrueObject='Khóa', FalseObject='Mở'}}"
+                                                    FontSize="12"
+                                                    HeightRequest="34"
+                                                    CornerRadius="8"
+                                                    Padding="4,0"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource WarningBgLight}, Dark={StaticResource WarningBgDark}}"
+                                                    TextColor="{AppThemeBinding Light={StaticResource WarningTextLight}, Dark={StaticResource WarningTextDark}}"
+                                                    Command="{Binding ToggleUserStatusCommand, Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, x:DataType=pageModels:UserManagementPageModel}"
+                                                    CommandParameter="{Binding .}" />
 
-                                        <!-- Nút Xóa tài khoản -->
-                                        <Button Grid.Column="4"
-                                                Text="Xóa"
-                                                FontSize="12"
-                                                HeightRequest="36"
-                                                Padding="10,0"
-                                                BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBorderDark}}"
-                                                TextColor="{AppThemeBinding Light={StaticResource ErrorTextLight}, Dark={StaticResource ErrorTextDark}}"
-                                                Command="{Binding DeleteUserCommand, Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, x:DataType=pageModels:UserManagementPageModel}"
-                                                CommandParameter="{Binding .}" />
-                                    </Grid>
+                                            <!-- Nút Xóa tài khoản -->
+                                            <Button Grid.Column="2"
+                                                    Text="Xóa"
+                                                    FontSize="12"
+                                                    HeightRequest="34"
+                                                    CornerRadius="8"
+                                                    Padding="4,0"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBorderDark}}"
+                                                    TextColor="{AppThemeBinding Light={StaticResource ErrorTextLight}, Dark={StaticResource ErrorTextDark}}"
+                                                    Command="{Binding DeleteUserCommand, Source={RelativeSource AncestorType={x:Type pageModels:UserManagementPageModel}}, x:DataType=pageModels:UserManagementPageModel}"
+                                                    CommandParameter="{Binding .}" />
+                                        </Grid>
+                                    </VerticalStackLayout>
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -308,8 +325,9 @@
                     Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
                     StrokeThickness="1"
                     BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
-                    Padding="24"
-                    WidthRequest="450"
+                    Padding="20"
+                    MaximumWidthRequest="480"
+                    Margin="16"
                     VerticalOptions="Center"
                     HorizontalOptions="Center">
 

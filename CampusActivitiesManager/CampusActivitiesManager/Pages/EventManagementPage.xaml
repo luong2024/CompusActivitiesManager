@@ -72,10 +72,10 @@
                             </Grid>
                         </Border>
 
-                        <!-- 4 Stat Cards -->
-                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
+                        <!-- 4 Stat Cards (2x2 Responsive Grid) -->
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
                             <!-- Total Events -->
-                            <Border Grid.Column="0" StrokeShape="RoundRectangle 14" 
+                            <Border Grid.Row="0" Grid.Column="0" StrokeShape="RoundRectangle 14" 
                                     Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
                                     StrokeThickness="1" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}" 
@@ -88,7 +88,7 @@
                             </Border>
 
                             <!-- Academic -->
-                            <Border Grid.Column="1" StrokeShape="RoundRectangle 14" 
+                            <Border Grid.Row="0" Grid.Column="1" StrokeShape="RoundRectangle 14" 
                                     Stroke="{AppThemeBinding Light={StaticResource InfoBorderLight}, Dark={StaticResource InfoBorderDark}}" 
                                     StrokeThickness="1" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource InfoBgLight}, Dark={StaticResource InfoBgDark}}" 
@@ -101,7 +101,7 @@
                             </Border>
 
                             <!-- Sports -->
-                            <Border Grid.Column="2" StrokeShape="RoundRectangle 14" 
+                            <Border Grid.Row="1" Grid.Column="0" StrokeShape="RoundRectangle 14" 
                                     Stroke="{AppThemeBinding Light={StaticResource SuccessBorderLight}, Dark={StaticResource SuccessBorderDark}}" 
                                     StrokeThickness="1" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBgLight}, Dark={StaticResource SuccessBgDark}}" 
@@ -114,7 +114,7 @@
                             </Border>
 
                             <!-- Volunteer -->
-                            <Border Grid.Column="3" StrokeShape="RoundRectangle 14" 
+                            <Border Grid.Row="1" Grid.Column="1" StrokeShape="RoundRectangle 14" 
                                     Stroke="{AppThemeBinding Light={StaticResource ErrorBorderLight}, Dark={StaticResource ErrorBorderDark}}" 
                                     StrokeThickness="1" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}" 
@@ -239,112 +239,64 @@
                                     Padding="16">
                                 <VerticalStackLayout Spacing="10">
 
-                                    <!-- Top Row: Icon + Name + Tags -->
-                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                    <!-- Top Row: Icon + Title & Tags (Zero Horizontal Overflow) -->
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Start">
                                         <!-- Event Icon Box -->
-                                        <Border Grid.Column="0" WidthRequest="48" HeightRequest="48" StrokeShape="RoundRectangle 12" 
+                                        <Border Grid.Column="0" WidthRequest="46" HeightRequest="46" StrokeShape="RoundRectangle 12" 
                                                 BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
-                                                StrokeThickness="0" Padding="0">
+                                                StrokeThickness="0" Padding="0" VerticalOptions="Start">
                                             <Label Text="{Binding Icon}" FontSize="24" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
 
-                                        <!-- Title and Category/Status Tags -->
-                                        <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                        <!-- Title and Tags in a clean vertical flow -->
+                                        <VerticalStackLayout Grid.Column="1" Spacing="5" VerticalOptions="Center">
                                             <Label Text="{Binding Name}" FontSize="15" FontAttributes="Bold" 
-                                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
+                                                   LineBreakMode="TailTruncation" MaxLines="2" />
                                             
                                             <!-- Category & Status Tags (US15 / T15.1) -->
-                                            <HorizontalStackLayout Spacing="8">
-                                                <!-- Category Pill Tag -->
-                                                <Border StrokeShape="RoundRectangle 12" 
-                                                        Stroke="{Binding CategoryTagBorderColor}" 
-                                                        StrokeThickness="1" 
-                                                        BackgroundColor="{Binding CategoryTagBg}" 
-                                                        Padding="8,3">
-                                                    <Label Text="{Binding CategoryTitle}" FontSize="11" FontAttributes="Bold" TextColor="{Binding CategoryTagTextColor}" />
-                                                </Border>
+                                            <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                                                <HorizontalStackLayout Spacing="6">
+                                                    <!-- Category Pill Tag -->
+                                                    <Border StrokeShape="RoundRectangle 12" 
+                                                            Stroke="{Binding CategoryTagBorderColor}" 
+                                                            StrokeThickness="1" 
+                                                            BackgroundColor="{Binding CategoryTagBg}" 
+                                                            Padding="8,3">
+                                                        <Label Text="{Binding CategoryTitle}" FontSize="11" FontAttributes="Bold" TextColor="{Binding CategoryTagTextColor}" />
+                                                    </Border>
 
-                                                <!-- Status Pill Tag -->
-                                                <Border StrokeShape="RoundRectangle 12" 
-                                                        StrokeThickness="0" 
-                                                        BackgroundColor="{Binding StatusBg}" 
-                                                        Padding="8,3">
-                                                    <Label Text="{Binding Status}" FontSize="11" FontAttributes="Bold" TextColor="{Binding StatusColor}" />
-                                                </Border>
+                                                    <!-- Status Pill Tag -->
+                                                    <Border StrokeShape="RoundRectangle 12" 
+                                                            StrokeThickness="0" 
+                                                            BackgroundColor="{Binding StatusBg}" 
+                                                            Padding="8,3">
+                                                        <Label Text="{Binding Status}" FontSize="11" FontAttributes="Bold" TextColor="{Binding StatusColor}" />
+                                                    </Border>
 
-                                                <!-- Approval Status Tag (US 28) -->
-                                                <Border StrokeShape="RoundRectangle 12" 
-                                                        StrokeThickness="0" 
-                                                        BackgroundColor="{Binding ApprovalBadgeBg}" 
-                                                        Padding="8,3">
-                                                    <Label Text="{Binding ApprovalStatusDisplay}" FontSize="11" FontAttributes="Bold" TextColor="{Binding ApprovalBadgeTextColor}" />
-                                                </Border>
+                                                    <!-- Approval Status Tag (US 28) -->
+                                                    <Border StrokeShape="RoundRectangle 12" 
+                                                            StrokeThickness="0" 
+                                                            BackgroundColor="{Binding ApprovalBadgeBg}" 
+                                                            Padding="8,3">
+                                                        <Label Text="{Binding ApprovalStatusDisplay}" FontSize="11" FontAttributes="Bold" TextColor="{Binding ApprovalBadgeTextColor}" />
+                                                    </Border>
 
-                                                <!-- Video Indicator Tag -->
-                                                <Border StrokeShape="RoundRectangle 12" 
-                                                        StrokeThickness="0" 
-                                                        BackgroundColor="#EFF6FF" 
-                                                        IsVisible="{Binding HasVideo}"
-                                                        Padding="6,3">
-                                                    <Label Text="🎬 Video" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
-                                                </Border>
-                                            </HorizontalStackLayout>
+                                                    <!-- Video Indicator Tag -->
+                                                    <Border StrokeShape="RoundRectangle 12" 
+                                                            StrokeThickness="0" 
+                                                            BackgroundColor="#EFF6FF" 
+                                                            IsVisible="{Binding HasVideo}"
+                                                            Padding="6,3">
+                                                        <Label Text="🎬 Video" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                                    </Border>
+                                                </HorizontalStackLayout>
+                                            </ScrollView>
                                         </VerticalStackLayout>
-
-                                        <!-- Action Buttons: Edit, Delete, and Admin Approve/Reject -->
-                                        <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
-                                            <!-- Admin Approve Button (Visible if Admin and not yet approved) -->
-                                            <Button Text="✅ Duyệt" 
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ApproveEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
-                                                    CommandParameter="{Binding .}"
-                                                    IsVisible="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=IsAdmin, x:DataType=pageModels:EventManagementPageModel}"
-                                                    HeightRequest="36" 
-                                                    CornerRadius="8" 
-                                                    FontSize="11.5" 
-                                                    FontAttributes="Bold"
-                                                    Padding="8,0"
-                                                    BackgroundColor="{StaticResource SuccessBgLight}" 
-                                                    TextColor="{StaticResource SuccessDark}" />
-
-                                            <!-- Admin Reject Button (Visible if Admin and not yet approved) -->
-                                            <Button Text="❌ Từ chối" 
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=RejectEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
-                                                    CommandParameter="{Binding .}"
-                                                    IsVisible="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=IsAdmin, x:DataType=pageModels:EventManagementPageModel}"
-                                                    HeightRequest="36" 
-                                                    CornerRadius="8" 
-                                                    FontSize="11.5" 
-                                                    FontAttributes="Bold"
-                                                    Padding="8,0"
-                                                    BackgroundColor="{StaticResource ErrorBgLight}" 
-                                                    TextColor="{StaticResource ErrorDark}" />
-
-                                            <!-- Edit Button -->
-                                            <Button Text="✏️ Sửa" 
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEditModalCommand, x:DataType=pageModels:EventManagementPageModel}" 
-                                                    CommandParameter="{Binding .}"
-                                                    HeightRequest="36" 
-                                                    CornerRadius="8" 
-                                                    FontSize="12" 
-                                                    Padding="10,0"
-                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
-                                                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" />
-
-                                            <!-- Delete Button -->
-                                            <Button Text="🗑️" 
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=DeleteEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
-                                                    CommandParameter="{Binding .}"
-                                                    HeightRequest="36" 
-                                                    CornerRadius="8" 
-                                                    FontSize="12" 
-                                                    Padding="8,0"
-                                                    BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}" 
-                                                    TextColor="{StaticResource ErrorDark}" />
-                                        </HorizontalStackLayout>
                                     </Grid>
 
                                     <!-- Description -->
-                                    <Label Text="{Binding Description}" FontSize="13" 
+                                    <Label Text="{Binding Description}" FontSize="12.5" 
                                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" 
                                            LineBreakMode="TailTruncation" MaxLines="2" />
 
@@ -352,28 +304,79 @@
                                     <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" />
                                     
                                     <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                                        <Label Grid.Column="0" Text="{Binding TimeLocationDisplay}" FontSize="12" 
+                                        <Label Grid.Column="0" Text="{Binding TimeLocationDisplay}" FontSize="11.5" 
                                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" 
-                                               VerticalOptions="Center" />
-                                        <Label Grid.Column="1" Text="{Binding ParticipantsDisplay}" FontSize="12" FontAttributes="Bold" 
+                                               VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                        <Label Grid.Column="1" Text="{Binding ParticipantsDisplay}" FontSize="11.5" FontAttributes="Bold" 
                                                TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" 
                                                VerticalOptions="Center" />
                                     </Grid>
 
-                                    <!-- Embedded Check-in & Media Actions for Activity -->
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,4,0,0">
-                                        <Button Grid.Column="0" Text="📊 Sổ điểm danh &amp; Báo cáo" 
+                                    <!-- Action Section 1: Admin Approval Buttons (Visible only if Admin) -->
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8" 
+                                          IsVisible="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=IsAdmin, x:DataType=pageModels:EventManagementPageModel}">
+                                        <Button Grid.Column="0" Text="✅ Duyệt" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ApproveEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                CommandParameter="{Binding .}"
+                                                HeightRequest="36" 
+                                                CornerRadius="10" 
+                                                FontSize="12" 
+                                                FontAttributes="Bold"
+                                                BackgroundColor="{StaticResource SuccessBgLight}" 
+                                                TextColor="{StaticResource SuccessDark}" />
+
+                                        <Button Grid.Column="1" Text="❌ Từ chối" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=RejectEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                CommandParameter="{Binding .}"
+                                                HeightRequest="36" 
+                                                CornerRadius="10" 
+                                                FontSize="12" 
+                                                FontAttributes="Bold"
+                                                BackgroundColor="{StaticResource ErrorBgLight}" 
+                                                TextColor="{StaticResource ErrorDark}" />
+                                    </Grid>
+
+                                    <!-- Action Section 2: Management, Report & Media Tools (Full Width Grid) -->
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="6">
+                                        <!-- Attendance Report Button -->
+                                        <Button Grid.Column="0" Text="📊 Sổ điểm danh" 
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ViewAttendanceReportCommand, x:DataType=pageModels:EventManagementPageModel}" 
                                                 CommandParameter="{Binding .}"
-                                                HeightRequest="36" CornerRadius="8" FontSize="11.5" FontAttributes="Bold"
-                                                BackgroundColor="#EFF6FF" TextColor="#1D4ED8" />
+                                                HeightRequest="36" CornerRadius="10" FontSize="11.5" FontAttributes="Bold"
+                                                BackgroundColor="#EFF6FF" TextColor="#1D4ED8" Padding="6,0" />
 
+                                        <!-- Video Button -->
                                         <Button Grid.Column="1" Text="▶ Video" 
                                                 IsVisible="{Binding HasVideo}"
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenVideoCommand, x:DataType=pageModels:EventManagementPageModel}" 
                                                 CommandParameter="{Binding .}"
-                                                HeightRequest="36" CornerRadius="8" FontSize="11.5" FontAttributes="Bold"
-                                                BackgroundColor="#FEE2E2" TextColor="#DC2626" />
+                                                HeightRequest="36" CornerRadius="10" FontSize="11.5" FontAttributes="Bold"
+                                                BackgroundColor="#FEE2E2" TextColor="#DC2626" Padding="10,0" />
+
+                                        <!-- Edit Button (Manager or Admin) -->
+                                        <Button Grid.Column="2" Text="✏️ Sửa" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEditModalCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                CommandParameter="{Binding .}"
+                                                IsVisible="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=IsManagerOrAdmin, x:DataType=pageModels:EventManagementPageModel}"
+                                                HeightRequest="36" 
+                                                CornerRadius="10" 
+                                                FontSize="11.5" 
+                                                FontAttributes="Bold"
+                                                Padding="10,0"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
+                                                TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" />
+
+                                        <!-- Delete Button (Manager or Admin) -->
+                                        <Button Grid.Column="3" Text="🗑️" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=DeleteEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                CommandParameter="{Binding .}"
+                                                IsVisible="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=IsManagerOrAdmin, x:DataType=pageModels:EventManagementPageModel}"
+                                                HeightRequest="36" 
+                                                CornerRadius="10" 
+                                                FontSize="12" 
+                                                Padding="8,0"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}" 
+                                                TextColor="{StaticResource ErrorDark}" />
                                     </Grid>
 
                                 </VerticalStackLayout>
@@ -387,7 +390,7 @@
                     <VerticalStackLayout Spacing="12" Padding="40" HorizontalOptions="Center" VerticalOptions="Center">
                         <Label Text="🎪" FontSize="48" HorizontalOptions="Center" />
                         <Label Text="Không tìm thấy sự kiện nào" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" 
-                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
                         <Label Text="Thử tìm kiếm với từ khóa khác hoặc bấm '+ Thêm Sự Kiện' để tạo sự kiện mới." 
                                FontSize="13" HorizontalOptions="Center" HorizontalTextAlignment="Center"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
@@ -409,13 +412,13 @@
               IsVisible="{Binding IsModalVisible}"
               HorizontalOptions="Fill" VerticalOptions="Fill">
 
-            <Border WidthRequest="480" 
-                    MaximumWidthRequest="540"
+            <Border MaximumWidthRequest="500" 
+                    Margin="16"
                     StrokeShape="RoundRectangle 20" 
                     Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
                     StrokeThickness="1" 
                     BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}" 
-                    Padding="24"
+                    Padding="20"
                     HorizontalOptions="Center" VerticalOptions="Center"
                     Shadow="{StaticResource CommonElevation2}">
 
@@ -484,13 +487,15 @@
                                         Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
                                     <Entry Text="{Binding FormIcon}" Placeholder="Ví dụ: 📅, 💻, ⚽..." FontSize="14" HeightRequest="42" />
                                 </Border>
-                                <HorizontalStackLayout Grid.Column="1" Spacing="6">
-                                    <Button Text="💻" Command="{Binding QuickPickIconCommand}" CommandParameter="💻" WidthRequest="38" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
-                                    <Button Text="⚽" Command="{Binding QuickPickIconCommand}" CommandParameter="⚽" WidthRequest="38" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
-                                    <Button Text="🌿" Command="{Binding QuickPickIconCommand}" CommandParameter="🌿" WidthRequest="38" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
-                                    <Button Text="🗣️" Command="{Binding QuickPickIconCommand}" CommandParameter="🗣️" WidthRequest="38" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
-                                    <Button Text="🎸" Command="{Binding QuickPickIconCommand}" CommandParameter="🎸" WidthRequest="38" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
-                                </HorizontalStackLayout>
+                                <ScrollView Grid.Column="1" Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Button Text="💻" Command="{Binding QuickPickIconCommand}" CommandParameter="💻" WidthRequest="36" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                                        <Button Text="⚽" Command="{Binding QuickPickIconCommand}" CommandParameter="⚽" WidthRequest="36" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                                        <Button Text="🌿" Command="{Binding QuickPickIconCommand}" CommandParameter="🌿" WidthRequest="36" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                                        <Button Text="🗣️" Command="{Binding QuickPickIconCommand}" CommandParameter="🗣️" WidthRequest="36" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                                        <Button Text="🎸" Command="{Binding QuickPickIconCommand}" CommandParameter="🎸" WidthRequest="36" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                                    </HorizontalStackLayout>
+                                </ScrollView>
                             </Grid>
                         </VerticalStackLayout>
 
