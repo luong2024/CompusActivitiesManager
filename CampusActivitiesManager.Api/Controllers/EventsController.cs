@@ -18,11 +18,11 @@ namespace CampusActivitiesManager.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetEvents([FromQuery] int limit = 20, [FromQuery] int? afterId = null)
+        public async Task<IActionResult> GetEvents([FromQuery] int limit = 20, [FromQuery] int? afterId = null, [FromQuery] bool includePending = false)
         {
             try
             {
-                var events = await _eventService.GetAllEventsAsync(limit, afterId);
+                var events = await _eventService.GetAllEventsAsync(limit, afterId, includePending);
                 return Ok(new ApiResponse<List<EventDto>>
                 {
                     Success = true,
@@ -132,6 +132,58 @@ namespace CampusActivitiesManager.Api.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 Data = null,
                 Message = "Xóa sự kiện trên Firebase thành công"
+            });
+        }
+
+        [HttpPost("{id}/approve")]
+        [HttpPut("{id}/approve")]
+        public async Task<IActionResult> ApproveEvent(int id, [FromBody] EventApprovalRequest? request)
+        {
+            string approvedBy = request?.ApprovedBy ?? "Admin";
+            var updated = await _eventService.ApproveEventAsync(id, true, approvedBy, request?.Reason);
+            if (updated == null)
+            {
+                return NotFound(new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Error = "NOT_FOUND",
+                    Message = "Không tìm thấy sự kiện trên Firebase"
+                });
+            }
+
+            return Ok(new ApiResponse<EventDto>
+            {
+                Success = true,
+                StatusCode = StatusCodes.Status200OK,
+                Data = updated,
+                Message = "Duyệt sự kiện thành công"
+            });
+        }
+
+        [HttpPost("{id}/reject")]
+        [HttpPut("{id}/reject")]
+        public async Task<IActionResult> RejectEvent(int id, [FromBody] EventApprovalRequest? request)
+        {
+            string approvedBy = request?.ApprovedBy ?? "Admin";
+            var updated = await _eventService.ApproveEventAsync(id, false, approvedBy, request?.Reason);
+            if (updated == null)
+            {
+                return NotFound(new ApiErrorResponse
+                {
+                    Success = false,
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Error = "NOT_FOUND",
+                    Message = "Không tìm thấy sự kiện trên Firebase"
+                });
+            }
+
+            return Ok(new ApiResponse<EventDto>
+            {
+                Success = true,
+                StatusCode = StatusCodes.Status200OK,
+                Data = updated,
+                Message = "Đã từ chối phê duyệt sự kiện"
             });
         }
     }

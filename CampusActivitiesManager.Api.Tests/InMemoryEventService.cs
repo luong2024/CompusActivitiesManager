@@ -29,9 +29,14 @@ namespace CampusActivitiesManager.Api.Tests
             }
         }
 
-        public Task<List<EventDto>> GetAllEventsAsync(int limit = 20, int? afterId = null)
+        public Task<List<EventDto>> GetAllEventsAsync(int limit = 20, int? afterId = null, bool includePending = false)
         {
-            var res = Events.OrderBy(e => e.ID).Take(limit).ToList();
+            var query = Events.AsEnumerable();
+            if (!includePending)
+            {
+                query = query.Where(e => e.IsApproved);
+            }
+            var res = query.OrderBy(e => e.ID).Take(limit).ToList();
             return Task.FromResult(res);
         }
 
@@ -47,6 +52,9 @@ namespace CampusActivitiesManager.Api.Tests
             int catId = request.CategoryId ?? 1;
             var cat = Categories.FirstOrDefault(c => c.ID == catId);
 
+            bool isApproved = request.IsApproved ?? (request.CreatedByRole == "Admin");
+            string approvalStatus = request.ApprovalStatus ?? (isApproved ? "Approved" : "Pending");
+
             var newEvt = new EventDto
             {
                 ID = newId,
@@ -59,7 +67,13 @@ namespace CampusActivitiesManager.Api.Tests
                 StartDate = request.StartDate ?? "20/10/2026",
                 EndDate = request.EndDate ?? "20/10/2026",
                 MaxParticipants = request.MaxParticipants ?? 150,
-                Status = request.Status ?? "Sắp diễn ra"
+                Status = request.Status ?? "Sắp diễn ra",
+                IsApproved = isApproved,
+                ApprovalStatus = approvalStatus,
+                CreatedByRole = request.CreatedByRole ?? "Admin",
+                CreatedByName = request.CreatedByName ?? "",
+                ImageUrl = request.ImageUrl ?? "",
+                VideoUrl = request.VideoUrl ?? ""
             };
 
             Events.Add(newEvt);
@@ -84,6 +98,24 @@ namespace CampusActivitiesManager.Api.Tests
             if (!string.IsNullOrWhiteSpace(request.EndDate)) evt.EndDate = request.EndDate;
             if (request.MaxParticipants.HasValue) evt.MaxParticipants = request.MaxParticipants.Value;
             if (!string.IsNullOrWhiteSpace(request.Status)) evt.Status = request.Status;
+            if (request.IsApproved.HasValue) evt.IsApproved = request.IsApproved.Value;
+            if (!string.IsNullOrWhiteSpace(request.ApprovalStatus)) evt.ApprovalStatus = request.ApprovalStatus;
+            if (request.ApprovedBy != null) evt.ApprovedBy = request.ApprovedBy;
+            if (request.ImageUrl != null) evt.ImageUrl = request.ImageUrl;
+            if (request.VideoUrl != null) evt.VideoUrl = request.VideoUrl;
+
+            return Task.FromResult<EventDto?>(evt);
+        }
+
+        public Task<EventDto?> ApproveEventAsync(int id, bool approve, string? approvedBy = "Admin", string? reason = null)
+        {
+            var evt = Events.FirstOrDefault(e => e.ID == id);
+            if (evt == null) return Task.FromResult<EventDto?>(null);
+
+            evt.IsApproved = approve;
+            evt.ApprovalStatus = approve ? "Approved" : "Rejected";
+            evt.ApprovedBy = approvedBy;
+            evt.RejectionReason = reason;
 
             return Task.FromResult<EventDto?>(evt);
         }

@@ -59,6 +59,9 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private int _volunteerCount;
 
+        [ObservableProperty]
+        private int _pendingCount;
+
         // Modal Tạo / Chỉnh sửa
         [ObservableProperty]
         private bool _isModalVisible;
@@ -95,6 +98,12 @@ namespace CampusActivitiesManager.PageModels
 
         [ObservableProperty]
         private string _formIcon = "📅";
+
+        [ObservableProperty]
+        private string _formImageUrl = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
+
+        [ObservableProperty]
+        private string _formVideoUrl = string.Empty;
 
         [ObservableProperty]
         private int _selectedCategoryIndex = 0;
@@ -167,8 +176,8 @@ namespace CampusActivitiesManager.PageModels
                 Categories = await _eventService.GetCategoriesAsync();
                 CategoryNames = Categories.Select(c => c.Title).ToList();
 
-                // Load events
-                Events = await _eventService.GetEventsAsync();
+                // Load events (including pending ones for management)
+                Events = await _eventService.GetEventsAsync(includePending: true);
 
                 UpdateMetrics();
                 ApplyFilter();
@@ -189,6 +198,7 @@ namespace CampusActivitiesManager.PageModels
             AcademicCount = Events.Count(e => e.CategoryTitle == "Học thuật");
             SportsCount = Events.Count(e => e.CategoryTitle == "Thể thao");
             VolunteerCount = Events.Count(e => e.CategoryTitle == "Tình nguyện");
+            PendingCount = Events.Count(e => !e.IsApproved || e.ApprovalStatus == "Pending");
         }
 
         [RelayCommand]
@@ -214,7 +224,11 @@ namespace CampusActivitiesManager.PageModels
         {
             IEnumerable<CampusEvent> query = Events ?? [];
 
-            if (!string.IsNullOrWhiteSpace(SelectedCategoryFilter) && SelectedCategoryFilter != "Tất cả")
+            if (SelectedCategoryFilter == "Chờ duyệt")
+            {
+                query = query.Where(e => !e.IsApproved || e.ApprovalStatus == "Pending");
+            }
+            else if (!string.IsNullOrWhiteSpace(SelectedCategoryFilter) && SelectedCategoryFilter != "Tất cả")
             {
                 query = query.Where(e => string.Equals(e.CategoryTitle, SelectedCategoryFilter, StringComparison.OrdinalIgnoreCase));
             }
@@ -245,6 +259,8 @@ namespace CampusActivitiesManager.PageModels
             FormMaxParticipants = 150;
             FormStatus = "Sắp diễn ra";
             FormIcon = "📅";
+            FormImageUrl = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
+            FormVideoUrl = string.Empty;
             SelectedCategoryIndex = 0;
 
             IsModalVisible = true;
@@ -266,6 +282,8 @@ namespace CampusActivitiesManager.PageModels
             FormMaxParticipants = evt.MaxParticipants;
             FormStatus = evt.Status;
             FormIcon = string.IsNullOrWhiteSpace(evt.Icon) ? "📅" : evt.Icon;
+            FormImageUrl = evt.ImageUrl;
+            FormVideoUrl = evt.VideoUrl;
 
             int catIdx = Categories.FindIndex(c => c.ID == evt.CategoryID || c.Title == evt.CategoryTitle);
             SelectedCategoryIndex = catIdx >= 0 ? catIdx : 0;
@@ -285,6 +303,42 @@ namespace CampusActivitiesManager.PageModels
             if (!string.IsNullOrEmpty(icon))
             {
                 FormIcon = icon;
+            }
+        }
+
+        [RelayCommand]
+        private async Task PickCoverPhoto()
+        {
+            try
+            {
+                var photo = await MediaPicker.Default.PickPhotoAsync();
+                if (photo != null)
+                {
+                    FormImageUrl = photo.FullPath;
+                    await AppShell.DisplayToastAsync("Đã chọn ảnh đại diện hoạt động! 🖼️");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+        }
+
+        [RelayCommand]
+        private async Task PickVideo()
+        {
+            try
+            {
+                var video = await MediaPicker.Default.PickVideoAsync();
+                if (video != null)
+                {
+                    FormVideoUrl = video.FullPath;
+                    await AppShell.DisplayToastAsync("Đã chọn video cho hoạt động! 🎬");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
             }
         }
 
@@ -315,6 +369,12 @@ namespace CampusActivitiesManager.PageModels
                     categoryId = selectedCat.ID;
                 }
 
+                bool isUserAdmin = _authService?.CurrentUser?.Role == Role.Admin;
+                bool isApproved = isUserAdmin;
+                string approvalStatus = isUserAdmin ? "Approved" : "Pending";
+                string createdRole = isUserAdmin ? "Admin" : "Manager";
+                string createdName = _authService?.CurrentUser?.FullName ?? (isUserAdmin ? "Admin" : "Ban tổ chức");
+
                 var evtModel = new CampusEvent
                 {
                     ID = EditingId,
@@ -327,7 +387,13 @@ namespace CampusActivitiesManager.PageModels
                     StartDate = FormStartDate,
                     EndDate = FormEndDate,
                     MaxParticipants = FormMaxParticipants > 0 ? FormMaxParticipants : 100,
-                    Status = FormStatus
+                    Status = FormStatus,
+                    ImageUrl = FormImageUrl?.Trim() ?? "",
+                    VideoUrl = FormVideoUrl?.Trim() ?? "",
+                    IsApproved = IsEditing ? (Events.FirstOrDefault(e => e.ID == EditingId)?.IsApproved ?? isApproved) : isApproved,
+                    ApprovalStatus = IsEditing ? (Events.FirstOrDefault(e => e.ID == EditingId)?.ApprovalStatus ?? approvalStatus) : approvalStatus,
+                    CreatedByRole = createdRole,
+                    CreatedByName = createdName
                 };
 
                 bool success;
@@ -344,7 +410,18 @@ namespace CampusActivitiesManager.PageModels
                 {
                     IsModalVisible = false;
                     await LoadData();
-                    await AppShell.DisplayToastAsync(IsEditing ? "Cập nhật sự kiện thành công! 🎉" : "Tạo sự kiện mới thành công! 🎉");
+
+                    if (!isUserAdmin && !IsEditing)
+                    {
+                        await Shell.Current.DisplayAlert(
+                            "Đã gửi yêu cầu tạo hoạt động 📝",
+                            "Hoạt động đã được gửi lên hệ thống và đang chờ Quản trị viên (Admin) phê duyệt trước khi xuất hiện chính thức trên Cổng sinh viên.",
+                            "Đã hiểu");
+                    }
+                    else
+                    {
+                        await AppShell.DisplayToastAsync(IsEditing ? "Cập nhật sự kiện thành công! 🎉" : "Tạo sự kiện mới thành công! 🎉");
+                    }
                 }
                 else
                 {
@@ -358,6 +435,75 @@ namespace CampusActivitiesManager.PageModels
             finally
             {
                 IsSaving = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task ApproveEvent(CampusEvent evt)
+        {
+            if (evt == null) return;
+
+            bool confirm = await Shell.Current.DisplayAlert(
+                "Phê duyệt hoạt động 🛡️",
+                $"Bạn có chắc chắn muốn duyệt hoạt động \"{evt.Name}\" để xuất hiện trên toàn hệ thống?",
+                "Duyệt ngay",
+                "Hủy");
+
+            if (!confirm) return;
+
+            try
+            {
+                IsBusy = true;
+                string adminName = _authService?.CurrentUser?.FullName ?? "Admin";
+                bool ok = await _eventService.ApproveEventAsync(evt.ID, true, adminName);
+                if (ok)
+                {
+                    await LoadData();
+                    await AppShell.DisplayToastAsync("Đã phê duyệt hoạt động thành công! ✅");
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Lỗi", "Không thể cập nhật trạng thái duyệt trên máy chủ.", "Đóng");
+                }
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task RejectEvent(CampusEvent evt)
+        {
+            if (evt == null) return;
+
+            string reason = await Shell.Current.DisplayPromptAsync(
+                "Từ chối hoạt động ❌",
+                "Nhập lý do từ chối (tùy chọn):",
+                "Xác nhận",
+                "Hủy",
+                "Chưa đáp ứng tiêu chí tổ chức");
+
+            if (reason == null) return;
+
+            try
+            {
+                IsBusy = true;
+                string adminName = _authService?.CurrentUser?.FullName ?? "Admin";
+                bool ok = await _eventService.ApproveEventAsync(evt.ID, false, adminName, reason);
+                if (ok)
+                {
+                    await LoadData();
+                    await AppShell.DisplayToastAsync("Đã từ chối hoạt động.");
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Lỗi", "Không thể cập nhật trạng thái trên máy chủ.", "Đóng");
+                }
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
@@ -395,6 +541,42 @@ namespace CampusActivitiesManager.PageModels
             finally
             {
                 IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task ViewAttendanceReport(CampusEvent evt)
+        {
+            if (evt == null) return;
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync($"//attendancereport?eventId={evt.ID}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task OpenVideo(CampusEvent evt)
+        {
+            if (evt == null || string.IsNullOrWhiteSpace(evt.VideoUrl))
+            {
+                await Shell.Current.DisplayAlert("Thông báo", "Hoạt động này chưa có video đính kèm.", "Đóng");
+                return;
+            }
+
+            try
+            {
+                if (Uri.TryCreate(evt.VideoUrl, UriKind.Absolute, out var uri))
+                {
+                    await Launcher.Default.OpenAsync(uri);
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Video hoạt động", $"Đường dẫn video:\n{evt.VideoUrl}", "Đóng");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
             }
         }
     }

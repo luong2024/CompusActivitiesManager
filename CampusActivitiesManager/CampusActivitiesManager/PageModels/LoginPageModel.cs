@@ -80,15 +80,8 @@ namespace CampusActivitiesManager.PageModels
 
                 var user = _authService.CurrentUser;
 
-                // AC 28.4.3: Role-based Navigation
-                if (user?.Role == Role.Admin)
-                {
-                    await Shell.Current.GoToAsync("//users");
-                }
-                else
-                {
-                    await Shell.Current.GoToAsync("//main");
-                }
+                // AC 28.4.3: Navigate all accounts to main dashboard first upon login
+                await Shell.Current.GoToAsync("//main");
             }
             catch (Exception ex)
             {
@@ -101,15 +94,6 @@ namespace CampusActivitiesManager.PageModels
             }
         }
 
-        // Quick Demo 1-Click Login for Admin
-        [RelayCommand]
-        public async Task LoginAsAdmin()
-        {
-            UsernameOrEmail = "admin@campus.edu.vn";
-            Password = "Admin@123456";
-            await Login();
-        }
-
         [RelayCommand]
         public async Task QuickBiometricLogin()
         {
@@ -120,7 +104,7 @@ namespace CampusActivitiesManager.PageModels
                 bool success = await _authService.LoginAsync("admin@campus.edu.vn", "Admin@123456");
                 if (success)
                 {
-                    await Shell.Current.GoToAsync("//users");
+                    await Shell.Current.GoToAsync("//main");
                 }
             }
             finally

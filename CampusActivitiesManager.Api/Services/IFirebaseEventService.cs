@@ -4,10 +4,11 @@ namespace CampusActivitiesManager.Api.Services
 {
     public interface IFirebaseEventService
     {
-        Task<List<EventDto>> GetAllEventsAsync(int limit = 20, int? afterId = null);
+        Task<List<EventDto>> GetAllEventsAsync(int limit = 20, int? afterId = null, bool includePending = false);
         Task<EventDto?> GetEventByIdAsync(int id);
         Task<EventDto> CreateEventAsync(CreateEventRequest request);
         Task<EventDto?> UpdateEventAsync(int id, UpdateEventRequest request);
+        Task<EventDto?> ApproveEventAsync(int id, bool approve, string? approvedBy = "Admin", string? reason = null);
         Task<bool> DeleteEventAsync(int id);
 
         Task<List<EventCategoryDto>> GetAllCategoriesAsync();

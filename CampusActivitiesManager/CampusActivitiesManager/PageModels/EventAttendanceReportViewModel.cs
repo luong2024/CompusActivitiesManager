@@ -7,10 +7,11 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CampusActivitiesManager.PageModels
 {
-    public partial class EventAttendanceReportViewModel : ObservableObject
+    public partial class EventAttendanceReportViewModel : ObservableObject, IQueryAttributable
     {
         private readonly IAttendanceService _attendanceService;
         private readonly IEventService _eventService;
+        private int? _targetEventId;
 
         [ObservableProperty]
         private ObservableCollection<CampusEvent> _events = [];
@@ -64,6 +65,25 @@ namespace CampusActivitiesManager.PageModels
             await LoadEventsAsync();
         }
 
+        public void ApplyQueryAttributes(IDictionary<string, object> query)
+        {
+            if (query.TryGetValue("eventId", out var idObj) && idObj != null)
+            {
+                if (int.TryParse(idObj.ToString(), out int eventId))
+                {
+                    _targetEventId = eventId;
+                    if (Events.Count > 0)
+                    {
+                        var match = Events.FirstOrDefault(e => e.ID == eventId);
+                        if (match != null)
+                        {
+                            SelectedEvent = match;
+                        }
+                    }
+                }
+            }
+        }
+
         private async Task LoadEventsAsync()
         {
             try
@@ -74,6 +94,16 @@ namespace CampusActivitiesManager.PageModels
                 foreach (var evt in list)
                 {
                     Events.Add(evt);
+                }
+
+                if (_targetEventId.HasValue)
+                {
+                    var match = Events.FirstOrDefault(e => e.ID == _targetEventId.Value);
+                    if (match != null)
+                    {
+                        SelectedEvent = match;
+                        return;
+                    }
                 }
 
                 if (Events.Count > 0 && SelectedEvent == null)

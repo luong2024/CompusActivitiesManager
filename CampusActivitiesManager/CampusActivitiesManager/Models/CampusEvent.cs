@@ -49,7 +49,73 @@ namespace CampusActivitiesManager.Models
         [JsonPropertyName("status")]
         public string Status { get; set; } = "Sắp diễn ra";
 
+        // Admin Approval Workflow
+        [JsonPropertyName("isApproved")]
+        public bool IsApproved { get; set; } = true;
+
+        [JsonPropertyName("approvalStatus")]
+        public string ApprovalStatus { get; set; } = "Approved"; // "Approved", "Pending", "Rejected"
+
+        [JsonPropertyName("createdByRole")]
+        public string CreatedByRole { get; set; } = "Admin";
+
+        [JsonPropertyName("createdByName")]
+        public string CreatedByName { get; set; } = string.Empty;
+
+        [JsonPropertyName("approvedBy")]
+        public string? ApprovedBy { get; set; }
+
+        [JsonPropertyName("rejectionReason")]
+        public string? RejectionReason { get; set; }
+
+        // Media properties: Photos and Video
+        [JsonPropertyName("imageUrl")]
+        public string ImageUrl { get; set; } = string.Empty;
+
+        [JsonPropertyName("imageUrls")]
+        public List<string> ImageUrls { get; set; } = new();
+
+        [JsonPropertyName("videoUrl")]
+        public string VideoUrl { get; set; } = string.Empty;
+
         // UI Helpers
+        [JsonIgnore]
+        public string ApprovalStatusDisplay => ApprovalStatus switch
+        {
+            "Approved" => "Đã duyệt ✅",
+            "Pending" => "Chờ phê duyệt ⏳",
+            "Rejected" => "Bị từ chối ❌",
+            _ => "Đã duyệt ✅"
+        };
+
+        [JsonIgnore]
+        public string ApprovalBadgeBg => ApprovalStatus switch
+        {
+            "Approved" => "#ECFDF5",
+            "Pending" => "#FEF3C7",
+            "Rejected" => "#FEE2E2",
+            _ => "#ECFDF5"
+        };
+
+        [JsonIgnore]
+        public string ApprovalBadgeTextColor => ApprovalStatus switch
+        {
+            "Approved" => "#059669",
+            "Pending" => "#D97706",
+            "Rejected" => "#DC2626",
+            _ => "#059669"
+        };
+
+        [JsonIgnore]
+        public bool HasVideo => !string.IsNullOrWhiteSpace(VideoUrl);
+
+        [JsonIgnore]
+        public bool HasImage => !string.IsNullOrWhiteSpace(ImageUrl) || (ImageUrls != null && ImageUrls.Count > 0);
+
+        [JsonIgnore]
+        public string PrimaryImageUrl => !string.IsNullOrWhiteSpace(ImageUrl)
+            ? ImageUrl
+            : (ImageUrls != null && ImageUrls.Count > 0 ? ImageUrls[0] : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80");
         [JsonIgnore]
         public string CategoryTitle => !string.IsNullOrWhiteSpace(Category?.Title) ? Category.Title : "Học thuật";
 

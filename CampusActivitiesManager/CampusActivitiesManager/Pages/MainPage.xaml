@@ -466,6 +466,27 @@
                                             </Border.Shadow>
 
                                             <VerticalStackLayout Spacing="10">
+                                                <!-- Cover Image & Video Badge -->
+                                                <Grid HeightRequest="110" HorizontalOptions="FillAndExpand">
+                                                    <Border StrokeShape="RoundRectangle 12" StrokeThickness="0" BackgroundColor="#E2E8F0">
+                                                        <Image Source="{Binding PrimaryImageUrl}" Aspect="AspectFill" HeightRequest="110" HorizontalOptions="FillAndExpand" />
+                                                    </Border>
+
+                                                    <!-- Video Indicator Badge (Clickable to Watch) -->
+                                                    <Border IsVisible="{Binding HasVideo}"
+                                                            HorizontalOptions="End" VerticalOptions="End" Margin="6"
+                                                            StrokeShape="RoundRectangle 10" BackgroundColor="#CCDC2626" StrokeThickness="0" Padding="8,4">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=OpenVideoCommand, x:DataType=pageModels:MainPageModel}" 
+                                                                                  CommandParameter="{Binding .}" />
+                                                        </Border.GestureRecognizers>
+                                                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                                                            <Label Text="▶" TextColor="{StaticResource White}" FontSize="10" VerticalOptions="Center" />
+                                                            <Label Text="Video" TextColor="{StaticResource White}" FontSize="10" FontAttributes="Bold" VerticalOptions="Center" />
+                                                        </HorizontalStackLayout>
+                                                    </Border>
+                                                </Grid>
+
                                                 <!-- Category Tag & Points Tag -->
                                                 <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
                                                     <!-- Category Tag Pill (US15) -->
@@ -507,7 +528,7 @@
                                                        FontSize="11"
                                                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
 
-                                                <!-- Action Button: Register or View QR -->
+                                                <!-- Primary Action: Register / View QR Ticket -->
                                                 <Button Text="{Binding RegisterButtonText}"
                                                         FontSize="12"
                                                         FontAttributes="Bold"
@@ -521,6 +542,25 @@
                                                         <Shadow Brush="{StaticResource Primary}" Offset="0,2" Radius="6" Opacity="0.2" />
                                                     </Button.Shadow>
                                                 </Button>
+
+                                                <!-- Embedded Check-in Actions (Photo attendance & Organizer Report) -->
+                                                <Grid ColumnDefinitions="*,*" ColumnSpacing="6" Margin="0,2,0,0">
+                                                    <!-- Photo Check-in for this activity -->
+                                                    <Button Grid.Column="0" Text="📸 Điểm danh ảnh"
+                                                            FontSize="10.5" FontAttributes="Bold"
+                                                            HeightRequest="32" CornerRadius="8" Padding="4,0"
+                                                            BackgroundColor="#FEF3C7" TextColor="#B45309"
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=CheckInWithPhotoCommand, x:DataType=pageModels:MainPageModel}"
+                                                            CommandParameter="{Binding .}" />
+
+                                                    <!-- Organizer Attendance Report for this activity -->
+                                                    <Button Grid.Column="1" Text="📊 Báo cáo"
+                                                            FontSize="10.5" FontAttributes="Bold"
+                                                            HeightRequest="32" CornerRadius="8" Padding="4,0"
+                                                            BackgroundColor="#EFF6FF" TextColor="#1D4ED8"
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=ViewEventReportCommand, x:DataType=pageModels:MainPageModel}"
+                                                            CommandParameter="{Binding .}" />
+                                                </Grid>
                                             </VerticalStackLayout>
                                         </Border>
                                     </DataTemplate>
@@ -561,17 +601,28 @@
                                                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
                                             </VerticalStackLayout>
 
-                                            <!-- QR View Button -->
-                                            <Button Grid.Column="2" 
-                                                    Text="Xem Vé" 
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=ShowQrTicketCommand, x:DataType=pageModels:MainPageModel}" 
-                                                    CommandParameter="{Binding .}"
-                                                    HeightRequest="34" 
-                                                    CornerRadius="8" 
-                                                    FontSize="11.5" 
-                                                    Padding="10,0" 
-                                                    Background="{StaticResource PrimaryGradientBrush}" 
-                                                    TextColor="{StaticResource White}" />
+                                            <!-- Attendance Actions: QR Ticket & Photo Check-in -->
+                                            <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                                                <Button Text="🎫 Vé QR" 
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=ShowQrTicketCommand, x:DataType=pageModels:MainPageModel}" 
+                                                        CommandParameter="{Binding .}"
+                                                        HeightRequest="34" 
+                                                        CornerRadius="8" 
+                                                        FontSize="11" 
+                                                        Padding="8,0" 
+                                                        Background="{StaticResource PrimaryGradientBrush}" 
+                                                        TextColor="{StaticResource White}" />
+
+                                                <Button Text="📸 Điểm Danh" 
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=CheckInWithPhotoCommand, x:DataType=pageModels:MainPageModel}" 
+                                                        CommandParameter="{Binding .}"
+                                                        HeightRequest="34" 
+                                                        CornerRadius="8" 
+                                                        FontSize="11" 
+                                                        Padding="8,0" 
+                                                        BackgroundColor="#FEF3C7" 
+                                                        TextColor="#B45309" />
+                                            </HorizontalStackLayout>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>

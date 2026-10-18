@@ -166,5 +166,62 @@ namespace CampusActivitiesManager.Api.Tests
             Assert.NotNull(result.Data);
             Assert.True(result.Data.Count >= 5);
         }
+
+        [Fact]
+        public async Task US28_ApproveAndRejectEvent_ShouldUpdateApprovalStatus()
+        {
+            // Create a pending event as a manager
+            var newEventReq = new CreateEventRequest
+            {
+                Name = "Sự kiện cần duyệt",
+                Description = "Mô tả sự kiện do Manager đăng",
+                CreatedByRole = "Manager",
+                CreatedByName = "Ban tổ chức CLB",
+                IsApproved = false,
+                ApprovalStatus = "Pending"
+            };
+
+            var createRes = await _client.PostAsJsonAsync("/api/v1/events", newEventReq);
+            Assert.Equal(HttpStatusCode.Created, createRes.StatusCode);
+            var created = await createRes.Content.ReadFromJsonAsync<ApiResponse<EventDto>>(_jsonOptions);
+            int eventId = created!.Data!.ID;
+
+            // 1. Without includePending, it should NOT appear on public list
+            var publicRes = await _client.GetAsync("/api/v1/events?includePending=false");
+            var publicEvents = await publicRes.Content.ReadFromJsonAsync<ApiResponse<List<EventDto>>>(_jsonOptions);
+            Assert.DoesNotContain(publicEvents!.Data!, e => e.ID == eventId);
+
+            // 2. With includePending=true, it should appear on admin list
+            var adminRes = await _client.GetAsync("/api/v1/events?includePending=true");
+            var adminEvents = await adminRes.Content.ReadFromJsonAsync<ApiResponse<List<EventDto>>>(_jsonOptions);
+            Assert.Contains(adminEvents!.Data!, e => e.ID == eventId);
+
+            // 3. Approve event
+            var approveRes = await _client.PostAsJsonAsync($"/api/v1/events/{eventId}/approve", new EventApprovalRequest
+            {
+                IsApproved = true,
+                ApprovedBy = "Admin Tổng"
+            });
+            Assert.Equal(HttpStatusCode.OK, approveRes.StatusCode);
+            var approved = await approveRes.Content.ReadFromJsonAsync<ApiResponse<EventDto>>(_jsonOptions);
+            Assert.True(approved!.Data!.IsApproved);
+            Assert.Equal("Approved", approved.Data.ApprovalStatus);
+
+            // 4. Now it should appear on public list
+            var publicAfterApprove = await _client.GetAsync("/api/v1/events?includePending=false");
+            var publicAfter = await publicAfterApprove.Content.ReadFromJsonAsync<ApiResponse<List<EventDto>>>(_jsonOptions);
+            Assert.Contains(publicAfter!.Data!, e => e.ID == eventId);
+
+            // 5. Reject event
+            var rejectRes = await _client.PostAsJsonAsync($"/api/v1/events/{eventId}/reject", new EventApprovalRequest
+            {
+                IsApproved = false,
+                Reason = "Thông tin chưa đầy đủ"
+            });
+            Assert.Equal(HttpStatusCode.OK, rejectRes.StatusCode);
+            var rejected = await rejectRes.Content.ReadFromJsonAsync<ApiResponse<EventDto>>(_jsonOptions);
+            Assert.False(rejected!.Data!.IsApproved);
+            Assert.Equal("Rejected", rejected.Data.ApprovalStatus);
+        }
     }
 }

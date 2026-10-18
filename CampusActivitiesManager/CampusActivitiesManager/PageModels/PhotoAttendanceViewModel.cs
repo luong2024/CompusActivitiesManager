@@ -6,11 +6,12 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CampusActivitiesManager.PageModels
 {
-    public partial class PhotoAttendanceViewModel : ObservableObject
+    public partial class PhotoAttendanceViewModel : ObservableObject, IQueryAttributable
     {
         private readonly IAttendanceService _attendanceService;
         private readonly IEventService _eventService;
         private readonly IAuthenticationService _authService;
+        private int? _targetEventId;
 
         [ObservableProperty]
         private string _studentCode = "B20DCCN001";
@@ -82,6 +83,25 @@ namespace CampusActivitiesManager.PageModels
             await LoadEventsAsync();
         }
 
+        public void ApplyQueryAttributes(IDictionary<string, object> query)
+        {
+            if (query.TryGetValue("eventId", out var idObj) && idObj != null)
+            {
+                if (int.TryParse(idObj.ToString(), out int eventId))
+                {
+                    _targetEventId = eventId;
+                    if (ActiveEvents.Count > 0)
+                    {
+                        var match = ActiveEvents.FirstOrDefault(e => e.ID == eventId);
+                        if (match != null)
+                        {
+                            SelectedEvent = match;
+                        }
+                    }
+                }
+            }
+        }
+
         private async Task LoadEventsAsync()
         {
             try
@@ -93,6 +113,17 @@ namespace CampusActivitiesManager.PageModels
                 {
                     ActiveEvents.Add(evt);
                 }
+
+                if (_targetEventId.HasValue)
+                {
+                    var match = ActiveEvents.FirstOrDefault(e => e.ID == _targetEventId.Value);
+                    if (match != null)
+                    {
+                        SelectedEvent = match;
+                        return;
+                    }
+                }
+
                 if (ActiveEvents.Count > 0 && SelectedEvent == null)
                 {
                     SelectedEvent = ActiveEvents[0];

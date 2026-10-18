@@ -120,29 +120,7 @@
                         </Button.Triggers>
                     </Button>
 
-                    <!-- Quick Demo Login Buttons -->
-                    <Border StrokeShape="RoundRectangle 12"
-                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
-                            StrokeThickness="1"
-                            BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
-                            Padding="12,10"
-                            Margin="0,4,0,0">
-                        <VerticalStackLayout Spacing="8">
-                            <Label Text="⚡ Đăng nhập Quản trị viên (Khởi tạo tự động trên Firebase):" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
-                            <Button Text="🛡️ Đăng nhập tài khoản Admin"
-                                    Command="{Binding LoginAsAdminCommand}"
-                                    BackgroundColor="{StaticResource PrimaryDark}"
-                                    TextColor="{StaticResource White}"
-                                    FontSize="13"
-                                    FontAttributes="Bold"
-                                    HeightRequest="40"
-                                    CornerRadius="8" />
-                            <Label Text="Tài khoản: admin@campus.edu.vn | Mật khẩu: Admin@123456"
-                                   FontSize="11"
-                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
-                                   HorizontalOptions="Center" />
-                        </VerticalStackLayout>
-                    </Border>
+
 
                     <!-- Account Provisioning Notice & Forgot Password -->
                     <VerticalStackLayout Spacing="6" HorizontalOptions="Center" Margin="0,4,0,0">

@@ -22,6 +22,19 @@ namespace CampusActivitiesManager.Api.Models
         public string EndDate { get; set; } = DateTime.Now.AddDays(3).ToString("dd/MM/yyyy");
         public int MaxParticipants { get; set; } = 150;
         public string Status { get; set; } = "Sắp diễn ra";
+
+        // US 13 & US 28: Admin approval workflow
+        public bool IsApproved { get; set; } = true;
+        public string ApprovalStatus { get; set; } = "Approved"; // "Approved", "Pending", "Rejected"
+        public string CreatedByRole { get; set; } = "Admin";
+        public string CreatedByName { get; set; } = string.Empty;
+        public string? ApprovedBy { get; set; }
+        public string? RejectionReason { get; set; }
+
+        // Media support: Photos & Video
+        public string ImageUrl { get; set; } = string.Empty;
+        public List<string> ImageUrls { get; set; } = new();
+        public string VideoUrl { get; set; } = string.Empty;
     }
 
     public class CreateEventRequest
@@ -40,6 +53,15 @@ namespace CampusActivitiesManager.Api.Models
         public string? EndDate { get; set; }
         public int? MaxParticipants { get; set; }
         public string? Status { get; set; }
+
+        public bool? IsApproved { get; set; }
+        public string? ApprovalStatus { get; set; }
+        public string? CreatedByRole { get; set; }
+        public string? CreatedByName { get; set; }
+
+        public string? ImageUrl { get; set; }
+        public List<string>? ImageUrls { get; set; }
+        public string? VideoUrl { get; set; }
     }
 
     public class UpdateEventRequest
@@ -53,6 +75,22 @@ namespace CampusActivitiesManager.Api.Models
         public string? EndDate { get; set; }
         public int? MaxParticipants { get; set; }
         public string? Status { get; set; }
+
+        public bool? IsApproved { get; set; }
+        public string? ApprovalStatus { get; set; }
+        public string? ApprovedBy { get; set; }
+        public string? RejectionReason { get; set; }
+
+        public string? ImageUrl { get; set; }
+        public List<string>? ImageUrls { get; set; }
+        public string? VideoUrl { get; set; }
+    }
+
+    public class EventApprovalRequest
+    {
+        public bool IsApproved { get; set; } = true;
+        public string? ApprovedBy { get; set; } = "Admin";
+        public string? Reason { get; set; }
     }
 
     public class CreateCategoryRequest

@@ -167,6 +167,19 @@
                                     </Border.GestureRecognizers>
                                 </Border>
 
+                                <!-- Pending Approval Filter Chip (Admin / Manager) -->
+                                <Border StrokeShape="RoundRectangle 20" Stroke="#FCD34D" StrokeThickness="1" Padding="12,8" BackgroundColor="#FEF3C7">
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label Text="⏳ Chờ duyệt" FontSize="12" FontAttributes="Bold" TextColor="#D97706" VerticalOptions="Center" />
+                                        <Border StrokeShape="RoundRectangle 8" BackgroundColor="#F59E0B" Padding="5,1" StrokeThickness="0" VerticalOptions="Center">
+                                            <Label Text="{Binding PendingCount}" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding FilterCategoryCommand}" CommandParameter="Chờ duyệt" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
                                 <Border StrokeShape="RoundRectangle 20" Stroke="#DBEAFE" StrokeThickness="1" Padding="14,8" BackgroundColor="#EFF6FF">
                                     <Label Text="📘 Học thuật" FontSize="12" FontAttributes="Bold" TextColor="#2563EB" />
                                     <Border.GestureRecognizers>
@@ -258,11 +271,54 @@
                                                         Padding="8,3">
                                                     <Label Text="{Binding Status}" FontSize="11" FontAttributes="Bold" TextColor="{Binding StatusColor}" />
                                                 </Border>
+
+                                                <!-- Approval Status Tag (US 28) -->
+                                                <Border StrokeShape="RoundRectangle 12" 
+                                                        StrokeThickness="0" 
+                                                        BackgroundColor="{Binding ApprovalBadgeBg}" 
+                                                        Padding="8,3">
+                                                    <Label Text="{Binding ApprovalStatusDisplay}" FontSize="11" FontAttributes="Bold" TextColor="{Binding ApprovalBadgeTextColor}" />
+                                                </Border>
+
+                                                <!-- Video Indicator Tag -->
+                                                <Border StrokeShape="RoundRectangle 12" 
+                                                        StrokeThickness="0" 
+                                                        BackgroundColor="#EFF6FF" 
+                                                        IsVisible="{Binding HasVideo}"
+                                                        Padding="6,3">
+                                                    <Label Text="🎬 Video" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                                </Border>
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>
 
-                                        <!-- Action Buttons: Edit and Delete -->
+                                        <!-- Action Buttons: Edit, Delete, and Admin Approve/Reject -->
                                         <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                                            <!-- Admin Approve Button (Visible if Admin and not yet approved) -->
+                                            <Button Text="✅ Duyệt" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ApproveEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    IsVisible="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=IsAdmin, x:DataType=pageModels:EventManagementPageModel}"
+                                                    HeightRequest="36" 
+                                                    CornerRadius="8" 
+                                                    FontSize="11.5" 
+                                                    FontAttributes="Bold"
+                                                    Padding="8,0"
+                                                    BackgroundColor="{StaticResource SuccessBgLight}" 
+                                                    TextColor="{StaticResource SuccessDark}" />
+
+                                            <!-- Admin Reject Button (Visible if Admin and not yet approved) -->
+                                            <Button Text="❌ Từ chối" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=RejectEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    IsVisible="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=IsAdmin, x:DataType=pageModels:EventManagementPageModel}"
+                                                    HeightRequest="36" 
+                                                    CornerRadius="8" 
+                                                    FontSize="11.5" 
+                                                    FontAttributes="Bold"
+                                                    Padding="8,0"
+                                                    BackgroundColor="{StaticResource ErrorBgLight}" 
+                                                    TextColor="{StaticResource ErrorDark}" />
+
                                             <!-- Edit Button -->
                                             <Button Text="✏️ Sửa" 
                                                     Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEditModalCommand, x:DataType=pageModels:EventManagementPageModel}" 
@@ -302,6 +358,22 @@
                                         <Label Grid.Column="1" Text="{Binding ParticipantsDisplay}" FontSize="12" FontAttributes="Bold" 
                                                TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" 
                                                VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!-- Embedded Check-in & Media Actions for Activity -->
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,4,0,0">
+                                        <Button Grid.Column="0" Text="📊 Sổ điểm danh &amp; Báo cáo" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ViewAttendanceReportCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                CommandParameter="{Binding .}"
+                                                HeightRequest="36" CornerRadius="8" FontSize="11.5" FontAttributes="Bold"
+                                                BackgroundColor="#EFF6FF" TextColor="#1D4ED8" />
+
+                                        <Button Grid.Column="1" Text="▶ Video" 
+                                                IsVisible="{Binding HasVideo}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenVideoCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                CommandParameter="{Binding .}"
+                                                HeightRequest="36" CornerRadius="8" FontSize="11.5" FontAttributes="Bold"
+                                                BackgroundColor="#FEE2E2" TextColor="#DC2626" />
                                     </Grid>
 
                                 </VerticalStackLayout>
@@ -366,6 +438,15 @@
                         </Grid>
 
                         <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" />
+
+                        <!-- Approval Process Notice -->
+                        <Border StrokeShape="RoundRectangle 10" BackgroundColor="#EFF6FF" Stroke="#BFDBFE" StrokeThickness="1" Padding="12,10">
+                            <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                <Label Text="🛡️" FontSize="16" VerticalOptions="Center" />
+                                <Label Text="Lưu ý: Mọi hoạt động do Quản lý sự kiện tạo sẽ ở trạng thái 'Chờ duyệt' và cần Admin phê duyệt mới được xuất hiện trên Cổng sinh viên &amp; Trang chủ."
+                                       FontSize="11" TextColor="#1E40AF" LineBreakMode="WordWrap" VerticalOptions="Center" HorizontalOptions="FillAndExpand" />
+                            </HorizontalStackLayout>
+                        </Border>
 
                         <!-- Form Field: Tên sự kiện -->
                         <VerticalStackLayout Spacing="6">
@@ -476,6 +557,44 @@
                                     </Picker.ItemsSource>
                                 </Picker>
                             </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Form Field: Hình ảnh & Video giới thiệu -->
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Phương tiện truyền thông (Hình ảnh / Video)" FontSize="13" FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+
+                            <!-- Photo Picker -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Ảnh bìa hoạt động (Link ảnh hoặc tải từ máy)" FontSize="12" 
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Border Grid.Column="0" StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormImageUrl}" Placeholder="https://... hoặc đường dẫn ảnh" FontSize="13" HeightRequest="42" />
+                                    </Border>
+                                    <Button Grid.Column="1" Text="📷 Chọn ảnh" Command="{Binding PickCoverPhotoCommand}" 
+                                            HeightRequest="42" CornerRadius="10" Style="{StaticResource PrimaryButton}" Padding="12,0" FontSize="12" />
+                                </Grid>
+                            </VerticalStackLayout>
+
+                            <!-- Video Picker -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Video giới thiệu hoạt động (YouTube, MP4 hoặc video từ máy)" FontSize="12" 
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Border Grid.Column="0" StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormVideoUrl}" Placeholder="https://youtube.com/... hoặc link mp4" FontSize="13" HeightRequest="42" />
+                                    </Border>
+                                    <Button Grid.Column="1" Text="🎬 Chọn video" Command="{Binding PickVideoCommand}" 
+                                            HeightRequest="42" CornerRadius="10" BackgroundColor="{StaticResource Secondary}" 
+                                            TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
+                                            Padding="12,0" FontSize="12" FontAttributes="Bold" />
+                                </Grid>
+                            </VerticalStackLayout>
                         </VerticalStackLayout>
 
                         <!-- Form Field: Mô tả chi tiết -->

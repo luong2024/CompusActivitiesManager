@@ -196,7 +196,7 @@ namespace CampusActivitiesManager.Api.Services
             return true;
         }
 
-        public async Task<List<EventDto>> GetAllEventsAsync(int limit = 20, int? afterId = null)
+        public async Task<List<EventDto>> GetAllEventsAsync(int limit = 20, int? afterId = null, bool includePending = false)
         {
             if (_firestoreDb == null) return new List<EventDto>();
 
@@ -221,6 +221,14 @@ namespace CampusActivitiesManager.Api.Services
                 int catId = dict.TryGetValue("categoryId", out var cVal) && cVal != null ? Convert.ToInt32(cVal) : 1;
                 catMap.TryGetValue(catId, out var catDto);
 
+                bool isApproved = dict.TryGetValue("isApproved", out var appVal) && appVal != null ? Convert.ToBoolean(appVal) : true;
+                string approvalStatus = dict.TryGetValue("approvalStatus", out var statVal) && statVal != null ? statVal.ToString()! : (isApproved ? "Approved" : "Pending");
+
+                if (!includePending && !isApproved)
+                {
+                    continue;
+                }
+
                 events.Add(new EventDto
                 {
                     ID = id,
@@ -233,7 +241,14 @@ namespace CampusActivitiesManager.Api.Services
                     StartDate = dict.TryGetValue("startDate", out var sd) ? sd?.ToString() ?? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
                     EndDate = dict.TryGetValue("endDate", out var ed) ? ed?.ToString() ?? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
                     MaxParticipants = dict.TryGetValue("maxParticipants", out var mp) && mp != null ? Convert.ToInt32(mp) : 150,
-                    Status = dict.TryGetValue("status", out var st) ? st?.ToString() ?? "Sắp diễn ra" : "Sắp diễn ra"
+                    Status = dict.TryGetValue("status", out var st) ? st?.ToString() ?? "Sắp diễn ra" : "Sắp diễn ra",
+                    IsApproved = isApproved,
+                    ApprovalStatus = approvalStatus,
+                    CreatedByRole = dict.TryGetValue("createdByRole", out var rVal) ? rVal?.ToString() ?? "Admin" : "Admin",
+                    CreatedByName = dict.TryGetValue("createdByName", out var cName) ? cName?.ToString() ?? "" : "",
+                    ApprovedBy = dict.TryGetValue("approvedBy", out var apBy) ? apBy?.ToString() : null,
+                    ImageUrl = dict.TryGetValue("imageUrl", out var img) ? img?.ToString() ?? "" : "",
+                    VideoUrl = dict.TryGetValue("videoUrl", out var vid) ? vid?.ToString() ?? "" : ""
                 });
             }
 
@@ -252,6 +267,9 @@ namespace CampusActivitiesManager.Api.Services
             int catId = dict.TryGetValue("categoryId", out var cVal) && cVal != null ? Convert.ToInt32(cVal) : 1;
             var category = await GetCategoryByIdAsync(catId);
 
+            bool isApproved = dict.TryGetValue("isApproved", out var appVal) && appVal != null ? Convert.ToBoolean(appVal) : true;
+            string approvalStatus = dict.TryGetValue("approvalStatus", out var statVal) && statVal != null ? statVal.ToString()! : (isApproved ? "Approved" : "Pending");
+
             return new EventDto
             {
                 ID = id,
@@ -264,16 +282,26 @@ namespace CampusActivitiesManager.Api.Services
                 StartDate = dict.TryGetValue("startDate", out var sd) ? sd?.ToString() ?? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
                 EndDate = dict.TryGetValue("endDate", out var ed) ? ed?.ToString() ?? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
                 MaxParticipants = dict.TryGetValue("maxParticipants", out var mp) && mp != null ? Convert.ToInt32(mp) : 150,
-                Status = dict.TryGetValue("status", out var st) ? st?.ToString() ?? "Sắp diễn ra" : "Sắp diễn ra"
+                Status = dict.TryGetValue("status", out var st) ? st?.ToString() ?? "Sắp diễn ra" : "Sắp diễn ra",
+                IsApproved = isApproved,
+                ApprovalStatus = approvalStatus,
+                CreatedByRole = dict.TryGetValue("createdByRole", out var rVal) ? rVal?.ToString() ?? "Admin" : "Admin",
+                CreatedByName = dict.TryGetValue("createdByName", out var cName) ? cName?.ToString() ?? "" : "",
+                ApprovedBy = dict.TryGetValue("approvedBy", out var apBy) ? apBy?.ToString() : null,
+                ImageUrl = dict.TryGetValue("imageUrl", out var img) ? img?.ToString() ?? "" : "",
+                VideoUrl = dict.TryGetValue("videoUrl", out var vid) ? vid?.ToString() ?? "" : ""
             };
         }
 
         public async Task<EventDto> CreateEventAsync(CreateEventRequest request)
         {
-            var events = await GetAllEventsAsync();
+            var events = await GetAllEventsAsync(100, null, true);
             int newId = events.Any() ? events.Max(e => e.ID) + 1 : 1;
             int catId = request.CategoryId ?? 1;
             var category = await GetCategoryByIdAsync(catId);
+
+            bool isApproved = request.IsApproved ?? (request.CreatedByRole == "Admin");
+            string approvalStatus = request.ApprovalStatus ?? (isApproved ? "Approved" : "Pending");
 
             var newEvent = new EventDto
             {
@@ -287,7 +315,13 @@ namespace CampusActivitiesManager.Api.Services
                 StartDate = string.IsNullOrWhiteSpace(request.StartDate) ? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : request.StartDate,
                 EndDate = string.IsNullOrWhiteSpace(request.EndDate) ? DateTime.Now.AddDays(3).ToString("dd/MM/yyyy") : request.EndDate,
                 MaxParticipants = request.MaxParticipants ?? 150,
-                Status = string.IsNullOrWhiteSpace(request.Status) ? "Sắp diễn ra" : request.Status
+                Status = string.IsNullOrWhiteSpace(request.Status) ? "Sắp diễn ra" : request.Status,
+                IsApproved = isApproved,
+                ApprovalStatus = approvalStatus,
+                CreatedByRole = request.CreatedByRole ?? "Admin",
+                CreatedByName = request.CreatedByName ?? "",
+                ImageUrl = request.ImageUrl ?? "",
+                VideoUrl = request.VideoUrl ?? ""
             };
 
             if (_firestoreDb != null)
@@ -303,7 +337,13 @@ namespace CampusActivitiesManager.Api.Services
                     ["startDate"] = newEvent.StartDate,
                     ["endDate"] = newEvent.EndDate,
                     ["maxParticipants"] = newEvent.MaxParticipants,
-                    ["status"] = newEvent.Status
+                    ["status"] = newEvent.Status,
+                    ["isApproved"] = newEvent.IsApproved,
+                    ["approvalStatus"] = newEvent.ApprovalStatus,
+                    ["createdByRole"] = newEvent.CreatedByRole,
+                    ["createdByName"] = newEvent.CreatedByName,
+                    ["imageUrl"] = newEvent.ImageUrl,
+                    ["videoUrl"] = newEvent.VideoUrl
                 });
             }
 
@@ -328,6 +368,11 @@ namespace CampusActivitiesManager.Api.Services
             if (!string.IsNullOrWhiteSpace(request.EndDate)) existing.EndDate = request.EndDate;
             if (request.MaxParticipants.HasValue) existing.MaxParticipants = request.MaxParticipants.Value;
             if (!string.IsNullOrWhiteSpace(request.Status)) existing.Status = request.Status;
+            if (request.IsApproved.HasValue) existing.IsApproved = request.IsApproved.Value;
+            if (!string.IsNullOrWhiteSpace(request.ApprovalStatus)) existing.ApprovalStatus = request.ApprovalStatus;
+            if (request.ApprovedBy != null) existing.ApprovedBy = request.ApprovedBy;
+            if (request.ImageUrl != null) existing.ImageUrl = request.ImageUrl;
+            if (request.VideoUrl != null) existing.VideoUrl = request.VideoUrl;
 
             if (_firestoreDb != null)
             {
@@ -342,7 +387,36 @@ namespace CampusActivitiesManager.Api.Services
                     ["startDate"] = existing.StartDate,
                     ["endDate"] = existing.EndDate,
                     ["maxParticipants"] = existing.MaxParticipants,
-                    ["status"] = existing.Status
+                    ["status"] = existing.Status,
+                    ["isApproved"] = existing.IsApproved,
+                    ["approvalStatus"] = existing.ApprovalStatus,
+                    ["approvedBy"] = existing.ApprovedBy ?? "",
+                    ["imageUrl"] = existing.ImageUrl,
+                    ["videoUrl"] = existing.VideoUrl
+                }, SetOptions.MergeAll);
+            }
+
+            return existing;
+        }
+
+        public async Task<EventDto?> ApproveEventAsync(int id, bool approve, string? approvedBy = "Admin", string? reason = null)
+        {
+            var existing = await GetEventByIdAsync(id);
+            if (existing == null) return null;
+
+            existing.IsApproved = approve;
+            existing.ApprovalStatus = approve ? "Approved" : "Rejected";
+            existing.ApprovedBy = approvedBy;
+            existing.RejectionReason = reason;
+
+            if (_firestoreDb != null)
+            {
+                await _firestoreDb.Collection("events").Document(id.ToString()).SetAsync(new Dictionary<string, object>
+                {
+                    ["isApproved"] = existing.IsApproved,
+                    ["approvalStatus"] = existing.ApprovalStatus,
+                    ["approvedBy"] = approvedBy ?? "Admin",
+                    ["rejectionReason"] = reason ?? ""
                 }, SetOptions.MergeAll);
             }
 

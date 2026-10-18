@@ -25,11 +25,12 @@ namespace CampusActivitiesManager.Services
             _logger = logger;
         }
 
-        public async Task<List<CampusEvent>> GetEventsAsync()
+        public async Task<List<CampusEvent>> GetEventsAsync(bool includePending = false)
         {
             try
             {
-                var response = await _httpClient.GetAsync(Constants.EventsApiUrl);
+                string url = includePending ? $"{Constants.EventsApiUrl}?includePending=true" : Constants.EventsApiUrl;
+                var response = await _httpClient.GetAsync(url);
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<CampusEvent>>>(JsonOptions);
@@ -44,7 +45,8 @@ namespace CampusActivitiesManager.Services
                 _logger.LogWarning(ex, "API get events failed, falling back to local defaults");
             }
 
-            return GetDefaultEvents();
+            var defaults = GetDefaultEvents();
+            return includePending ? defaults : defaults.Where(e => e.IsApproved).ToList();
         }
 
         public async Task<CampusEvent?> GetEventByIdAsync(int id)
@@ -84,7 +86,13 @@ namespace CampusActivitiesManager.Services
                     startDate = evt.StartDate,
                     endDate = evt.EndDate,
                     maxParticipants = evt.MaxParticipants,
-                    status = evt.Status
+                    status = evt.Status,
+                    isApproved = evt.IsApproved,
+                    approvalStatus = evt.ApprovalStatus,
+                    createdByRole = evt.CreatedByRole,
+                    createdByName = evt.CreatedByName,
+                    imageUrl = evt.ImageUrl,
+                    videoUrl = evt.VideoUrl
                 };
 
                 var response = await _httpClient.PostAsJsonAsync(Constants.EventsApiUrl, payload);
@@ -112,7 +120,11 @@ namespace CampusActivitiesManager.Services
                     startDate = evt.StartDate,
                     endDate = evt.EndDate,
                     maxParticipants = evt.MaxParticipants,
-                    status = evt.Status
+                    status = evt.Status,
+                    isApproved = evt.IsApproved,
+                    approvalStatus = evt.ApprovalStatus,
+                    imageUrl = evt.ImageUrl,
+                    videoUrl = evt.VideoUrl
                 };
 
                 var response = await _httpClient.PutAsJsonAsync($"{Constants.EventsApiUrl}/{evt.ID}", payload);
@@ -121,6 +133,29 @@ namespace CampusActivitiesManager.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating event via API");
+                _errorHandler.HandleError(ex);
+                return false;
+            }
+        }
+
+        public async Task<bool> ApproveEventAsync(int id, bool approve, string? approvedBy = "Admin", string? reason = null)
+        {
+            try
+            {
+                string endpoint = approve ? "approve" : "reject";
+                var payload = new
+                {
+                    isApproved = approve,
+                    approvedBy = approvedBy ?? "Admin",
+                    reason = reason
+                };
+
+                var response = await _httpClient.PostAsJsonAsync($"{Constants.EventsApiUrl}/{id}/{endpoint}", payload);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error approving/rejecting event via API");
                 _errorHandler.HandleError(ex);
                 return false;
             }

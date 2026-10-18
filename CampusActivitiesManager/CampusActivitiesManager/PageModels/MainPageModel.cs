@@ -57,6 +57,9 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private string _today = DateTime.Now.ToString("dddd, dd/MM/yyyy");
 
+        [ObservableProperty]
+        private bool _isAdminOrManager;
+
         // QR Attendance Ticket Modal (US 17)
         [ObservableProperty]
         private bool _isQrModalVisible;
@@ -91,21 +94,38 @@ namespace CampusActivitiesManager.PageModels
             if (_authService?.CurrentUser != null)
             {
                 var u = _authService.CurrentUser;
+                var role = u.Role switch
+                {
+                    Role.Admin => AccountRole.Admin,
+                    Role.Manager => AccountRole.BanChuNhiem,
+                    _ => AccountRole.SinhVien
+                };
+
+                IsAdminOrManager = u.Role == Role.Admin || u.Role == Role.Manager;
+
                 CurrentStudent = new Account
                 {
                     FullName = u.FullName,
-                    StudentCode = string.IsNullOrWhiteSpace(u.Username) ? "B20DCCN001" : u.Username.ToUpper(),
+                    StudentCode = string.IsNullOrWhiteSpace(u.Username) ? (u.Role == Role.Admin ? "ADMIN" : "MANAGER") : u.Username.ToUpper(),
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
-                    ClassName = "D20CNTT1",
-                    AcademicYear = "K20 (2020–2025)",
-                    Role = AccountRole.SinhVien,
+                    ClassName = u.Role == Role.Admin ? "Ban Quản Trị Hệ Thống" : (u.Role == Role.Manager ? "Ban Tổ Chức Sự Kiện" : "D20CNTT1"),
+                    AcademicYear = u.Role == Role.Admin ? "Quản trị viên" : (u.Role == Role.Manager ? "Quản lý sự kiện" : "K20 (2020–2025)"),
+                    Role = role,
                     Status = AccountStatus.DangHoc,
                     TrainingPoints = 92
+                };
+
+                StudentGreeting = u.Role switch
+                {
+                    Role.Admin => $"Xin chào, Quản trị viên {u.FullName} 🛡️",
+                    Role.Manager => $"Xin chào, Ban tổ chức {u.FullName} 🎪",
+                    _ => $"Xin chào, {u.FullName} 👋"
                 };
             }
             else
             {
+                IsAdminOrManager = false;
                 CurrentStudent = new Account
                 {
                     FullName = "Nguyễn An Cương",
@@ -118,9 +138,9 @@ namespace CampusActivitiesManager.PageModels
                     Status = AccountStatus.DangHoc,
                     TrainingPoints = 92
                 };
+                StudentGreeting = "Xin chào, Nguyễn An Cương 👋";
             }
 
-            StudentGreeting = $"Xin chào, {CurrentStudent.FullName} 👋";
             TrainingPointsProgress = Math.Clamp(CurrentStudent.TrainingPoints / 100.0, 0.0, 1.0);
             QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-71965";
         }
@@ -288,6 +308,52 @@ namespace CampusActivitiesManager.PageModels
         private void CloseQrTicket()
         {
             IsQrModalVisible = false;
+        }
+
+        [RelayCommand]
+        private async Task OpenVideo(CampusEvent evt)
+        {
+            if (evt == null || string.IsNullOrWhiteSpace(evt.VideoUrl))
+            {
+                await Shell.Current.DisplayAlert("Thông báo", "Hoạt động này chưa có video đính kèm.", "Đóng");
+                return;
+            }
+
+            try
+            {
+                if (Uri.TryCreate(evt.VideoUrl, UriKind.Absolute, out var uri))
+                {
+                    await Launcher.Default.OpenAsync(uri);
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Video giới thiệu", $"Đường dẫn video hoạt động:\n{evt.VideoUrl}", "Đóng");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+        }
+
+        [RelayCommand]
+        private async Task CheckInWithPhoto(CampusEvent evt)
+        {
+            if (evt == null) return;
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync($"//photoattendance?eventId={evt.ID}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ViewEventReport(CampusEvent evt)
+        {
+            if (evt == null) return;
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync($"//attendancereport?eventId={evt.ID}");
+            }
         }
 
         [RelayCommand]

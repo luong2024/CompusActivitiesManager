@@ -55,9 +55,6 @@ namespace CampusActivitiesManager
             NavUsers.IsVisible = isAdmin;
             NavEvents.IsVisible = isManagerOrAdmin;
             NavQrScanner.IsVisible = isLoggedIn;
-            NavPhotoAttendance.IsVisible = isLoggedIn;
-            NavAttendanceHistory.IsVisible = isLoggedIn;
-            NavAttendanceReport.IsVisible = isManagerOrAdmin;
         }
 
         private void RegisterRoutes()
