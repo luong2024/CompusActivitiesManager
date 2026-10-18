@@ -43,7 +43,7 @@ namespace CampusActivitiesManager.Services
         {
             return new HttpClient(GetInsecureHandler())
             {
-                Timeout = TimeSpan.FromSeconds(15)
+                Timeout = TimeSpan.FromSeconds(12)
             };
         }
     }

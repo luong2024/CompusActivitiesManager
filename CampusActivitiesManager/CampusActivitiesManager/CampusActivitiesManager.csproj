@@ -21,7 +21,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<!-- https://github.com/CommunityToolkit/Maui/issues/2205 -->
-		<NoWarn>XC0103;XC0025</NoWarn>
+		<NoWarn>$(NoWarn);XC0103;XC0025;CA1416</NoWarn>
 
 		<!-- Display name -->
 		<ApplicationTitle>CampusActivitiesManager</ApplicationTitle>
@@ -67,6 +67,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+		<PackageReference Include="QRCoder" Version="1.8.1" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -84,8 +85,4 @@
 		<PackageReference Include="Xamarin.AndroidX.Navigation.Common" Version="2.8.9.1" />
 	</ItemGroup>
 
-	<Target Name="_EnsureMauiXamlCodeGenBeforeWinUI"
-	        BeforeTargets="MarkupCompilePass1;XamlPreCompile"
-	        DependsOnTargets="_MauiInjectXamlCssAdditionalFiles;GenerateMSBuildEditorConfigFile" />
-	
 </Project>

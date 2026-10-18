@@ -10,7 +10,7 @@ namespace CampusActivitiesManager.Data
 
         public static string ApiBaseUrl =>
             DeviceInfo.Platform == DevicePlatform.Android
-                ? "https://10.0.2.2:7258/api/v1"
+                ? "http://10.0.2.2:5073/api/v1"
                 : "https://localhost:7258/api/v1";
 
         public static string AuthLoginUrl => $"{ApiBaseUrl}/auth/login";
@@ -18,5 +18,7 @@ namespace CampusActivitiesManager.Data
         public static string ProfileApiUrl => $"{ApiBaseUrl}/profile";
         public static string EventsApiUrl => $"{ApiBaseUrl}/events";
         public static string CategoriesApiUrl => $"{ApiBaseUrl}/categories";
+        public static string AttendanceApiUrl => $"{ApiBaseUrl}/attendance";
+        public static string NotificationsApiUrl => $"{ApiBaseUrl}/notifications";
     }
 }

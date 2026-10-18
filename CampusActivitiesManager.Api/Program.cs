@@ -26,6 +26,11 @@ if (FirebaseApp.DefaultInstance == null)
 {
     try
     {
+        if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
+        {
+            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+        }
+
         FirebaseApp.Create(new AppOptions
         {
             Credential = GoogleCredential.GetApplicationDefault(),
@@ -61,6 +66,7 @@ builder.Services.AddCors(options =>
 // Register Firebase Services (DI)
 builder.Services.AddScoped<IFirebaseAccountService, FirebaseAccountService>();
 builder.Services.AddScoped<IFirebaseEventService, FirebaseEventService>();
+builder.Services.AddScoped<IFirebaseAttendanceService, FirebaseAttendanceService>();
 
 // Configure Firebase JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -22,9 +22,16 @@
     </ContentPage.ToolbarItems>
 
     <Grid>
-        <!-- Main Content -->
-        <ScrollView>
-            <VerticalStackLayout Spacing="16" Padding="{StaticResource LayoutPadding}">
+        <!-- Main Content: CollectionView with Header (Eliminates ScrollView-CollectionView nesting to prevent Android ANR) -->
+        <CollectionView ItemsSource="{Binding FilteredUsers}"
+                        SelectionMode="None"
+                        ItemSizingStrategy="MeasureFirstItem">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.Header>
+                <VerticalStackLayout Spacing="16" Padding="{StaticResource LayoutPadding}">
 
                 <!-- Header Profile Info & Quick Status -->
                 <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
@@ -142,11 +149,10 @@
                     </HorizontalStackLayout>
                 </Grid>
 
-                <!-- Danh sách Người dùng (CollectionView) -->
-                <Label Text="Danh sách Tài khoản &amp; Vai trò" Style="{StaticResource Title3}" Margin="0,6,0,0" />
-
-                <CollectionView ItemsSource="{Binding FilteredUsers}"
-                                SelectionMode="None">
+                    <!-- Danh sách Người dùng (CollectionView Header Title) -->
+                    <Label Text="Danh sách Tài khoản &amp; Vai trò" Style="{StaticResource Title3}" Margin="0,6,0,0" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
                     <CollectionView.EmptyView>
                         <VerticalStackLayout Spacing="10" Padding="30" HorizontalOptions="Center">
                             <Label Text="🔍" FontSize="36" HorizontalOptions="Center" />
@@ -162,7 +168,7 @@
                                     StrokeThickness="1"
                                     BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
                                     Padding="14"
-                                    Margin="0,0,0,10">
+                                    Margin="16,0,16,10">
                                 <Grid RowDefinitions="Auto,Auto" RowSpacing="10">
 
                                     <!-- Thông tin Người dùng & Role Badge -->
@@ -287,10 +293,10 @@
                             </Border>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
-                </CollectionView>
-
-            </VerticalStackLayout>
-        </ScrollView>
+            <CollectionView.Footer>
+                <BoxView HeightRequest="20" Color="Transparent" />
+            </CollectionView.Footer>
+        </CollectionView>
 
         <!-- Modal Dialog Phân quyền (AC 05.3.1) -->
         <Grid BackgroundColor="{StaticResource OverlayBackdrop}"

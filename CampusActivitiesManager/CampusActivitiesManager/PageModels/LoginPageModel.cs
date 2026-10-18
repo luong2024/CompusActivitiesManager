@@ -81,17 +81,14 @@ namespace CampusActivitiesManager.PageModels
                 var user = _authService.CurrentUser;
 
                 // AC 28.4.3: Role-based Navigation
-                MainThread.BeginInvokeOnMainThread(async () =>
+                if (user?.Role == Role.Admin)
                 {
-                    if (user?.Role == Role.Admin)
-                    {
-                        await Shell.Current.GoToAsync("//users");
-                    }
-                    else
-                    {
-                        await Shell.Current.GoToAsync("//main");
-                    }
-                });
+                    await Shell.Current.GoToAsync("//users");
+                }
+                else
+                {
+                    await Shell.Current.GoToAsync("//main");
+                }
             }
             catch (Exception ex)
             {

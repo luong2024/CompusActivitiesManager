@@ -108,16 +108,34 @@ namespace CampusActivitiesManager.Api.Controllers
         }
 
         /// <summary>
-        /// Lấy toàn bộ danh sách tài khoản
+        /// Lấy toàn bộ danh sách tài khoản (Hỗ trợ tìm kiếm, lọc theo vai trò và trạng thái per Task2.md)
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetAccounts()
+        public async Task<IActionResult> GetAccounts([FromQuery] string? role = null, [FromQuery] string? search = null, [FromQuery] string? status = null)
         {
             try
             {
                 var users = await _accountService.GetAllAccountsAsync();
+
+                if (!string.IsNullOrWhiteSpace(role))
+                {
+                    users = users.Where(u => u.Role.Equals(role, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    users = users.Where(u => u.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var lower = search.Trim().ToLowerInvariant();
+                    users = users.Where(u =>
+                        u.Email.ToLowerInvariant().Contains(lower) ||
+                        u.FullName.ToLowerInvariant().Contains(lower) ||
+                        (!string.IsNullOrEmpty(u.StudentCode) && u.StudentCode.ToLowerInvariant().Contains(lower))).ToList();
+                }
+
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
@@ -276,8 +294,10 @@ namespace CampusActivitiesManager.Api.Controllers
         /// <summary>
         /// AC 35.1.1 & AC 35.1.3 & AC 35.1.4: API lock account thành công với account tồn tại.
         /// Bảo mật: Admin không thể tự khóa tài khoản của chính mình.
+        /// Hỗ trợ cả POST và PATCH theo chuẩn Task2.md (T35.2).
         /// </summary>
         [HttpPost("{id}/lock")]
+        [HttpPatch("{id}/lock")]
         [ProducesResponseType(typeof(ApiResponse<AccountStatusResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
@@ -357,8 +377,10 @@ namespace CampusActivitiesManager.Api.Controllers
 
         /// <summary>
         /// AC 35.1.2 & AC 35.1.3 & AC 35.1.4: API unlock account thành công với account đang bị khóa.
+        /// Hỗ trợ cả POST và PATCH theo chuẩn Task2.md (T35.2).
         /// </summary>
         [HttpPost("{id}/unlock")]
+        [HttpPatch("{id}/unlock")]
         [ProducesResponseType(typeof(ApiResponse<AccountStatusResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UnlockAccount(string id)

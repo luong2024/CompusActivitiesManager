@@ -5,45 +5,33 @@ using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Graphics;
 
 namespace CampusActivitiesManager.PageModels
 {
-    public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
+    public partial class MainPageModel : ObservableObject
     {
-        private bool _isNavigatedTo;
-        private bool _dataLoaded;
-        private readonly ProjectRepository _projectRepository;
-        private readonly TaskRepository _taskRepository;
-        private readonly CategoryRepository _categoryRepository;
-        private readonly ModalErrorHandler _errorHandler;
-        private readonly SeedDataService _seedDataService;
+        private readonly IEventService _eventService;
         private readonly IAuthenticationService _authService;
+        private readonly ModalErrorHandler _errorHandler;
+        private bool _isDataLoaded;
 
         [ObservableProperty]
         private Account _currentStudent;
 
         [ObservableProperty]
-        private string _studentGreeting = "Xin chào Sinh viên 👋";
+        private string _studentGreeting = "Xin chào, Sinh viên 👋";
 
         [ObservableProperty]
-        private int _upcomingActivitiesCount = 4;
+        private double _trainingPointsProgress = 0.92;
 
         [ObservableProperty]
-        private int _registeredActivitiesCount = 2;
+        private List<CampusEvent> _allEvents = [];
 
         [ObservableProperty]
-        private int _completedTasksCount = 0;
+        private List<CampusEvent> _displayEvents = [];
 
         [ObservableProperty]
-        private bool _isQrModalVisible = false;
-
-        [ObservableProperty]
-        private string _selectedActivityForQr = "Hội thảo Công nghệ Thông tin 2026";
-
-        [ObservableProperty]
-        private string _qrTicketCode = "CAMPUS-TICKET-2026-B20DCCN001";
+        private List<CampusEvent> _myRegisteredEvents = [];
 
         [ObservableProperty]
         private List<CategoryChartData> _todoCategoryData = [];
@@ -52,10 +40,13 @@ namespace CampusActivitiesManager.PageModels
         private List<Brush> _todoCategoryColors = [];
 
         [ObservableProperty]
-        private List<ProjectTask> _tasks = [];
+        private string _selectedCategoryFilter = "Tất cả";
 
         [ObservableProperty]
-        private List<Project> _projects = [];
+        private int _upcomingCount = 5;
+
+        [ObservableProperty]
+        private int _registeredCount = 2;
 
         [ObservableProperty]
         private bool _isBusy;
@@ -66,22 +57,31 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private string _today = DateTime.Now.ToString("dddd, dd/MM/yyyy");
 
-        public bool HasCompletedTasks => Tasks?.Any(t => t.IsCompleted) ?? false;
+        // QR Attendance Ticket Modal (US 17)
+        [ObservableProperty]
+        private bool _isQrModalVisible;
+
+        [ObservableProperty]
+        private string _selectedActivityForQr = "Hội thảo AI & Công nghệ Thông tin 2026";
+
+        [ObservableProperty]
+        private string _qrTicketCode = "CAMPUS-TK-B20DCCN001-71965";
+
+        [ObservableProperty]
+        private ImageSource _qrImageSource;
+
+        private readonly IQrCodeService _qrCodeService;
 
         public MainPageModel(
-            SeedDataService seedDataService,
-            ProjectRepository projectRepository,
-            TaskRepository taskRepository,
-            CategoryRepository categoryRepository,
+            IEventService eventService,
+            IAuthenticationService authService,
             ModalErrorHandler errorHandler,
-            IAuthenticationService authService)
+            IQrCodeService qrCodeService)
         {
-            _projectRepository = projectRepository;
-            _taskRepository = taskRepository;
-            _categoryRepository = categoryRepository;
-            _errorHandler = errorHandler;
-            _seedDataService = seedDataService;
+            _eventService = eventService;
             _authService = authService;
+            _errorHandler = errorHandler;
+            _qrCodeService = qrCodeService;
 
             UpdateStudentProfile();
         }
@@ -94,7 +94,7 @@ namespace CampusActivitiesManager.PageModels
                 CurrentStudent = new Account
                 {
                     FullName = u.FullName,
-                    StudentCode = u.Username.ToUpper(),
+                    StudentCode = string.IsNullOrWhiteSpace(u.Username) ? "B20DCCN001" : u.Username.ToUpper(),
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
                     ClassName = "D20CNTT1",
@@ -106,90 +106,33 @@ namespace CampusActivitiesManager.PageModels
             }
             else
             {
-                // Default placeholder when no user is signed in
                 CurrentStudent = new Account
                 {
-                    FullName = "Sinh viên",
-                    StudentCode = "SV000000",
-                    Email = "",
-                    PhoneNumber = "",
-                    ClassName = "",
-                    AcademicYear = "",
+                    FullName = "Nguyễn An Cương",
+                    StudentCode = "B20DCCN001",
+                    Email = "cuong.na@campus.edu.vn",
+                    PhoneNumber = "0987654321",
+                    ClassName = "D20CNTT1",
+                    AcademicYear = "K20 (2020–2025)",
                     Role = AccountRole.SinhVien,
                     Status = AccountStatus.DangHoc,
-                    TrainingPoints = 0
+                    TrainingPoints = 92
                 };
             }
 
             StudentGreeting = $"Xin chào, {CurrentStudent.FullName} 👋";
+            TrainingPointsProgress = Math.Clamp(CurrentStudent.TrainingPoints / 100.0, 0.0, 1.0);
             QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-71965";
         }
 
-        private async Task LoadData()
+        [RelayCommand]
+        private async Task Appearing()
         {
-            try
+            UpdateStudentProfile();
+            if (!_isDataLoaded)
             {
-                IsBusy = true;
-                UpdateStudentProfile();
-
-                Projects = await _projectRepository.ListAsync();
-                UpcomingActivitiesCount = Projects.Count;
-
-                var categories = await _categoryRepository.ListAsync();
-                foreach (var p in Projects)
-                {
-                    p.Category = categories.FirstOrDefault(c => c.ID == p.CategoryID)
-                                 ?? (p.Tags.Count > 0 ? new Category { Title = p.Tags[0].Title } : null);
-                }
-
-                // Set initial registration for the first 2 events
-                for (int i = 0; i < Projects.Count; i++)
-                {
-                    if (i == 0 || i == 1)
-                    {
-                        Projects[i].IsRegistered = true;
-                    }
-                }
-                RegisteredActivitiesCount = Projects.Count(p => p.IsRegistered);
-
-                var chartData = new List<CategoryChartData>();
-                var chartColors = new List<Brush>();
-
-                foreach (var category in categories)
-                {
-                    chartColors.Add(category.ColorBrush);
-                    var ps = Projects.Where(p => p.CategoryID == category.ID).ToList();
-                    int tasksCount = ps.SelectMany(p => p.Tasks).Count();
-                    chartData.Add(new(category.Title, tasksCount));
-                }
-
-                TodoCategoryData = chartData;
-                TodoCategoryColors = chartColors;
-
-                Tasks = await _taskRepository.ListAsync();
-                CompletedTasksCount = Tasks.Count(t => t.IsCompleted);
-            }
-            finally
-            {
-                IsBusy = false;
-                OnPropertyChanged(nameof(HasCompletedTasks));
-            }
-        }
-
-        private async Task InitData(SeedDataService seedDataService)
-        {
-            try
-            {
-                bool isSeeded = Preferences.Default.ContainsKey("is_seeded_v10");
-                if (!isSeeded)
-                {
-                    await Task.Run(() => seedDataService.LoadSeedDataAsync());
-                    Preferences.Default.Set("is_seeded_v10", true);
-                }
-            }
-            catch (Exception ex)
-            {
-                _errorHandler.HandleError(ex);
+                _isDataLoaded = true;
+                await LoadEventsData();
             }
         }
 
@@ -199,11 +142,8 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 IsRefreshing = true;
-                await LoadData();
-            }
-            catch (Exception e)
-            {
-                _errorHandler.HandleError(e);
+                UpdateStudentProfile();
+                await LoadEventsData();
             }
             finally
             {
@@ -211,76 +151,136 @@ namespace CampusActivitiesManager.PageModels
             }
         }
 
-        [RelayCommand]
-        private void NavigatedTo() => _isNavigatedTo = true;
-
-        [RelayCommand]
-        private void NavigatedFrom() => _isNavigatedTo = false;
-
-        [RelayCommand]
-        private async Task Appearing()
+        private async Task LoadEventsData()
         {
-            if (!_dataLoaded)
+            try
             {
-                _dataLoaded = true;
-                await InitData(_seedDataService);
-                await Refresh();
+                IsBusy = true;
+                var events = await _eventService.GetEventsAsync();
+
+                if (events != null && events.Count > 0)
+                {
+                    // Mark the first 2 events as registered for demo realism
+                    for (int i = 0; i < events.Count; i++)
+                    {
+                        if (i == 0 || i == 1)
+                        {
+                            events[i].IsRegistered = true;
+                        }
+                    }
+
+                    AllEvents = events;
+                }
+
+                UpcomingCount = AllEvents.Count;
+                MyRegisteredEvents = AllEvents.Where(e => e.IsRegistered).ToList();
+                RegisteredCount = MyRegisteredEvents.Count;
+
+                ApplyCategoryFilter();
+                UpdateChartData();
             }
-            else if (!_isNavigatedTo)
+            catch (Exception ex)
             {
-                await Refresh();
+                _errorHandler.HandleError(ex);
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
-        [RelayCommand]
-        private Task TaskCompleted(ProjectTask task)
+        private void UpdateChartData()
         {
-            OnPropertyChanged(nameof(HasCompletedTasks));
-            CompletedTasksCount = Tasks.Count(t => t.IsCompleted);
-            return _taskRepository.SaveItemAsync(task);
+            var chartList = new List<CategoryChartData>
+            {
+                new("Học thuật", AllEvents.Count(e => e.CategoryTitle == "Học thuật")),
+                new("Thể thao", AllEvents.Count(e => e.CategoryTitle == "Thể thao")),
+                new("Tình nguyện", AllEvents.Count(e => e.CategoryTitle == "Tình nguyện")),
+                new("Kỹ năng", AllEvents.Count(e => e.CategoryTitle == "Kỹ năng mềm" || e.CategoryTitle == "Kỹ năng"))
+            };
+
+            var colorList = new List<Brush>
+            {
+                new SolidColorBrush(Color.FromArgb("#2563EB")),
+                new SolidColorBrush(Color.FromArgb("#10B981")),
+                new SolidColorBrush(Color.FromArgb("#EF4444")),
+                new SolidColorBrush(Color.FromArgb("#7C3AED"))
+            };
+
+            TodoCategoryData = chartList;
+            TodoCategoryColors = colorList;
         }
 
         [RelayCommand]
-        private Task AddTask() => Shell.Current.GoToAsync("task");
-
-        [RelayCommand]
-        private Task NavigateToProject(Project project) => Shell.Current.GoToAsync($"project?id={project.ID}");
-
-        [RelayCommand]
-        private Task NavigateToTask(ProjectTask task) => Shell.Current.GoToAsync($"task?id={task.ID}");
-
-        // US 17 & US 01: Quick Register or View QR Ticket for Campus Activity
-        [RelayCommand]
-        private async Task RegisterActivity(Project project)
+        private void FilterCategory(string category)
         {
-            if (project == null) return;
+            SelectedCategoryFilter = category;
+            ApplyCategoryFilter();
+        }
 
-            if (project.IsRegistered)
+        private void ApplyCategoryFilter()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedCategoryFilter) || SelectedCategoryFilter == "Tất cả")
             {
-                SelectedActivityForQr = project.Name;
-                ShowQrTicket();
+                DisplayEvents = new List<CampusEvent>(AllEvents ?? []);
+            }
+            else
+            {
+                DisplayEvents = (AllEvents ?? []).Where(e => string.Equals(e.CategoryTitle, SelectedCategoryFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+        }
+
+        // US 17 & US 01: Quick Register or View QR Ticket for Campus Event
+        [RelayCommand]
+        private async Task RegisterEvent(CampusEvent evt)
+        {
+            if (evt == null) return;
+
+            if (evt.IsRegistered)
+            {
+                SelectedActivityForQr = evt.Name;
+                QrTicketCode = _qrCodeService.GenerateTicketPayload(evt.ID, CurrentStudent.StudentCode, evt.Name);
+                QrImageSource = _qrCodeService.GenerateQrCodeImageSource(QrTicketCode, 20);
+                IsQrModalVisible = true;
                 return;
             }
 
-            project.IsRegistered = true;
-            RegisteredActivitiesCount = Projects.Count(p => p.IsRegistered);
-            Projects = new(Projects); // refresh binding
+            evt.IsRegistered = true;
+            MyRegisteredEvents = (AllEvents ?? []).Where(e => e.IsRegistered).ToList();
+            RegisteredCount = MyRegisteredEvents.Count;
+            AllEvents = new List<CampusEvent>(AllEvents ?? []);
+            ApplyCategoryFilter();
 
-            await Shell.Current.DisplayAlert(
-                "Đăng ký thành công 🎉",
-                $"Bạn đã đăng ký tham gia sự kiện: {project.Name}.\n" +
-                $"Thời gian: Sắp diễn ra\n" +
-                $"Vé điện tử QR của bạn đã sẵn sàng trong mục 'Vé QR'!",
-                "Xem vé ngay"
-            );
-            SelectedActivityForQr = project.Name;
-            ShowQrTicket();
+            if (Shell.Current != null)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Đăng ký thành công 🎉",
+                    $"Bạn đã đăng ký tham gia: {evt.Name}\n" +
+                    $"Địa điểm: {evt.Location}\n" +
+                    $"Quyền lợi: +{evt.TrainingPointsReward} Điểm rèn luyện\n\n" +
+                    "Vé điện tử QR của bạn đã sẵn sàng!",
+                    "Xem vé ngay");
+            }
+
+            SelectedActivityForQr = evt.Name;
+            QrTicketCode = _qrCodeService.GenerateTicketPayload(evt.ID, CurrentStudent.StudentCode, evt.Name);
+            QrImageSource = _qrCodeService.GenerateQrCodeImageSource(QrTicketCode, 20);
+            IsQrModalVisible = true;
         }
 
-        // Show QR Attendance Ticket Modal (US 17)
         [RelayCommand]
-        private void ShowQrTicket()
+        private void ShowQrTicket(CampusEvent evt)
         {
+            if (evt != null)
+            {
+                SelectedActivityForQr = evt.Name;
+                QrTicketCode = _qrCodeService.GenerateTicketPayload(evt.ID, CurrentStudent.StudentCode, evt.Name);
+            }
+            else
+            {
+                QrTicketCode = _qrCodeService.GenerateTicketPayload(1, CurrentStudent.StudentCode, SelectedActivityForQr);
+            }
+            QrImageSource = _qrCodeService.GenerateQrCodeImageSource(QrTicketCode, 20);
             IsQrModalVisible = true;
         }
 
@@ -290,59 +290,86 @@ namespace CampusActivitiesManager.PageModels
             IsQrModalVisible = false;
         }
 
-        // Student Logout
         [RelayCommand]
-        private async Task Logout()
+        private async Task NavigateToQrScanner()
         {
-            bool confirm = await Shell.Current.DisplayAlert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Sinh viên?", "Đăng xuất", "Hủy");
-            if (confirm)
+            if (Shell.Current != null)
             {
-                _authService?.Logout();
+                await Shell.Current.GoToAsync("//qrscan");
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToPhotoAttendance()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//photoattendance");
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToAttendanceHistory()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//attendancehistory");
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToAttendanceReport()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//attendancereport");
+            }
+        }
+
+        // Navigation Commands
+        [RelayCommand]
+        private async Task NavigateToEvents()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//events");
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToProfile()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//profile");
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToLogin()
+        {
+            if (Shell.Current != null)
+            {
                 await Shell.Current.GoToAsync("//login");
             }
         }
 
         [RelayCommand]
-        private async Task CleanTasks()
+        private async Task Logout()
         {
-            var completedTasks = Tasks.Where(t => t.IsCompleted).ToList();
-            foreach (var task in completedTasks)
+            if (Shell.Current != null)
             {
-                await _taskRepository.DeleteItemAsync(task);
-                Tasks.Remove(task);
+                bool confirm = await Shell.Current.DisplayAlert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Sinh viên?", "Đăng xuất", "Hủy");
+                if (confirm)
+                {
+                    _authService?.Logout();
+                    await Shell.Current.GoToAsync("//login");
+                }
             }
-
-            OnPropertyChanged(nameof(HasCompletedTasks));
-            Tasks = new(Tasks);
-            CompletedTasksCount = 0;
-            await Shell.Current.DisplayAlert("Thông báo", "Đã dọn dẹp các nhiệm vụ hoàn thành!", "Đóng");
+            else
+            {
+                _authService?.Logout();
+            }
         }
-
-        [RelayCommand]
-        private async Task NavigateToAdmin()
-        {
-            if (_authService == null || !_authService.IsAuthenticated)
-            {
-                await Shell.Current.DisplayAlert(
-                    "Yêu cầu đăng nhập",
-                    "Bạn cần đăng nhập để truy cập trang Quản Trị Admin.",
-                    "Đóng");
-                return;
-            }
-
-            if (!_authService.IsAdmin)
-            {
-                await Shell.Current.DisplayAlert(
-                    "Không có quyền truy cập",
-                    "Chỉ tài khoản Quản Trị Viên (Admin) mới có thể truy cập trang này.",
-                    "Đã hiểu");
-                return;
-            }
-
-            await Shell.Current.GoToAsync("//users");
-        }
-
-        [RelayCommand]
-        private Task NavigateToLogin() => Shell.Current.GoToAsync("//login");
     }
 }

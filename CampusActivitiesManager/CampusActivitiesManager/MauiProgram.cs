@@ -65,7 +65,10 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<UserService>();
             builder.Services.AddSingleton<IUserService<User>, UserService>();
             builder.Services.AddSingleton<IUserService, UserService>();
+            builder.Services.AddSingleton<IEventService, EventService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
+            builder.Services.AddSingleton<IAttendanceService, AttendanceService>();
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
 
@@ -74,6 +77,7 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<ProjectListPageModel>();
             builder.Services.AddSingleton<ManageMetaPageModel>();
             builder.Services.AddSingleton<UserManagementPageModel>();
+            builder.Services.AddTransient<EventManagementPageModel>();
             builder.Services.AddTransient<LoginPageModel>();
             builder.Services.AddTransient<ProfilePageModel>();
             builder.Services.AddTransient<RegisterViewModel>();
@@ -82,12 +86,22 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<AccessDeniedViewModel>();
             builder.Services.AddTransient<ProjectDetailPageModel>();
             builder.Services.AddTransient<TaskDetailPageModel>();
+            builder.Services.AddTransient<QrScannerViewModel>();
+            builder.Services.AddTransient<PhotoAttendanceViewModel>();
+            builder.Services.AddTransient<AttendanceHistoryViewModel>();
+            builder.Services.AddTransient<EventAttendanceReportViewModel>();
 
             // Pages
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<UserManagementPage>();
-        builder.Services.AddTransient<ProfilePage>();
+            builder.Services.AddTransient<EventManagementPage>();
+            builder.Services.AddTransient<ProfilePage>();
             builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<ManageMetaPage>();
+            builder.Services.AddTransient<QrScannerPage>();
+            builder.Services.AddTransient<PhotoAttendancePage>();
+            builder.Services.AddTransient<AttendanceHistoryPage>();
+            builder.Services.AddTransient<EventAttendanceReportPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
             builder.Services.AddTransientWithShellRoute<CreateUserPage, CreateUserViewModel>("createuser");
@@ -95,6 +109,11 @@ namespace CampusActivitiesManager
             builder.Services.AddTransientWithShellRoute<AccessDeniedPage, AccessDeniedViewModel>("accessdenied");
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
+            builder.Services.AddTransientWithShellRoute<ManageMetaPage, ManageMetaPageModel>("meta");
+            builder.Services.AddTransientWithShellRoute<QrScannerPage, QrScannerViewModel>("qrscan");
+            builder.Services.AddTransientWithShellRoute<PhotoAttendancePage, PhotoAttendanceViewModel>("photoattendance");
+            builder.Services.AddTransientWithShellRoute<AttendanceHistoryPage, AttendanceHistoryViewModel>("attendancehistory");
+            builder.Services.AddTransientWithShellRoute<EventAttendanceReportPage, EventAttendanceReportViewModel>("attendancereport");
 
 #if WINDOWS && DEBUG
             EnsureLocalBackendRunning();
