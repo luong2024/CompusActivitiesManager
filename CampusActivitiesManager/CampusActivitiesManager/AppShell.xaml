@@ -6,25 +6,94 @@
     xmlns:sf="clr-namespace:Syncfusion.Maui.Toolkit.SegmentedControl;assembly=Syncfusion.Maui.Toolkit"
     xmlns:pages="clr-namespace:CampusActivitiesManager.Pages"
     Shell.FlyoutBehavior="Flyout"
-    Title="CampusActivitiesManager">
+    Shell.FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+    Title="Campus Activities Manager">
 
+    <Shell.FlyoutHeader>
+        <Border Background="{StaticResource PrimaryGradientBrush}" Padding="20,24" StrokeThickness="0">
+            <HorizontalStackLayout Spacing="14" VerticalOptions="Center">
+                <Border WidthRequest="44" HeightRequest="44" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0" Padding="0">
+                    <Label Text="🎓" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                <VerticalStackLayout VerticalOptions="Center" Spacing="2">
+                    <Label Text="Campus Hub" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource White}"/>
+                    <Label Text="Quản lý Hoạt động Sinh viên" FontSize="12" TextColor="{StaticResource HeaderSubtitleColor}"/>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </Border>
+    </Shell.FlyoutHeader>
+
+    <!-- 3. Màn hình Đăng nhập (Login) - MUST BE FIRST -->
     <ShellContent
-        Title="Dashboard"
+        x:Name="NavLogin"
+        Title="Tài khoản &amp; Đăng nhập"
+        Icon="{StaticResource IconAccount}"
+        ContentTemplate="{DataTemplate pages:LoginPage}"
+        Route="login" />
+
+    <!-- 1. Cổng Sinh Viên -->
+    <ShellContent
+        x:Name="NavStudentDashboard"
+        Title="Cổng Sinh Viên"
         Icon="{StaticResource IconDashboard}"
         ContentTemplate="{DataTemplate pages:MainPage}"
         Route="main" />
 
+    <!-- 4. Màn hình Cập nhật thông tin cá nhân (Profile) -->
     <ShellContent
-        Title="Projects"
-        Icon="{StaticResource IconProjects}"
-        ContentTemplate="{DataTemplate pages:ProjectListPage}"
-        Route="projects" />
+        x:Name="NavProfile"
+        Title="Thông tin cá nhân"
+        Icon="{StaticResource IconAccount}"
+        ContentTemplate="{DataTemplate pages:ProfilePage}"
+        Route="profile" />
 
+    <!-- 2. Quản lý Tài khoản -->
     <ShellContent
-        Title="Manage Meta"
-        Icon="{StaticResource IconMeta}"
-        ContentTemplate="{DataTemplate pages:ManageMetaPage}"
-        Route="manage" />
+        x:Name="NavUsers"
+        Title="Quản lý Tài khoản"
+        Icon="{StaticResource IconUsers}"
+        ContentTemplate="{DataTemplate pages:UserManagementPage}"
+        Route="users" />
+
+    <!-- 5. Quản lý Sự kiện -->
+    <ShellContent
+        x:Name="NavEvents"
+        Title="Quản lý Sự kiện"
+        Icon="{StaticResource IconCalendar}"
+        ContentTemplate="{DataTemplate pages:EventManagementPage}"
+        Route="events" />
+
+    <!-- 6. Quét QR Điểm Danh -->
+    <ShellContent
+        x:Name="NavQrScanner"
+        Title="Quét QR Điểm Danh"
+        Icon="{StaticResource IconDashboard}"
+        ContentTemplate="{DataTemplate pages:QrScannerPage}"
+        Route="qrscan" />
+
+    <!-- 7. Điểm Danh Bằng Ảnh -->
+    <ShellContent
+        x:Name="NavPhotoAttendance"
+        Title="Điểm Danh Bằng Ảnh"
+        Icon="{StaticResource IconProjects}"
+        ContentTemplate="{DataTemplate pages:PhotoAttendancePage}"
+        Route="photoattendance" />
+
+    <!-- 8. Sổ Điểm Danh -->
+    <ShellContent
+        x:Name="NavAttendanceHistory"
+        Title="Sổ Điểm Danh Cá Nhân"
+        Icon="{StaticResource IconAccount}"
+        ContentTemplate="{DataTemplate pages:AttendanceHistoryPage}"
+        Route="attendancehistory" />
+
+    <!-- 9. Báo Cáo Điểm Danh (Ban tổ chức / Admin) -->
+    <ShellContent
+        x:Name="NavAttendanceReport"
+        Title="Báo Cáo Điểm Danh (BTC)"
+        Icon="{StaticResource IconUsers}"
+        ContentTemplate="{DataTemplate pages:EventAttendanceReportPage}"
+        Route="attendancereport" />
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">
