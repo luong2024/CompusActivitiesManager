@@ -24,6 +24,7 @@ templatesTest/
 *.pptx
 *.ppt
 *.pdf
+*.lnk
 /src/Controls/tests/TestCases.HostApp/MauiProgram.user.cs
 CustomAgentLogsTmp/
 .github/.baseline-state.json
