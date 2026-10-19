@@ -13,6 +13,10 @@ templatesTest/
 *.user
 *.userosscache
 *.sln.docstates
+*.iml
+.idea/
+*.zip
+*.binlog
 /src/Controls/tests/TestCases.HostApp/MauiProgram.user.cs
 CustomAgentLogsTmp/
 .github/.baseline-state.json
