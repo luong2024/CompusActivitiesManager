@@ -13,7 +13,6 @@ namespace CampusActivitiesManager.PageModels
         private readonly IEventService _eventService;
         private readonly IAuthenticationService _authService;
         private readonly ModalErrorHandler _errorHandler;
-        private bool _isDataLoaded;
 
         [ObservableProperty]
         private Account _currentStudent;
@@ -149,11 +148,7 @@ namespace CampusActivitiesManager.PageModels
         private async Task Appearing()
         {
             UpdateStudentProfile();
-            if (!_isDataLoaded)
-            {
-                _isDataLoaded = true;
-                await LoadEventsData();
-            }
+            await LoadEventsData();
         }
 
         [RelayCommand]

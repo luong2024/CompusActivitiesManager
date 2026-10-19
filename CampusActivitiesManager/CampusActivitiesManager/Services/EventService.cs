@@ -1,6 +1,3 @@
-using System.Net.Http.Json;
-using System.Text.Json;
-using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
@@ -8,15 +5,8 @@ namespace CampusActivitiesManager.Services
 {
     public class EventService : IEventService
     {
-        private readonly HttpClient _httpClient;
         private readonly ModalErrorHandler _errorHandler;
         private readonly ILogger<EventService> _logger;
-
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            PropertyNameCaseInsensitive = true,
-            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-        };
 
         private static readonly List<EventCategoryDto> _categories = new()
         {
@@ -47,7 +37,8 @@ namespace CampusActivitiesManager.Services
                 CreatedByRole = "Admin",
                 CreatedByName = "Quản trị viên Hệ thống",
                 ApprovedBy = "Admin",
-                ImageUrl = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80"
+                ImageUrl = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80",
+                VideoUrl = "https://www.w3schools.com/html/mov_bbb.mp4"
             },
             new()
             {
@@ -98,34 +89,36 @@ namespace CampusActivitiesManager.Services
                 CategoryID = 4,
                 Category = _categories[3],
                 Location = "Phòng Hội thảo 302-B1",
-                StartDate = DateTime.Now.AddDays(8).ToString("dd/MM/yyyy"),
-                EndDate = DateTime.Now.AddDays(8).ToString("dd/MM/yyyy"),
-                MaxParticipants = 120,
+                StartDate = DateTime.Now.AddDays(7).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(7).ToString("dd/MM/yyyy"),
+                MaxParticipants = 100,
                 Status = "Sắp diễn ra",
                 IsApproved = true,
                 ApprovalStatus = "Approved",
                 CreatedByRole = "Admin",
                 CreatedByName = "Quản trị viên Hệ thống",
-                ApprovedBy = "Admin"
+                ApprovedBy = "Admin",
+                ImageUrl = "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80"
             },
             new()
             {
                 ID = 5,
-                Name = "Đêm nhạc Acoustic Chào Tân Sinh viên",
-                Description = "Giao lưu âm nhạc và văn nghệ đặc sắc giữa các câu lạc bộ toàn trường",
+                Name = "Đêm Nhạc Hội Chào Tân Sinh Viên",
+                Description = "Chương trình biểu diễn nghệ thuật, giao lưu âm nhạc và kết nối các câu lạc bộ",
                 Icon = "🎸",
                 CategoryID = 5,
                 Category = _categories[4],
-                Location = "Sảnh Giảng đường C",
+                Location = "Quảng trường Trung tâm",
                 StartDate = DateTime.Now.AddDays(12).ToString("dd/MM/yyyy"),
                 EndDate = DateTime.Now.AddDays(12).ToString("dd/MM/yyyy"),
-                MaxParticipants = 400,
+                MaxParticipants = 500,
                 Status = "Sắp diễn ra",
                 IsApproved = true,
                 ApprovalStatus = "Approved",
                 CreatedByRole = "Admin",
                 CreatedByName = "Quản trị viên Hệ thống",
-                ApprovedBy = "Admin"
+                ApprovedBy = "Admin",
+                ImageUrl = "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80"
             },
             new()
             {
@@ -143,129 +136,60 @@ namespace CampusActivitiesManager.Services
                 IsApproved = false,
                 ApprovalStatus = "Pending",
                 CreatedByRole = "Manager",
-                CreatedByName = "Ban Tổ chức Sự kiện"
+                CreatedByName = "Ban Tổ chức Sự kiện",
+                ImageUrl = "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80"
             }
         };
 
         public EventService(ModalErrorHandler errorHandler, ILogger<EventService> logger)
         {
-            _httpClient = HttpHelper.CreateApiClient();
             _errorHandler = errorHandler;
             _logger = logger;
         }
 
         public async Task<List<CampusEvent>> GetEventsAsync(bool includePending = false)
         {
-            try
-            {
-                string url = includePending ? $"{Constants.EventsApiUrl}?includePending=true" : Constants.EventsApiUrl;
-                var response = await _httpClient.GetAsync(url);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<CampusEvent>>>(JsonOptions);
-                    if (result != null && result.Success && result.Data != null && result.Data.Count > 0)
-                    {
-                        return result.Data;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API get events failed, using local in-app event store");
-            }
-
-            return includePending ? _localEvents.ToList() : _localEvents.Where(e => e.IsApproved).ToList();
+            await Task.CompletedTask;
+            return includePending 
+                ? _localEvents.ToList() 
+                : _localEvents.Where(e => e.IsApproved).ToList();
         }
 
         public async Task<CampusEvent?> GetEventByIdAsync(int id)
         {
-            try
-            {
-                var response = await _httpClient.GetAsync($"{Constants.EventsApiUrl}/{id}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<CampusEvent>>(JsonOptions);
-                    if (result != null && result.Success && result.Data != null)
-                    {
-                        return result.Data;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API get event by id {Id} failed", id);
-            }
-
+            await Task.CompletedTask;
             return _localEvents.FirstOrDefault(e => e.ID == id);
         }
 
         public async Task<bool> CreateEventAsync(CampusEvent evt)
         {
-            try
-            {
-                var payload = new
-                {
-                    name = evt.Name,
-                    description = evt.Description,
-                    icon = string.IsNullOrWhiteSpace(evt.Icon) ? "📅" : evt.Icon,
-                    categoryId = evt.CategoryID,
-                    location = evt.Location,
-                    startDate = evt.StartDate,
-                    endDate = evt.EndDate,
-                    maxParticipants = evt.MaxParticipants,
-                    status = evt.Status,
-                    isApproved = evt.IsApproved,
-                    approvalStatus = evt.ApprovalStatus,
-                    createdByRole = evt.CreatedByRole,
-                    createdByName = evt.CreatedByName,
-                    imageUrl = evt.ImageUrl,
-                    videoUrl = evt.VideoUrl
-                };
-
-                var response = await _httpClient.PostAsJsonAsync(Constants.EventsApiUrl, payload);
-                if (response.IsSuccessStatusCode) return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API create event failed, applying locally");
-            }
-
+            await Task.CompletedTask;
             int newId = _localEvents.Any() ? _localEvents.Max(e => e.ID) + 1 : 1;
             evt.ID = newId;
             evt.Category = _categories.FirstOrDefault(c => c.ID == evt.CategoryID) ?? _categories[0];
-            _localEvents.Add(evt);
+
+            // Nếu người tạo là Manager thì cần duyệt qua Admin mới xuất hiện trên app
+            if (string.Equals(evt.CreatedByRole, "Manager", StringComparison.OrdinalIgnoreCase))
+            {
+                evt.IsApproved = false;
+                evt.ApprovalStatus = "Pending";
+                evt.Status = "Chờ phê duyệt";
+            }
+            else
+            {
+                evt.IsApproved = true;
+                evt.ApprovalStatus = "Approved";
+                evt.Status = "Sắp diễn ra";
+            }
+
+            _localEvents.Insert(0, evt);
+            _logger.LogInformation("Event '{Name}' created (ID: {Id}, Approved: {IsApproved})", evt.Name, evt.ID, evt.IsApproved);
             return true;
         }
 
         public async Task<bool> UpdateEventAsync(CampusEvent evt)
         {
-            try
-            {
-                var payload = new
-                {
-                    name = evt.Name,
-                    description = evt.Description,
-                    icon = evt.Icon,
-                    categoryId = evt.CategoryID,
-                    location = evt.Location,
-                    startDate = evt.StartDate,
-                    endDate = evt.EndDate,
-                    maxParticipants = evt.MaxParticipants,
-                    status = evt.Status,
-                    isApproved = evt.IsApproved,
-                    approvalStatus = evt.ApprovalStatus,
-                    imageUrl = evt.ImageUrl,
-                    videoUrl = evt.VideoUrl
-                };
-
-                var response = await _httpClient.PutAsJsonAsync($"{Constants.EventsApiUrl}/{evt.ID}", payload);
-                if (response.IsSuccessStatusCode) return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API update event failed, applying locally");
-            }
-
+            await Task.CompletedTask;
             var local = _localEvents.FirstOrDefault(e => e.ID == evt.ID);
             if (local != null)
             {
@@ -283,6 +207,7 @@ namespace CampusActivitiesManager.Services
                 local.ApprovalStatus = evt.ApprovalStatus;
                 local.ImageUrl = evt.ImageUrl;
                 local.VideoUrl = evt.VideoUrl;
+                _logger.LogInformation("Event {Id} updated", evt.ID);
                 return true;
             }
             return false;
@@ -290,31 +215,16 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> ApproveEventAsync(int id, bool approve, string? approvedBy = "Admin", string? reason = null)
         {
-            try
-            {
-                string endpoint = approve ? "approve" : "reject";
-                var payload = new
-                {
-                    isApproved = approve,
-                    approvedBy = approvedBy ?? "Admin",
-                    reason = reason
-                };
-
-                var response = await _httpClient.PostAsJsonAsync($"{Constants.EventsApiUrl}/{id}/{endpoint}", payload);
-                if (response.IsSuccessStatusCode) return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API approve event failed, applying locally");
-            }
-
+            await Task.CompletedTask;
             var local = _localEvents.FirstOrDefault(e => e.ID == id);
             if (local != null)
             {
                 local.IsApproved = approve;
                 local.ApprovalStatus = approve ? "Approved" : "Rejected";
-                local.ApprovedBy = approvedBy;
+                local.Status = approve ? "Sắp diễn ra" : "Đã từ chối";
+                local.ApprovedBy = approvedBy ?? "Admin";
                 local.RejectionReason = reason;
+                _logger.LogInformation("Event {Id} approved state changed to {Status} by {Approver}", id, local.ApprovalStatus, approvedBy);
                 return true;
             }
             return false;
@@ -322,20 +232,12 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> DeleteEventAsync(int id)
         {
-            try
-            {
-                var response = await _httpClient.DeleteAsync($"{Constants.EventsApiUrl}/{id}");
-                if (response.IsSuccessStatusCode) return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API delete event failed, applying locally");
-            }
-
+            await Task.CompletedTask;
             var local = _localEvents.FirstOrDefault(e => e.ID == id);
             if (local != null)
             {
                 _localEvents.Remove(local);
+                _logger.LogInformation("Event {Id} deleted", id);
                 return true;
             }
             return false;
@@ -343,23 +245,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<List<EventCategoryDto>> GetCategoriesAsync()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(Constants.CategoriesApiUrl);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<EventCategoryDto>>>(JsonOptions);
-                    if (result != null && result.Success && result.Data != null && result.Data.Count > 0)
-                    {
-                        return result.Data;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API get categories failed, using default in-app list");
-            }
-
+            await Task.CompletedTask;
             return _categories.ToList();
         }
     }

@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
@@ -32,84 +31,12 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> LoginAsync(string username, string password)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-                    return false;
-
-                using var httpClient = HttpHelper.CreateApiClient();
-
-                var email = username.Trim();
-                if (!email.Contains('@'))
-                {
-                    email = $"{email}@campus.edu.vn";
-                }
-
-                var loginRequest = new { Email = email, Password = password.Trim() };
-                var response = await httpClient.PostAsJsonAsync(Constants.AuthLoginUrl, loginRequest);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var options = new System.Text.Json.JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-                    };
-
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<Models.AuthLoginResponse>>(options);
-
-                    if (result != null && result.Success && result.Data != null)
-                    {
-                        var loginData = result.Data;
-                        Role parsedRole = Role.User;
-                        if (string.Equals(loginData.Role, "Lecturer", StringComparison.OrdinalIgnoreCase))
-                        {
-                            parsedRole = Role.Manager;
-                        }
-                        else if (Enum.TryParse<Role>(loginData.Role, true, out var r))
-                        {
-                            parsedRole = r;
-                        }
-
-                        var user = new User
-                        {
-                            Id = loginData.Id,
-                            Username = username.Trim(),
-                            FullName = loginData.FullName,
-                            Email = loginData.Email,
-                            Role = parsedRole,
-                            IsActive = loginData.IsActive
-                        };
-
-                        _currentUser = user;
-                        _logger.LogInformation("Authenticated session started with role {Role}", user.Role);
-                        CurrentUserChanged?.Invoke(this, EventArgs.Empty);
-
-                        try
-                        {
-                            await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, loginData.Token);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Could not persist token in SecureStorage");
-                        }
-
-                        return true;
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("API authentication returned status code {StatusCode}, checking local account fallback", response.StatusCode);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error during API login request, falling back to local credentials");
-            }
-
-            // Local fallback for offline / demo mode
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                return false;
 
             var cleanUser = username.Trim().ToLower();
+
+            // 1. Quản trị viên (Admin)
             if (cleanUser == "admin" || cleanUser == "admin@campus.edu.vn" || cleanUser == "admin@campus.edu")
             {
                 _currentUser = new User
@@ -121,9 +48,17 @@ namespace CampusActivitiesManager.Services
                     Role = Role.Admin,
                     IsActive = true
                 };
+                try
+                {
+                    await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_admin_token_" + Guid.NewGuid().ToString("N"));
+                }
+                catch { }
+
+                _logger.LogInformation("Authenticated session started for Admin");
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
+            // 2. Ban Quản Lý Hoạt Động (Manager)
             else if (cleanUser == "manager" || cleanUser == "manager@campus.edu.vn" || cleanUser == "manager@campus.edu")
             {
                 _currentUser = new User
@@ -135,9 +70,17 @@ namespace CampusActivitiesManager.Services
                     Role = Role.Manager,
                     IsActive = true
                 };
+                try
+                {
+                    await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_manager_token_" + Guid.NewGuid().ToString("N"));
+                }
+                catch { }
+
+                _logger.LogInformation("Authenticated session started for Manager");
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
+            // 3. Sinh viên mẫu (Student)
             else if (cleanUser == "cuong.na@campus.edu.vn" || cleanUser == "b20dccn001" || cleanUser == "b20dccn001@campus.edu.vn" || cleanUser == "student" || cleanUser == "student1@campus.edu")
             {
                 _currentUser = new User
@@ -149,9 +92,17 @@ namespace CampusActivitiesManager.Services
                     Role = Role.User,
                     IsActive = true
                 };
+                try
+                {
+                    await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_student_token_" + Guid.NewGuid().ToString("N"));
+                }
+                catch { }
+
+                _logger.LogInformation("Authenticated session started for Student");
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
+            // 4. Tài khoản lưu trong danh sách người dùng nội bộ
             else
             {
                 try
@@ -160,13 +111,20 @@ namespace CampusActivitiesManager.Services
                     if (localUser != null && localUser.IsActive)
                     {
                         _currentUser = localUser;
+                        try
+                        {
+                            await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_user_token_" + Guid.NewGuid().ToString("N"));
+                        }
+                        catch { }
+
+                        _logger.LogInformation("Authenticated session started for {Username}", localUser.Username);
                         CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                         return true;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Ignore
+                    _logger.LogWarning(ex, "Error checking user store for {Username}", username);
                 }
             }
 
@@ -196,7 +154,11 @@ namespace CampusActivitiesManager.Services
         public void Logout()
         {
             _currentUser = null;
-            SecureStorage.Default.Remove(Constants.AuthTokenKey);
+            try
+            {
+                SecureStorage.Default.Remove(Constants.AuthTokenKey);
+            }
+            catch { }
             _logger.LogInformation("User session ended");
             CurrentUserChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -234,6 +196,7 @@ namespace CampusActivitiesManager.Services
             {
                 _logger.LogError(ex, "Error refreshing current user session");
             }
+            await Task.CompletedTask;
         }
     }
 }

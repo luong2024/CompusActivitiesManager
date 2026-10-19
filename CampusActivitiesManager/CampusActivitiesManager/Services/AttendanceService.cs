@@ -1,6 +1,4 @@
-using System.Net.Http.Json;
-using System.Text.Json;
-using CampusActivitiesManager.Data;
+using System.Text;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
@@ -8,16 +6,10 @@ namespace CampusActivitiesManager.Services
 {
     public class AttendanceService : IAttendanceService
     {
-        private readonly HttpClient _httpClient;
         private readonly ModalErrorHandler _errorHandler;
         private readonly ILogger<AttendanceService> _logger;
 
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        private static readonly List<AttendanceRecord> _localFallbackRecords = new()
+        private static readonly List<AttendanceRecord> _localRecords = new()
         {
             new AttendanceRecord
             {
@@ -47,7 +39,7 @@ namespace CampusActivitiesManager.Services
             }
         };
 
-        private static readonly List<CampusNotificationDto> _localFallbackNotifications = new()
+        private static readonly List<CampusNotificationDto> _localNotifications = new()
         {
             new CampusNotificationDto
             {
@@ -80,235 +72,143 @@ namespace CampusActivitiesManager.Services
 
         public AttendanceService(ModalErrorHandler errorHandler, ILogger<AttendanceService> logger)
         {
-            _httpClient = HttpHelper.CreateApiClient();
             _errorHandler = errorHandler;
             _logger = logger;
         }
 
         public async Task<(bool Success, string Message, AttendanceRecord? Record)> CheckInWithQrAsync(int eventId, string studentCode, string qrPayload)
         {
-            try
-            {
-                var req = new QrCheckInRequest
-                {
-                    EventId = eventId,
-                    StudentCode = studentCode,
-                    QrTicketCode = qrPayload,
-                    DeviceTimestamp = DateTime.UtcNow
-                };
+            await Task.CompletedTask;
 
-                var response = await _httpClient.PostAsJsonAsync($"{Constants.AttendanceApiUrl}/qr", req);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<AttendanceRecord>>(JsonOptions);
-                    return (true, result?.Message ?? "Điểm danh thành công!", result?.Data);
-                }
-
-                var err = await response.Content.ReadFromJsonAsync<ApiErrorResponse>(JsonOptions);
-                return (false, err?.Message ?? "Điểm danh thất bại", null);
-            }
-            catch (Exception ex)
+            if (string.IsNullOrWhiteSpace(qrPayload))
             {
-                _logger.LogWarning(ex, "API QR check-in failed, simulating local record");
-                var record = new AttendanceRecord
-                {
-                    Id = "LOCAL-" + Guid.NewGuid().ToString("N")[..6],
-                    EventId = eventId,
-                    EventName = "Sự kiện hoạt động #" + eventId,
-                    StudentCode = studentCode,
-                    StudentName = "Sinh viên " + studentCode,
-                    CheckInTime = DateTime.UtcNow,
-                    Method = "QR",
-                    TrainingPointsAwarded = 5,
-                    Status = "Present",
-                    Notes = "Điểm danh ngoại tuyến thành công"
-                };
-                _localFallbackRecords.Insert(0, record);
-                return (true, "Điểm danh QR thành công (chế độ phản hồi nhanh)!", record);
+                return (false, "Mã QR không hợp lệ hoặc rỗng.", null);
             }
+
+            var record = new AttendanceRecord
+            {
+                Id = "ATT-QR-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                EventId = eventId,
+                EventName = "Sự kiện hoạt động #" + eventId,
+                StudentCode = string.IsNullOrWhiteSpace(studentCode) ? "B20DCCN001" : studentCode,
+                StudentName = "Sinh viên " + studentCode,
+                CheckInTime = DateTime.UtcNow,
+                Method = "QR",
+                TrainingPointsAwarded = 5,
+                Status = "Present",
+                Notes = "Quét mã QR trực tiếp trên ứng dụng"
+            };
+
+            _localRecords.Insert(0, record);
+
+            _localNotifications.Insert(0, new CampusNotificationDto
+            {
+                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..4],
+                Title = "Điểm danh QR thành công 🎉",
+                Message = $"Bạn đã điểm danh thành công sự kiện #{eventId} và nhận 5 điểm rèn luyện.",
+                Type = "Points",
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            });
+
+            _logger.LogInformation("QR Check-in successful for event {EventId}, student {StudentCode}", eventId, studentCode);
+            return (true, "Điểm danh QR thành công! (+5 Điểm rèn luyện)", record);
         }
 
         public async Task<(bool Success, string Message, AttendanceRecord? Record)> CheckInWithPhotoAsync(int eventId, string studentCode, string photoBase64, string? notes)
         {
-            try
-            {
-                var req = new PhotoCheckInRequest
-                {
-                    EventId = eventId,
-                    StudentCode = studentCode,
-                    PhotoBase64 = photoBase64,
-                    Notes = notes,
-                    DeviceTimestamp = DateTime.UtcNow
-                };
+            await Task.CompletedTask;
 
-                var response = await _httpClient.PostAsJsonAsync($"{Constants.AttendanceApiUrl}/photo", req);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<AttendanceRecord>>(JsonOptions);
-                    return (true, result?.Message ?? "Điểm danh bằng hình ảnh thành công!", result?.Data);
-                }
-
-                var err = await response.Content.ReadFromJsonAsync<ApiErrorResponse>(JsonOptions);
-                return (false, err?.Message ?? "Điểm danh ảnh thất bại", null);
-            }
-            catch (Exception ex)
+            var record = new AttendanceRecord
             {
-                _logger.LogWarning(ex, "API Photo check-in failed, simulating local record");
-                var record = new AttendanceRecord
-                {
-                    Id = "LOCAL-" + Guid.NewGuid().ToString("N")[..6],
-                    EventId = eventId,
-                    EventName = "Sự kiện hoạt động #" + eventId,
-                    StudentCode = studentCode,
-                    StudentName = "Sinh viên " + studentCode,
-                    CheckInTime = DateTime.UtcNow,
-                    Method = "Photo",
-                    TrainingPointsAwarded = 5,
-                    Status = "Present",
-                    Notes = notes ?? "Điểm danh kèm hình ảnh minh chứng camera"
-                };
-                _localFallbackRecords.Insert(0, record);
-                return (true, "Điểm danh ảnh thành công!", record);
-            }
+                Id = "ATT-IMG-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                EventId = eventId,
+                EventName = "Sự kiện hoạt động #" + eventId,
+                StudentCode = string.IsNullOrWhiteSpace(studentCode) ? "B20DCCN001" : studentCode,
+                StudentName = "Sinh viên " + studentCode,
+                CheckInTime = DateTime.UtcNow,
+                Method = "Photo",
+                TrainingPointsAwarded = 5,
+                Status = "Present",
+                Notes = notes ?? "Điểm danh hình ảnh minh chứng camera",
+                PhotoUrl = string.IsNullOrWhiteSpace(photoBase64) ? null : photoBase64
+            };
+
+            _localRecords.Insert(0, record);
+
+            _localNotifications.Insert(0, new CampusNotificationDto
+            {
+                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..4],
+                Title = "Điểm danh ảnh thành công 📸",
+                Message = $"Minh chứng ảnh đã được ghi nhận cho sự kiện #{eventId}.",
+                Type = "Success",
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            });
+
+            _logger.LogInformation("Photo Check-in successful for event {EventId}, student {StudentCode}", eventId, studentCode);
+            return (true, "Điểm danh kèm hình ảnh thành công!", record);
         }
 
         public async Task<(bool Success, string Message, AttendanceRecord? Record)> MarkManualAttendanceAsync(int eventId, string studentCode, string status, int points, string notes)
         {
-            try
-            {
-                var req = new ManualAttendanceRequest
-                {
-                    EventId = eventId,
-                    StudentCode = studentCode,
-                    Status = status,
-                    TrainingPoints = points,
-                    Notes = notes
-                };
+            await Task.CompletedTask;
 
-                var response = await _httpClient.PostAsJsonAsync($"{Constants.AttendanceApiUrl}/manual", req);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<AttendanceRecord>>(JsonOptions);
-                    return (true, result?.Message ?? "Cập nhật thành công!", result?.Data);
-                }
-
-                var err = await response.Content.ReadFromJsonAsync<ApiErrorResponse>(JsonOptions);
-                return (false, err?.Message ?? "Lỗi khi cập nhật thủ công", null);
-            }
-            catch (Exception ex)
+            var record = new AttendanceRecord
             {
-                _logger.LogWarning(ex, "API manual attendance failed, fallback to local");
-                var record = new AttendanceRecord
-                {
-                    Id = "LOCAL-" + Guid.NewGuid().ToString("N")[..6],
-                    EventId = eventId,
-                    EventName = "Sự kiện hoạt động #" + eventId,
-                    StudentCode = studentCode,
-                    StudentName = "Sinh viên " + studentCode,
-                    CheckInTime = DateTime.UtcNow,
-                    Method = "Manual",
-                    TrainingPointsAwarded = points,
-                    Status = status,
-                    Notes = notes
-                };
-                _localFallbackRecords.Insert(0, record);
-                return (true, "Cập nhật điểm danh thành công!", record);
-            }
+                Id = "ATT-MAN-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                EventId = eventId,
+                EventName = "Sự kiện hoạt động #" + eventId,
+                StudentCode = studentCode,
+                StudentName = "Sinh viên " + studentCode,
+                CheckInTime = DateTime.UtcNow,
+                Method = "Manual",
+                TrainingPointsAwarded = points,
+                Status = string.IsNullOrWhiteSpace(status) ? "Present" : status,
+                Notes = notes
+            };
+
+            _localRecords.Insert(0, record);
+            _logger.LogInformation("Manual attendance recorded for event {EventId}, student {StudentCode}", eventId, studentCode);
+            return (true, "Cập nhật điểm danh thành công!", record);
         }
 
         public async Task<List<AttendanceRecord>> GetEventAttendanceAsync(int eventId)
         {
-            try
-            {
-                var response = await _httpClient.GetAsync($"{Constants.AttendanceApiUrl}/event/{eventId}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<AttendanceRecord>>>(JsonOptions);
-                    if (result?.Data != null && result.Data.Count > 0)
-                    {
-                        return result.Data;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API get event attendance failed, fallback");
-            }
-
-            return _localFallbackRecords.Where(r => r.EventId == eventId).ToList();
+            await Task.CompletedTask;
+            return _localRecords.Where(r => r.EventId == eventId).ToList();
         }
 
         public async Task<List<AttendanceRecord>> GetStudentAttendanceHistoryAsync(string studentCode)
         {
-            try
-            {
-                var response = await _httpClient.GetAsync($"{Constants.AttendanceApiUrl}/student/{studentCode}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<AttendanceRecord>>>(JsonOptions);
-                    if (result?.Data != null && result.Data.Count > 0)
-                    {
-                        return result.Data;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API get student attendance failed, fallback");
-            }
+            await Task.CompletedTask;
+            if (string.IsNullOrWhiteSpace(studentCode))
+                return _localRecords.ToList();
 
-            return _localFallbackRecords.Where(r => string.Equals(r.StudentCode, studentCode, StringComparison.OrdinalIgnoreCase)).ToList();
+            return _localRecords.Where(r =>
+                string.Equals(r.StudentCode, studentCode, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         public async Task<string> ExportAttendanceCsvAsync(int eventId)
         {
-            try
+            await Task.CompletedTask;
+            var list = _localRecords.Where(r => r.EventId == eventId).ToList();
+
+            var sb = new StringBuilder();
+            sb.AppendLine("ID,EventID,StudentCode,StudentName,CheckInTime,Method,Status,TrainingPoints,Notes");
+
+            foreach (var r in list)
             {
-                var response = await _httpClient.GetAsync($"{Constants.AttendanceApiUrl}/event/{eventId}/export-csv");
-                if (response.IsSuccessStatusCode)
-                {
-                    return await response.Content.ReadAsStringAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API export CSV failed, generating local CSV");
+                sb.AppendLine($"\"{r.Id}\",{r.EventId},\"{r.StudentCode}\",\"{r.StudentName}\",\"{r.CheckInTime:yyyy-MM-dd HH:mm:ss}\",\"{r.Method}\",\"{r.Status}\",{r.TrainingPointsAwarded},\"{r.Notes}\"");
             }
 
-            var records = _localFallbackRecords.Where(r => r.EventId == eventId).ToList();
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine("Mã Điểm Danh,Mã Sự Kiện,Tên Sự Kiện,Mã Sinh Viên,Họ và Tên,Thời Gian Điểm Danh,Hình Thức,Trạng Thái,Điểm Rèn Luyện,Ghi Chú");
-            foreach (var r in records)
-            {
-                sb.AppendLine($"\"{r.Id}\",\"{r.EventId}\",\"{r.EventName}\",\"{r.StudentCode}\",\"{r.StudentName}\",\"{r.CheckInTime:dd/MM/yyyy HH:mm:ss}\",\"{r.Method}\",\"{r.Status}\",\"{r.TrainingPointsAwarded}\",\"{r.Notes}\"");
-            }
             return sb.ToString();
         }
 
         public async Task<List<CampusNotificationDto>> GetNotificationsAsync(string? studentCode = null)
         {
-            try
-            {
-                var url = string.IsNullOrWhiteSpace(studentCode)
-                    ? Constants.NotificationsApiUrl
-                    : $"{Constants.NotificationsApiUrl}?studentCode={studentCode}";
-
-                var response = await _httpClient.GetAsync(url);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<CampusNotificationDto>>>(JsonOptions);
-                    if (result?.Data != null && result.Data.Count > 0)
-                    {
-                        return result.Data;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "API get notifications failed, fallback");
-            }
-
-            return _localFallbackNotifications;
+            await Task.CompletedTask;
+            return _localNotifications.ToList();
         }
     }
 }

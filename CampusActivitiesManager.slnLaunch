@@ -1,20 +1,7 @@
 [
   {
-    "Name": "MAUI Windows (Stand-alone / Độc lập)",
+    "Name": "Campus Activity Manager (MAUI)",
     "Projects": [
-      {
-        "Path": "CampusActivitiesManager\\CampusActivitiesManager\\CampusActivitiesManager.csproj",
-        "Action": "Start"
-      }
-    ]
-  },
-  {
-    "Name": "Run All (API + MAUI Windows)",
-    "Projects": [
-      {
-        "Path": "CampusActivitiesManager.Api\\CampusActivitiesManager.Api.csproj",
-        "Action": "Start"
-      },
       {
         "Path": "CampusActivitiesManager\\CampusActivitiesManager\\CampusActivitiesManager.csproj",
         "Action": "Start"
