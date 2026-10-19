@@ -30,6 +30,11 @@ namespace CampusActivitiesManager.Api.Services
                     credPath = @"D:\keys\campusacmanage-df24bcb494c7.json";
                     Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
                 }
+                else
+                {
+                    Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", null);
+                    credPath = null;
+                }
             }
 
             string projectId = _configuration["Firebase:ProjectId"]

@@ -3,6 +3,8 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,31 +17,37 @@ if (string.IsNullOrEmpty(credPath) || !File.Exists(credPath))
         credPath = @"D:\keys\campusacmanage-df24bcb494c7.json";
         Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
     }
+    else
+    {
+        Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", null);
+        credPath = null;
+    }
 }
 
 string firebaseProjectId = builder.Configuration["Firebase:ProjectId"]
     ?? Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT")?.Trim('"', ' ')
     ?? "campusacmanage";
 
-// Initialize Firebase App early so DI services can access FirebaseAuth.DefaultInstance
-if (FirebaseApp.DefaultInstance == null)
+bool isFirebaseConfigured = false;
+if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
 {
     try
     {
-        if (!string.IsNullOrEmpty(credPath) && File.Exists(credPath))
+        if (FirebaseApp.DefaultInstance == null)
         {
-            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credPath);
+            using var stream = File.OpenRead(credPath);
+            FirebaseApp.Create(new AppOptions
+            {
+                Credential = GoogleCredential.FromStream(stream),
+                ProjectId = firebaseProjectId
+            });
         }
-
-        FirebaseApp.Create(new AppOptions
-        {
-            Credential = GoogleCredential.GetApplicationDefault(),
-            ProjectId = firebaseProjectId
-        });
+        isFirebaseConfigured = FirebaseApp.DefaultInstance != null;
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Could not initialize Firebase Default Instance: {ex.Message}");
+        Console.WriteLine($"[Startup] Notice: Could not initialize Firebase Cloud: {ex.Message}");
+        isFirebaseConfigured = false;
     }
 }
 
@@ -63,24 +71,42 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Register Firebase Services (DI)
-builder.Services.AddScoped<IFirebaseAccountService, FirebaseAccountService>();
-builder.Services.AddScoped<IFirebaseEventService, FirebaseEventService>();
-builder.Services.AddScoped<IFirebaseAttendanceService, FirebaseAttendanceService>();
+// Register DI Services: Firebase Cloud or Local In-Memory Fallback
+if (isFirebaseConfigured)
+{
+    Console.WriteLine("[Startup] Running with Firebase Cloud integration.");
+    builder.Services.AddScoped<IFirebaseAccountService, FirebaseAccountService>();
+    builder.Services.AddScoped<IFirebaseEventService, FirebaseEventService>();
+}
+else
+{
+    Console.WriteLine("[Startup] Running in Local In-Memory Mode (No external Firebase keys needed). Seed accounts and events loaded.");
+    builder.Services.AddSingleton<IFirebaseAccountService, InMemoryAccountService>();
+    builder.Services.AddSingleton<IFirebaseEventService, InMemoryEventService>();
+}
 
-// Configure Firebase JWT Authentication
+builder.Services.AddSingleton<IFirebaseAttendanceService, FirebaseAttendanceService>();
+
+// Configure JWT Authentication (resilient symmetric validation with dev fallback)
+string jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+    ?? builder.Configuration["Jwt:SecretKey"]
+    ?? "CampusActivitiesManager_DefaultDevSecretKey_2026!#";
+var symmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey.PadRight(32, '_')));
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
-            ValidateAudience = true,
-            ValidAudience = firebaseProjectId,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = symmetricKey,
+            ValidateIssuer = false,
+            ValidateAudience = false,
             ValidateLifetime = true,
-            RoleClaimType = "role"
+            RoleClaimType = "role",
+            NameClaimType = ClaimTypes.NameIdentifier
         };
     });
 
@@ -102,11 +128,17 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Health check endpoint
-app.MapGet("/health", () => Results.Ok(new { status = "Healthy", firebaseConnected = FirebaseApp.DefaultInstance != null, timestamp = DateTime.UtcNow }));
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "Healthy",
+    mode = isFirebaseConfigured ? "Firebase Cloud" : "Local In-Memory Mode",
+    firebaseConnected = isFirebaseConfigured,
+    timestamp = DateTime.UtcNow
+}));
 
 app.MapControllers();
 
-// Bootstrap master Admin account directly to Firebase Auth & Cloud Firestore if needed
+// Bootstrap master Admin account directly to storage/memory if needed
 try
 {
     using var scope = app.Services.CreateScope();

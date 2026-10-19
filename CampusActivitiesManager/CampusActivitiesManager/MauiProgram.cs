@@ -183,7 +183,12 @@ namespace CampusActivitiesManager
                                         {
                                             if (envVar.Value.ValueKind == System.Text.Json.JsonValueKind.String)
                                             {
-                                                startInfo.EnvironmentVariables[envVar.Name] = envVar.Value.GetString();
+                                                var val = envVar.Value.GetString();
+                                                if (envVar.Name == "GOOGLE_APPLICATION_CREDENTIALS" && (string.IsNullOrEmpty(val) || !File.Exists(val)))
+                                                {
+                                                    continue;
+                                                }
+                                                startInfo.EnvironmentVariables[envVar.Name] = val;
                                             }
                                         }
                                     }
