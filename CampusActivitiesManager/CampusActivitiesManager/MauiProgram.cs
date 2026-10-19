@@ -92,6 +92,8 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<AttendanceHistoryViewModel>();
             builder.Services.AddTransient<EventAttendanceReportViewModel>();
             builder.Services.AddTransient<EventFormPageModel>();
+            builder.Services.AddTransient<EventDetailPageModel>();
+            builder.Services.AddTransient<ClassHubPageModel>();
 
             // Pages
             builder.Services.AddTransient<MainPage>();
@@ -105,6 +107,8 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<AttendanceHistoryPage>();
             builder.Services.AddTransient<EventAttendanceReportPage>();
             builder.Services.AddTransient<EventFormPage>();
+            builder.Services.AddTransient<EventDetailPage>();
+            builder.Services.AddTransient<ClassHubPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
             builder.Services.AddTransientWithShellRoute<CreateUserPage, CreateUserViewModel>("createuser");
@@ -117,6 +121,8 @@ namespace CampusActivitiesManager
             builder.Services.AddTransientWithShellRoute<PhotoAttendancePage, PhotoAttendanceViewModel>("photoattendance");
             builder.Services.AddTransientWithShellRoute<AttendanceHistoryPage, AttendanceHistoryViewModel>("attendancehistory");
             builder.Services.AddTransientWithShellRoute<EventAttendanceReportPage, EventAttendanceReportViewModel>("attendancereport");
+            builder.Services.AddTransientWithShellRoute<EventDetailPage, EventDetailPageModel>("eventdetail");
+            builder.Services.AddTransientWithShellRoute<ClassHubPage, ClassHubPageModel>("classhub");
             return builder.Build();
         }
     }

@@ -84,6 +84,64 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- Account Role & Points Summary Card -->
+            <Border StrokeShape="RoundRectangle 20"
+                    Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
+                    StrokeThickness="1"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
+                    Padding="20">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Thông tin Hệ thống &amp; Phân quyền" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
+                        <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
+                            <Label Text="Tên đăng nhập:" FontSize="11" TextColor="{StaticResource Gray500}" />
+                            <Label Text="{Binding Username}" FontSize="13" FontAttributes="Bold" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
+                            <Label Text="Vai trò hệ thống:" FontSize="11" TextColor="{StaticResource Gray500}" />
+                            <Label Text="{Binding RoleDisplay}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Row="1" Grid.Column="0" Spacing="2">
+                            <Label Text="Lớp sinh hoạt:" FontSize="11" TextColor="{StaticResource Gray500}" />
+                            <Label Text="{Binding ClassName}" FontSize="13" FontAttributes="Bold" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="2">
+                            <Label Text="Điểm rèn luyện hiện có:" FontSize="11" TextColor="{StaticResource Gray500}" />
+                            <Label Text="{Binding TrainingPoints, StringFormat='{0} ĐRL'}" FontSize="14" FontAttributes="Bold" TextColor="#16A34A" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Row="2" Grid.ColumnSpan="2" Spacing="2">
+                            <Label Text="Email tài khoản:" FontSize="11" TextColor="{StaticResource Gray500}" />
+                            <Label Text="{Binding Email}" FontSize="13" FontAttributes="Bold" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Logout Section -->
+            <Border StrokeShape="RoundRectangle 20"
+                    Stroke="#FECACA"
+                    StrokeThickness="1"
+                    BackgroundColor="#FEF2F2"
+                    Padding="20">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Phiên Đăng Nhập" FontSize="15" FontAttributes="Bold" TextColor="#991B1B" />
+                    <Label Text="Nhấn để kết thúc phiên làm việc hiện tại và quay về màn hình đăng nhập." FontSize="12" TextColor="#B91C1C" />
+                    <Button Text="🚪 Đăng xuất khỏi hệ thống"
+                            Command="{Binding LogoutCommand}"
+                            BackgroundColor="#DC2626"
+                            TextColor="{StaticResource White}"
+                            FontAttributes="Bold"
+                            FontSize="15"
+                            HeightRequest="48"
+                            CornerRadius="12" />
+                </VerticalStackLayout>
+            </Border>
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

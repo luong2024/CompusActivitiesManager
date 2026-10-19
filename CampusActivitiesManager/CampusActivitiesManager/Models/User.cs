@@ -5,8 +5,7 @@ namespace CampusActivitiesManager.Models
 {
     /// <summary>
     /// Model User đại diện cho thực thể người dùng trong hệ thống.
-    /// Kế thừa ObservableObject (INotifyPropertyChanged) để tự động kích hoạt cập nhật giao diện
-    /// khi trường Role, IsActive hoặc các trường thông tin khác bị thay đổi.
+    /// Kế thừa ObservableObject (INotifyPropertyChanged) để tự động cập nhật UI.
     /// </summary>
     public partial class User : ObservableObject
     {
@@ -29,7 +28,28 @@ namespace CampusActivitiesManager.Models
         private string _phoneNumber = string.Empty;
 
         [ObservableProperty]
-        private string _department = string.Empty;
+        private string _department = "Công nghệ Thông tin";
+
+        [ObservableProperty]
+        private string _className = "D20CNTT1"; // Lớp sinh hoạt
+
+        [ObservableProperty]
+        private string _assignedClass = "D20CNTT1"; // Lớp chủ nhiệm (đối với Giảng viên)
+
+        [ObservableProperty]
+        private bool _isSecretary = false; // Đánh dấu Bí thư lớp
+
+        [ObservableProperty]
+        private string _academicYear = "K20 (2020-2025)";
+
+        // Điểm rèn luyện khởi điểm ban đầu là 0 theo yêu cầu người dùng
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(SemesterProgress))]
+        [NotifyPropertyChangedFor(nameof(YearProgress))]
+        [NotifyPropertyChangedFor(nameof(IsSemesterQualified))]
+        [NotifyPropertyChangedFor(nameof(IsYearQualified))]
+        [NotifyPropertyChangedFor(nameof(PointsStatusDisplay))]
+        private int _trainingPoints = 0;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(RoleDisplayName))]
@@ -37,6 +57,8 @@ namespace CampusActivitiesManager.Models
         [NotifyPropertyChangedFor(nameof(RoleBadgeColor))]
         [NotifyPropertyChangedFor(nameof(RoleDescription))]
         [NotifyPropertyChangedFor(nameof(IsAdminRole))]
+        [NotifyPropertyChangedFor(nameof(IsManagerOrLecturer))]
+        [NotifyPropertyChangedFor(nameof(IsSecretaryRole))]
         private Role _role = Role.User;
 
         [ObservableProperty]
@@ -44,9 +66,6 @@ namespace CampusActivitiesManager.Models
         [NotifyPropertyChangedFor(nameof(StatusColorHex))]
         private bool _isActive = true;
 
-        /// <summary>
-        /// ID dạng số nguyên tương thích với cấu trúc khóa chính SQLite AUTOINCREMENT nếu có.
-        /// </summary>
         [JsonIgnore]
         public int IntId
         {
@@ -54,19 +73,49 @@ namespace CampusActivitiesManager.Models
             set => Id = value.ToString();
         }
 
-        public string RoleDisplayName => Role.GetDisplayName();
+        public string RoleDisplayName => Role == Role.Secretary || IsSecretary
+            ? "Bí thư Lớp"
+            : Role.GetDisplayName();
 
-        public string RoleShortName => Role.GetShortName();
+        public string RoleShortName => Role == Role.Secretary || IsSecretary
+            ? "Bí thư"
+            : Role.GetShortName();
 
-        public string RoleBadgeColor => Role.GetBadgeColorHex();
+        public string RoleBadgeColor => Role == Role.Secretary || IsSecretary
+            ? "#7C3AED"
+            : Role.GetBadgeColorHex();
 
         public string RoleDescription => Role.GetDescription();
 
         public bool IsAdminRole => Role == Role.Admin;
 
+        public bool IsManagerOrLecturer => Role == Role.Manager || Role == Role.Lecturer;
+
+        public bool IsSecretaryRole => Role == Role.Secretary || IsSecretary;
+
         public string StatusText => IsActive ? "Đang hoạt động" : "Đã khóa";
 
         public string StatusColorHex => IsActive ? "#16A34A" : "#DC2626";
+
+        // Chỉ tiêu rèn luyện: 50 điểm / kỳ, 250 điểm / năm
+        public const int SemesterMinGoal = 50;
+        public const int YearMinGoal = 250;
+
+        public double SemesterProgress => Math.Min(1.0, (double)TrainingPoints / SemesterMinGoal);
+
+        public double YearProgress => Math.Min(1.0, (double)TrainingPoints / YearMinGoal);
+
+        public int SemesterProgressPercent => (int)(SemesterProgress * 100);
+
+        public int YearProgressPercent => (int)(YearProgress * 100);
+
+        public bool IsSemesterQualified => TrainingPoints >= SemesterMinGoal;
+
+        public bool IsYearQualified => TrainingPoints >= YearMinGoal;
+
+        public string PointsStatusDisplay => IsSemesterQualified 
+            ? "Đạt chuẩn kỳ này 🎉" 
+            : $"Cần thêm {Math.Max(0, SemesterMinGoal - TrainingPoints)} điểm để đạt kỳ";
 
         public string AvatarInitials
         {
@@ -85,7 +134,6 @@ namespace CampusActivitiesManager.Models
             }
         }
 
-        public override string ToString() => $"{FullName} (@{Username}) - {Role}";
+        public override string ToString() => $"{FullName} (@{Username}) - {RoleDisplayName} [{ClassName}]";
     }
 }
-

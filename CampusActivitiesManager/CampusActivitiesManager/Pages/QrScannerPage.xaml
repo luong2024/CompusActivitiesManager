@@ -18,14 +18,14 @@
                     StrokeThickness="0">
                 <VerticalStackLayout Spacing="6">
                     <HorizontalStackLayout Spacing="8">
-                        <Label Text="📷" FontSize="22" VerticalOptions="Center" />
-                        <Label Text="Quét Mã QR Check-in"
+                        <Label Text="🔗" FontSize="22" VerticalOptions="Center" />
+                        <Label Text="Quét QR Mở Hoạt Động"
                                FontSize="20"
                                FontAttributes="Bold"
                                TextColor="{StaticResource White}"
                                VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <Label Text="Quét mã QR trên vé điện tử hoặc hội trường để ghi nhận điểm danh và nhận điểm rèn luyện."
+                    <Label Text="Quét mã QR để mở trực tiếp thông tin hoạt động, xem thể lệ và đăng ký tham gia (Điểm danh bằng ảnh chụp minh chứng)."
                            FontSize="12.5"
                            TextColor="#E0E7FF"
                            LineBreakMode="WordWrap" />
@@ -97,17 +97,17 @@
 
                     <!-- Manual Input / Fast Simulate Test -->
                     <VerticalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
-                        <Label Text="Hoặc dán / nhập mã vé QR:"
+                        <Label Text="Hoặc dán / nhập mã đường dẫn sự kiện:"
                                FontSize="12"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <Entry Grid.Column="0"
-                                   Placeholder="Ví dụ: CAMPUS|EVT:1|STU:B20DCCN001..."
+                                   Placeholder="Ví dụ: campus://event/1 hoặc 1..."
                                    Text="{Binding QrInput}"
                                    FontSize="12"
                                    ClearButtonVisibility="WhileEditing" />
                             <Button Grid.Column="1"
-                                    Text="Check-in"
+                                    Text="Mở sự kiện"
                                     Command="{Binding ProcessQrCodeCommand}"
                                     Background="{StaticResource Primary}"
                                     TextColor="{StaticResource White}"
@@ -117,9 +117,9 @@
                                     Padding="14,0" />
                         </Grid>
 
-                        <!-- Fast Test Simulation Button -->
-                        <Button Text="⚡ Quét Giả Lập Tức Thì (1-Click Test)"
-                                Command="{Binding SimulateQuickScanCommand}"
+                        <!-- Open Selected Event Directly -->
+                        <Button Text="🔍 Mở Chi Tiết Hoạt Động Đã Chọn"
+                                Command="{Binding OpenSelectedEventDetailCommand}"
                                 Background="{StaticResource PrimaryGradientBrush}"
                                 TextColor="{StaticResource White}"
                                 FontAttributes="Bold"
@@ -129,6 +129,15 @@
                                 <Shadow Brush="{StaticResource Primary}" Offset="0,4" Radius="8" Opacity="0.3" />
                             </Button.Shadow>
                         </Button>
+
+                        <!-- Fast Test Simulation Button -->
+                        <Button Text="⚡ Quét Giả Lập Mở Link QR (1-Click)"
+                                Command="{Binding SimulateQuickScanCommand}"
+                                Background="#F1F5F9"
+                                TextColor="{StaticResource Primary}"
+                                FontAttributes="Bold"
+                                HeightRequest="40"
+                                CornerRadius="10" />
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>

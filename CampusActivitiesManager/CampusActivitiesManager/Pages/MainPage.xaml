@@ -157,28 +157,53 @@
                                     </Border>
                                 </Grid>
 
-                                <!-- Training Points Progress Bar Row -->
-                                <VerticalStackLayout Spacing="6">
+                                <!-- Dual Training Points Progress (Semester 50 pts, Year 250 pts) -->
+                                <VerticalStackLayout Spacing="8">
                                     <Grid ColumnDefinitions="*,Auto">
-                                        <Label Text="★ Điểm rèn luyện tích lũy học kỳ"
+                                        <Label Text="★ Điểm rèn luyện hiện có:"
                                                FontSize="12"
                                                TextColor="#CBD5E1" />
-                                        <HorizontalStackLayout Grid.Column="1" Spacing="4">
-                                            <Label Text="{Binding CurrentStudent.TrainingPoints, StringFormat='{0}/100 Điểm'}"
-                                                   FontSize="12"
-                                                   FontAttributes="Bold"
-                                                   TextColor="{StaticResource White}" />
-                                            <Label Text="{Binding CurrentStudent.PointRank, StringFormat='({0})'}"
-                                                   FontSize="12"
-                                                   FontAttributes="Bold"
-                                                   TextColor="#34D399" />
-                                        </HorizontalStackLayout>
+                                        <Label Grid.Column="1"
+                                               Text="{Binding CurrentStudent.TrainingPoints, StringFormat='{0} ĐRL (Ban đầu: 0)'}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="#34D399" />
                                     </Grid>
-                                    <ProgressBar Progress="{Binding TrainingPointsProgress}"
-                                                 ProgressColor="#10B981"
-                                                 HeightRequest="7" />
+
+                                    <!-- Progress 1: Học kỳ (Mục tiêu 50đ) -->
+                                    <VerticalStackLayout Spacing="3">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="Chỉ tiêu Học kỳ (Tối thiểu 50 ĐRL)" FontSize="11" TextColor="#CBD5E1" />
+                                            <Label Grid.Column="1" Text="{Binding SemesterGoalDisplay}" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                        </Grid>
+                                        <ProgressBar Progress="{Binding SemesterProgress}" ProgressColor="#10B981" HeightRequest="6" />
+                                    </VerticalStackLayout>
+
+                                    <!-- Progress 2: Năm học (Mục tiêu 250đ) -->
+                                    <VerticalStackLayout Spacing="3">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="Chỉ tiêu Năm học (Tối thiểu 250 ĐRL)" FontSize="11" TextColor="#CBD5E1" />
+                                            <Label Grid.Column="1" Text="{Binding YearGoalDisplay}" FontSize="11" FontAttributes="Bold" TextColor="#60A5FA" />
+                                        </Grid>
+                                        <ProgressBar Progress="{Binding YearProgress}" ProgressColor="#3B82F6" HeightRequest="6" />
+                                    </VerticalStackLayout>
                                 </VerticalStackLayout>
                             </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Pending Events Alert Banner for Admin/Manager -->
+                        <Border IsVisible="{Binding IsAdminOrManager}"
+                                BackgroundColor="#FEF3C7" Stroke="#FCD34D" StrokeThickness="1"
+                                StrokeShape="RoundRectangle 14" Padding="14,10">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateToEventsCommand}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                <Label Grid.Column="0" Text="🛡️" FontSize="18" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="{Binding PendingApprovalCount, StringFormat='Có {0} hoạt động mới đang chờ Admin phê duyệt.'}"
+                                       FontSize="12.5" FontAttributes="Bold" TextColor="#92400E" VerticalOptions="Center" />
+                                <Label Grid.Column="2" Text="Duyệt ngay →" FontSize="12" FontAttributes="Bold" TextColor="#B45309" VerticalOptions="Center" />
+                            </Grid>
                         </Border>
 
                         <!-- ============================================== -->
@@ -464,15 +489,15 @@
                                                        FontSize="11"
                                                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
 
-                                                <!-- Primary Action: Register / View QR Ticket -->
-                                                <Button Text="{Binding RegisterButtonText}"
+                                                <!-- Primary Action: View Details / Register -->
+                                                <Button Text="🔍 Chi tiết / Đăng ký"
                                                         FontSize="12"
                                                         FontAttributes="Bold"
                                                         HeightRequest="38"
                                                         CornerRadius="10"
                                                         Background="{StaticResource PrimaryGradientBrush}"
                                                         TextColor="{StaticResource White}"
-                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=RegisterEventCommand, x:DataType=pageModels:MainPageModel}"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, Path=OpenEventDetailCommand, x:DataType=pageModels:MainPageModel}"
                                                         CommandParameter="{Binding .}">
                                                     <Button.Shadow>
                                                         <Shadow Brush="{StaticResource Primary}" Offset="0,2" Radius="6" Opacity="0.2" />

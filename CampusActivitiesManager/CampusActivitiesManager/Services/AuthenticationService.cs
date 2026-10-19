@@ -19,6 +19,8 @@ namespace CampusActivitiesManager.Services
 
         public bool IsManager => _currentUser?.Role == Role.Manager;
 
+        public bool IsSecretary => _currentUser?.Role == Role.Secretary || _currentUser?.IsSecretary == true;
+
         public bool IsAuthenticated => _currentUser != null && _currentUser.IsActive;
 
         public event EventHandler? CurrentUserChanged;
@@ -36,96 +38,85 @@ namespace CampusActivitiesManager.Services
 
             var cleanUser = username.Trim().ToLower();
 
-            // 1. Quản trị viên (Admin)
+            // Tìm trong store người dùng trước để lấy đầy đủ điểm rèn luyện và lớp học
+            var localUser = await _userService.GetUserByUsernameAsync(cleanUser);
+            if (localUser != null && localUser.IsActive)
+            {
+                _currentUser = localUser;
+                try
+                {
+                    await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_token_" + Guid.NewGuid().ToString("N"));
+                }
+                catch { }
+
+                _logger.LogInformation("Authenticated session started for {Username} ({Role})", localUser.Username, localUser.Role);
+                CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                return true;
+            }
+
+            // Fallback nếu người dùng gõ tên viết tắt
             if (cleanUser == "admin" || cleanUser == "admin@campus.edu.vn" || cleanUser == "admin@campus.edu")
             {
-                _currentUser = new User
+                _currentUser = (await _userService.GetUserByIdAsync("admin-sys-01")) ?? new User
                 {
                     Id = "admin-sys-01",
                     Username = "admin",
-                    FullName = "Quản Trị Viên Hệ Thống (Admin)",
+                    FullName = "Quản Trị Viên Hệ Thống",
                     Email = "admin@campus.edu.vn",
                     Role = Role.Admin,
+                    ClassName = "Ban Quản Trị",
                     IsActive = true
                 };
-                try
-                {
-                    await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_admin_token_" + Guid.NewGuid().ToString("N"));
-                }
-                catch { }
-
-                _logger.LogInformation("Authenticated session started for Admin");
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
-            // 2. Ban Quản Lý Hoạt Động (Manager)
-            else if (cleanUser == "manager" || cleanUser == "manager@campus.edu.vn" || cleanUser == "manager@campus.edu")
+            else if (cleanUser == "manager" || cleanUser == "manager@campus.edu.vn")
             {
-                _currentUser = new User
+                _currentUser = (await _userService.GetUserByIdAsync("manager-sys-02")) ?? new User
                 {
                     Id = "manager-sys-02",
                     Username = "manager",
-                    FullName = "Ban Quản Lý Hoạt Động (Manager)",
+                    FullName = "ThS. Nguyễn Văn Quản",
                     Email = "manager@campus.edu.vn",
                     Role = Role.Manager,
+                    ClassName = "Khoa CNTT",
+                    AssignedClass = "D20CNTT1",
                     IsActive = true
                 };
-                try
-                {
-                    await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_manager_token_" + Guid.NewGuid().ToString("N"));
-                }
-                catch { }
-
-                _logger.LogInformation("Authenticated session started for Manager");
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
-            // 3. Sinh viên mẫu (Student)
-            else if (cleanUser == "cuong.na@campus.edu.vn" || cleanUser == "b20dccn001" || cleanUser == "b20dccn001@campus.edu.vn" || cleanUser == "student" || cleanUser == "student1@campus.edu")
+            else if (cleanUser == "bithu" || cleanUser == "bithu@campus.edu.vn")
             {
-                _currentUser = new User
+                _currentUser = (await _userService.GetUserByIdAsync("secretary-sys-03")) ?? new User
+                {
+                    Id = "secretary-sys-03",
+                    Username = "bithu",
+                    FullName = "Lê Hoàng Bí Thư",
+                    Email = "bithu@campus.edu.vn",
+                    Role = Role.Secretary,
+                    IsSecretary = true,
+                    ClassName = "D20CNTT1",
+                    IsActive = true
+                };
+                CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                return true;
+            }
+            else if (cleanUser == "cuong.na@campus.edu.vn" || cleanUser == "b20dccn001" || cleanUser == "student")
+            {
+                _currentUser = (await _userService.GetUserByIdAsync("student-sys-04")) ?? new User
                 {
                     Id = "student-sys-04",
                     Username = "B20DCCN001",
                     FullName = "Nguyễn An Cương",
                     Email = "cuong.na@campus.edu.vn",
                     Role = Role.User,
-                    IsActive = true
+                    ClassName = "D20CNTT1",
+                    IsActive = true,
+                    TrainingPoints = 0
                 };
-                try
-                {
-                    await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_student_token_" + Guid.NewGuid().ToString("N"));
-                }
-                catch { }
-
-                _logger.LogInformation("Authenticated session started for Student");
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
-            }
-            // 4. Tài khoản lưu trong danh sách người dùng nội bộ
-            else
-            {
-                try
-                {
-                    var localUser = await _userService.GetUserByUsernameAsync(username.Trim());
-                    if (localUser != null && localUser.IsActive)
-                    {
-                        _currentUser = localUser;
-                        try
-                        {
-                            await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_user_token_" + Guid.NewGuid().ToString("N"));
-                        }
-                        catch { }
-
-                        _logger.LogInformation("Authenticated session started for {Username}", localUser.Username);
-                        CurrentUserChanged?.Invoke(this, EventArgs.Empty);
-                        return true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error checking user store for {Username}", username);
-                }
             }
 
             return false;
@@ -168,10 +159,12 @@ namespace CampusActivitiesManager.Services
             if (_currentUser == null)
                 return requiredRole == Role.Guest;
 
+            if (_currentUser.Role == Role.Admin) return true;
+
             return _currentUser.Role switch
             {
-                Role.Admin => true,
-                Role.Manager => requiredRole is Role.Manager or Role.User or Role.Guest,
+                Role.Manager => requiredRole is Role.Manager or Role.Secretary or Role.User or Role.Guest,
+                Role.Secretary => requiredRole is Role.Secretary or Role.User or Role.Guest,
                 Role.User => requiredRole is Role.User or Role.Guest,
                 Role.Guest => requiredRole == Role.Guest,
                 _ => false

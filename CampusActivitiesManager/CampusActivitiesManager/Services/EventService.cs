@@ -23,7 +23,7 @@ namespace CampusActivitiesManager.Services
             {
                 ID = 1,
                 Name = "Hội thảo AI & Công nghệ Thông tin 2026",
-                Description = "Cập nhật xu hướng Generative AI và Cloud Computing cho sinh viên toàn trường",
+                Description = "Cập nhật xu hướng Generative AI, LLM và Cloud Computing. Sinh viên tham gia đầy đủ được cấp chứng nhận và cộng điểm rèn luyện.",
                 Icon = "💻",
                 CategoryID = 1,
                 Category = _categories[0],
@@ -37,6 +37,11 @@ namespace CampusActivitiesManager.Services
                 CreatedByRole = "Admin",
                 CreatedByName = "Quản trị viên Hệ thống",
                 ApprovedBy = "Admin",
+                Scope = "Public",
+                TargetClass = "Tất cả",
+                RegistrationType = "Auto",
+                PointsReward = 10,
+                PointsPenalty = 5,
                 ImageUrl = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80",
                 VideoUrl = "https://www.w3schools.com/html/mov_bbb.mp4"
             },
@@ -44,7 +49,7 @@ namespace CampusActivitiesManager.Services
             {
                 ID = 2,
                 Name = "Giải Bóng đá Sinh viên Toàn trường",
-                Description = "Khai mạc giải đấu thể thao thường niên tranh cúp vô địch tại Sân vận động",
+                Description = "Khai mạc giải đấu thể thao thường niên tranh cúp vô địch tại Sân vận động trường. Yêu cầu vận động viên có mặt đúng giờ.",
                 Icon = "⚽",
                 CategoryID = 2,
                 Category = _categories[1],
@@ -58,13 +63,18 @@ namespace CampusActivitiesManager.Services
                 CreatedByRole = "Admin",
                 CreatedByName = "Quản trị viên Hệ thống",
                 ApprovedBy = "Admin",
+                Scope = "Public",
+                TargetClass = "Tất cả",
+                RegistrationType = "RequiresApproval",
+                PointsReward = 10,
+                PointsPenalty = 5,
                 ImageUrl = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80"
             },
             new()
             {
                 ID = 3,
                 Name = "Chiến dịch Tình nguyện Mùa Hè Xanh",
-                Description = "Hoạt động tình nguyện hỗ trợ cộng đồng, xây dựng sân chơi và dạy học vùng cao",
+                Description = "Hoạt động tình nguyện hỗ trợ cộng đồng, xây dựng sân chơi và dạy học vùng cao tại Tỉnh Hòa Bình.",
                 Icon = "🌿",
                 CategoryID = 3,
                 Category = _categories[2],
@@ -78,53 +88,68 @@ namespace CampusActivitiesManager.Services
                 CreatedByRole = "Admin",
                 CreatedByName = "Quản trị viên Hệ thống",
                 ApprovedBy = "Admin",
+                Scope = "Public",
+                TargetClass = "Tất cả",
+                RegistrationType = "RequiresApproval",
+                PointsReward = 15,
+                PointsPenalty = 5,
                 ImageUrl = "https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=800&q=80"
             },
             new()
             {
                 ID = 4,
-                Name = "Workshop Kỹ năng Thuyết trình & Phỏng vấn",
-                Description = "Phát triển kỹ năng giao tiếp tự tin và chinh phục nhà tuyển dụng công nghệ",
-                Icon = "🗣️",
+                Name = "Sinh hoạt Chi đoàn & Bầu Ban Cán sự Lớp D20CNTT1",
+                Description = "Họp lớp định kỳ đánh giá rèn luyện học kỳ và triển khai kế hoạch thực tập tốt nghiệp. Hoạt động nội bộ lớp D20CNTT1.",
+                Icon = "👥",
                 CategoryID = 4,
                 Category = _categories[3],
-                Location = "Phòng Hội thảo 302-B1",
-                StartDate = DateTime.Now.AddDays(7).ToString("dd/MM/yyyy"),
-                EndDate = DateTime.Now.AddDays(7).ToString("dd/MM/yyyy"),
-                MaxParticipants = 100,
+                Location = "Phòng học 402 Nhà A3",
+                StartDate = DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
+                MaxParticipants = 50,
                 Status = "Sắp diễn ra",
                 IsApproved = true,
                 ApprovalStatus = "Approved",
-                CreatedByRole = "Admin",
-                CreatedByName = "Quản trị viên Hệ thống",
+                CreatedByRole = "Secretary",
+                CreatedByName = "Lê Hoàng Bí Thư",
                 ApprovedBy = "Admin",
-                ImageUrl = "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80"
+                Scope = "ClassOnly",
+                TargetClass = "D20CNTT1",
+                RegistrationType = "Auto",
+                PointsReward = 5,
+                PointsPenalty = 3,
+                ImageUrl = "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
             },
             new()
             {
                 ID = 5,
-                Name = "Đêm Nhạc Hội Chào Tân Sinh Viên",
-                Description = "Chương trình biểu diễn nghệ thuật, giao lưu âm nhạc và kết nối các câu lạc bộ",
-                Icon = "🎸",
-                CategoryID = 5,
-                Category = _categories[4],
-                Location = "Quảng trường Trung tâm",
-                StartDate = DateTime.Now.AddDays(12).ToString("dd/MM/yyyy"),
-                EndDate = DateTime.Now.AddDays(12).ToString("dd/MM/yyyy"),
-                MaxParticipants = 500,
+                Name = "Tọa đàm Hướng nghiệp Chuyên ngành D20CNTT1",
+                Description = "Gặp gỡ doanh nghiệp phần mềm và định hướng chuyên môn cho sinh viên lớp D20CNTT1 do Giảng viên chủ nhiệm tổ chức.",
+                Icon = "🎯",
+                CategoryID = 1,
+                Category = _categories[0],
+                Location = "Phòng Hội thảo 302-B1",
+                StartDate = DateTime.Now.AddDays(8).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(8).ToString("dd/MM/yyyy"),
+                MaxParticipants = 50,
                 Status = "Sắp diễn ra",
                 IsApproved = true,
                 ApprovalStatus = "Approved",
-                CreatedByRole = "Admin",
-                CreatedByName = "Quản trị viên Hệ thống",
+                CreatedByRole = "Manager",
+                CreatedByName = "ThS. Nguyễn Văn Quản",
                 ApprovedBy = "Admin",
-                ImageUrl = "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80"
+                Scope = "ClassOnly",
+                TargetClass = "D20CNTT1",
+                RegistrationType = "Auto",
+                PointsReward = 5,
+                PointsPenalty = 2,
+                ImageUrl = "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80"
             },
             new()
             {
                 ID = 6,
                 Name = "Tọa đàm Khởi nghiệp Sinh viên Đổi mới Sáng tạo 2026",
-                Description = "Cơ hội nhận vốn đầu tư thiên thần cho các dự án khởi nghiệp công nghệ của sinh viên",
+                Description = "Cơ hội nhận vốn đầu tư thiên thần cho các dự án khởi nghiệp công nghệ của sinh viên. (Đang chờ Quản trị viên duyệt)",
                 Icon = "💡",
                 CategoryID = 1,
                 Category = _categories[0],
@@ -136,7 +161,12 @@ namespace CampusActivitiesManager.Services
                 IsApproved = false,
                 ApprovalStatus = "Pending",
                 CreatedByRole = "Manager",
-                CreatedByName = "Ban Tổ chức Sự kiện",
+                CreatedByName = "ThS. Nguyễn Văn Quản",
+                Scope = "Public",
+                TargetClass = "Tất cả",
+                RegistrationType = "RequiresApproval",
+                PointsReward = 10,
+                PointsPenalty = 5,
                 ImageUrl = "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80"
             }
         };
@@ -155,6 +185,46 @@ namespace CampusActivitiesManager.Services
                 : _localEvents.Where(e => e.IsApproved).ToList();
         }
 
+        public async Task<List<CampusEvent>> GetEventsForUserAsync(User? user)
+        {
+            await Task.CompletedTask;
+            if (user == null)
+            {
+                return _localEvents.Where(e => e.IsApproved && e.Scope == "Public").ToList();
+            }
+
+            // Admin: xem được toàn bộ sự kiện (cả chờ duyệt, cả sự kiện các lớp)
+            if (user.Role == Role.Admin)
+            {
+                return _localEvents.ToList();
+            }
+
+            // Manager / Giảng viên: xem sự kiện công khai đã duyệt + sự kiện của lớp mình phụ trách + sự kiện do mình tạo
+            if (user.Role == Role.Manager || user.Role == Role.Lecturer)
+            {
+                var myAssignedClass = user.AssignedClass ?? user.ClassName;
+                return _localEvents.Where(e =>
+                    e.CreatedByName == user.FullName ||
+                    (e.IsApproved && (e.Scope == "Public" || e.TargetClass == myAssignedClass))
+                ).ToList();
+            }
+
+            // Bí thư lớp: xem sự kiện công khai đã duyệt + sự kiện lớp mình + sự kiện do mình tạo
+            if (user.Role == Role.Secretary || user.IsSecretary)
+            {
+                return _localEvents.Where(e =>
+                    e.CreatedByName == user.FullName ||
+                    (e.IsApproved && (e.Scope == "Public" || e.TargetClass == user.ClassName))
+                ).ToList();
+            }
+
+            // Học sinh / Sinh viên thường: chỉ xem sự kiện công khai ĐÃ DUYỆT hoặc sự kiện lớp mình ĐÃ DUYỆT
+            return _localEvents.Where(e =>
+                e.IsApproved &&
+                (e.Scope == "Public" || string.Equals(e.TargetClass, user.ClassName, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
+        }
+
         public async Task<CampusEvent?> GetEventByIdAsync(int id)
         {
             await Task.CompletedTask;
@@ -168,22 +238,24 @@ namespace CampusActivitiesManager.Services
             evt.ID = newId;
             evt.Category = _categories.FirstOrDefault(c => c.ID == evt.CategoryID) ?? _categories[0];
 
-            // Nếu người tạo là Manager thì cần duyệt qua Admin mới xuất hiện trên app
-            if (string.Equals(evt.CreatedByRole, "Manager", StringComparison.OrdinalIgnoreCase))
+            // QUY TẮC BẮT BUỘC: Mọi bài đăng trước khi hiển thị trên app phải được quản lý và duyệt bởi Admin
+            // Chỉ bài đăng do Admin trực tiếp tạo mới được tự động duyệt
+            if (string.Equals(evt.CreatedByRole, "Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                evt.IsApproved = true;
+                evt.ApprovalStatus = "Approved";
+                evt.Status = "Sắp diễn ra";
+                evt.ApprovedBy = "Admin";
+            }
+            else
             {
                 evt.IsApproved = false;
                 evt.ApprovalStatus = "Pending";
                 evt.Status = "Chờ phê duyệt";
             }
-            else
-            {
-                evt.IsApproved = true;
-                evt.ApprovalStatus = "Approved";
-                evt.Status = "Sắp diễn ra";
-            }
 
             _localEvents.Insert(0, evt);
-            _logger.LogInformation("Event '{Name}' created (ID: {Id}, Approved: {IsApproved})", evt.Name, evt.ID, evt.IsApproved);
+            _logger.LogInformation("Event '{Name}' created (ID: {Id}, Scope: {Scope}, Approved: {IsApproved})", evt.Name, evt.ID, evt.Scope, evt.IsApproved);
             return true;
         }
 
@@ -203,10 +275,13 @@ namespace CampusActivitiesManager.Services
                 local.EndDate = evt.EndDate;
                 local.MaxParticipants = evt.MaxParticipants;
                 local.Status = evt.Status;
-                local.IsApproved = evt.IsApproved;
-                local.ApprovalStatus = evt.ApprovalStatus;
                 local.ImageUrl = evt.ImageUrl;
                 local.VideoUrl = evt.VideoUrl;
+                local.Scope = evt.Scope;
+                local.TargetClass = evt.TargetClass;
+                local.RegistrationType = evt.RegistrationType;
+                local.PointsReward = evt.PointsReward;
+                local.PointsPenalty = evt.PointsPenalty;
                 _logger.LogInformation("Event {Id} updated", evt.ID);
                 return true;
             }
@@ -224,7 +299,7 @@ namespace CampusActivitiesManager.Services
                 local.Status = approve ? "Sắp diễn ra" : "Đã từ chối";
                 local.ApprovedBy = approvedBy ?? "Admin";
                 local.RejectionReason = reason;
-                _logger.LogInformation("Event {Id} approved state changed to {Status} by {Approver}", id, local.ApprovalStatus, approvedBy);
+                _logger.LogInformation("Event {Id} approval status updated to {Status} by {Approver}", id, local.ApprovalStatus, approvedBy);
                 return true;
             }
             return false;
@@ -247,6 +322,102 @@ namespace CampusActivitiesManager.Services
         {
             await Task.CompletedTask;
             return _categories.ToList();
+        }
+
+        public async Task<(bool Success, string Message, string Status)> RegisterUserForEventAsync(int eventId, User user)
+        {
+            await Task.CompletedTask;
+            var evt = _localEvents.FirstOrDefault(e => e.ID == eventId);
+            if (evt == null)
+            {
+                return (false, "Không tìm thấy hoạt động.", "NotFound");
+            }
+
+            if (!evt.IsApproved)
+            {
+                return (false, "Hoạt động chưa được phê duyệt bởi Quản trị viên.", "NotApproved");
+            }
+
+            // Kiểm tra phân quyền phạm vi lớp
+            if (evt.Scope == "ClassOnly" && !string.Equals(evt.TargetClass, user.ClassName, StringComparison.OrdinalIgnoreCase) && user.Role != Role.Admin)
+            {
+                return (false, $"Hoạt động này chỉ dành riêng cho sinh viên lớp {evt.TargetClass}.", "WrongClass");
+            }
+
+            // Kiểm tra đã đăng ký chưa
+            var existing = evt.GetUserRegistration(user.Username);
+            if (existing != null)
+            {
+                if (existing.Status == "Approved")
+                    return (false, "Bạn đã được duyệt tham gia hoạt động này rồi.", "AlreadyApproved");
+                if (existing.Status == "Pending")
+                    return (false, "Đơn đăng ký của bạn đang chờ ban tổ chức phê duyệt.", "AlreadyPending");
+            }
+
+            string regStatus = evt.RegistrationType == "RequiresApproval" ? "Pending" : "Approved";
+
+            var reg = new EventRegistration
+            {
+                Id = Guid.NewGuid().ToString("N")[..8],
+                EventId = eventId,
+                UserId = user.Id,
+                StudentCode = user.Username,
+                StudentName = user.FullName,
+                ClassName = user.ClassName,
+                RegisteredAt = DateTime.UtcNow,
+                Status = regStatus
+            };
+
+            evt.Registrations.RemoveAll(r => r.StudentCode.Equals(user.Username, StringComparison.OrdinalIgnoreCase));
+            evt.Registrations.Add(reg);
+            evt.IsRegistered = true;
+
+            string msg = regStatus == "Approved"
+                ? "Đăng ký thành công! Bạn đã được tự động duyệt tham gia."
+                : "Đăng ký thành công! Đơn đăng ký đang chờ Ban tổ chức phê duyệt.";
+
+            _logger.LogInformation("User {StudentCode} registered for event {EventId} with status {Status}", user.Username, eventId, regStatus);
+            return (true, msg, regStatus);
+        }
+
+        public async Task<(bool Success, string Message)> CancelRegistrationAsync(int eventId, string studentCodeOrId)
+        {
+            await Task.CompletedTask;
+            var evt = _localEvents.FirstOrDefault(e => e.ID == eventId);
+            if (evt == null)
+                return (false, "Không tìm thấy hoạt động.");
+
+            var reg = evt.GetUserRegistration(studentCodeOrId);
+            if (reg == null)
+                return (false, "Bạn chưa đăng ký tham gia hoạt động này.");
+
+            // Người dùng chỉ có thể hủy tham gia TRƯỚC KHI ĐƯỢC DUYỆT (tức là khi trạng thái còn Pending)
+            if (reg.Status != "Pending")
+            {
+                return (false, "Đơn đăng ký của bạn đã được phê duyệt, không thể tự hủy tham gia.");
+            }
+
+            evt.Registrations.Remove(reg);
+            evt.IsRegistered = false;
+
+            _logger.LogInformation("User {StudentCode} cancelled pending registration for event {EventId}", studentCodeOrId, eventId);
+            return (true, "Đã hủy đăng ký tham gia thành công!");
+        }
+
+        public async Task<bool> ApproveRegistrationAsync(int eventId, string registrationId, bool approve)
+        {
+            await Task.CompletedTask;
+            var evt = _localEvents.FirstOrDefault(e => e.ID == eventId);
+            if (evt == null) return false;
+
+            var reg = evt.Registrations.FirstOrDefault(r => r.Id == registrationId);
+            if (reg != null)
+            {
+                reg.Status = approve ? "Approved" : "Rejected";
+                _logger.LogInformation("Registration {Id} for event {EventId} set to {Status}", registrationId, eventId, reg.Status);
+                return true;
+            }
+            return false;
         }
     }
 }

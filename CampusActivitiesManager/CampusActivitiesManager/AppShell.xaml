@@ -23,55 +23,51 @@
         </Border>
     </Shell.FlyoutHeader>
 
-    <!-- 3. Màn hình Đăng nhập (Login) - MUST BE FIRST -->
+    <!-- Màn hình Đăng nhập (Login) - Ẩn khỏi Flyout -->
     <ShellContent
-        x:Name="NavLogin"
-        Title="Tài khoản &amp; Đăng nhập"
-        Icon="{StaticResource IconAccount}"
-        ContentTemplate="{DataTemplate pages:LoginPage}"
-        Route="login" />
+        Route="login"
+        FlyoutItemIsVisible="False"
+        ContentTemplate="{DataTemplate pages:LoginPage}" />
 
-    <!-- 1. Cổng Sinh Viên -->
-    <ShellContent
-        x:Name="NavStudentDashboard"
-        Title="Cổng Sinh Viên"
-        Icon="{StaticResource IconDashboard}"
-        ContentTemplate="{DataTemplate pages:MainPage}"
-        Route="main" />
+    <!-- 🌟 Commercial Bottom TabBar (Trang chủ, Sự kiện, Quét QR, Lớp học, Cá nhân) -->
+    <TabBar x:Name="AppTabBar">
+        <!-- 1. Trang chủ -->
+        <Tab Title="Trang chủ" Icon="{StaticResource IconDashboard}" Route="homeTab">
+            <ShellContent Route="main" ContentTemplate="{DataTemplate pages:MainPage}" />
+        </Tab>
 
-    <!-- 4. Màn hình Cập nhật thông tin cá nhân (Profile) -->
-    <ShellContent
-        x:Name="NavProfile"
-        Title="Thông tin cá nhân"
-        Icon="{StaticResource IconAccount}"
-        ContentTemplate="{DataTemplate pages:ProfilePage}"
-        Route="profile" />
+        <!-- 2. Sự kiện -->
+        <Tab Title="Sự kiện" Icon="{StaticResource IconCalendar}" Route="eventsTab">
+            <ShellContent Route="events" ContentTemplate="{DataTemplate pages:EventManagementPage}" />
+        </Tab>
 
-    <!-- 2. Quản lý Tài khoản -->
-    <ShellContent
-        x:Name="NavUsers"
-        Title="Quản lý Tài khoản"
-        Icon="{StaticResource IconUsers}"
-        ContentTemplate="{DataTemplate pages:UserManagementPage}"
-        Route="users" />
+        <!-- 3. Quét QR -->
+        <Tab Title="Quét QR" Icon="{StaticResource IconDashboard}" Route="qrTab">
+            <ShellContent Route="qrscan" ContentTemplate="{DataTemplate pages:QrScannerPage}" />
+        </Tab>
 
-    <!-- 5. Quản lý Sự kiện -->
-    <ShellContent
-        x:Name="NavEvents"
-        Title="Quản lý Sự kiện"
-        Icon="{StaticResource IconCalendar}"
-        ContentTemplate="{DataTemplate pages:EventManagementPage}"
-        Route="events" />
+        <!-- 4. Lớp học -->
+        <Tab Title="Lớp học" Icon="{StaticResource IconUsers}" Route="classTab">
+            <ShellContent Route="classhub" ContentTemplate="{DataTemplate pages:ClassHubPage}" />
+        </Tab>
 
-    <!-- 6. Quét QR Điểm Danh -->
-    <ShellContent
-        x:Name="NavQrScanner"
-        Title="Quét QR Điểm Danh"
-        Icon="{StaticResource IconDashboard}"
-        ContentTemplate="{DataTemplate pages:QrScannerPage}"
-        Route="qrscan" />
+        <!-- 5. Cá nhân -->
+        <Tab Title="Cá nhân" Icon="{StaticResource IconAccount}" Route="profileTab">
+            <ShellContent Route="profile" ContentTemplate="{DataTemplate pages:ProfilePage}" />
+        </Tab>
+    </TabBar>
 
+    <!-- Admin & Management Special Flyout Items -->
+    <FlyoutItem x:Name="FlyoutUsers" Title="Quản lý Người dùng (Admin)" Icon="{StaticResource IconUsers}">
+        <ShellContent Route="users" ContentTemplate="{DataTemplate pages:UserManagementPage}" />
+    </FlyoutItem>
 
+    <FlyoutItem x:Name="FlyoutReports" Title="Báo cáo &amp; Điểm danh" Icon="{StaticResource IconProjects}">
+        <ShellContent Route="attendancereport" ContentTemplate="{DataTemplate pages:EventAttendanceReportPage}" />
+    </FlyoutItem>
+
+    <!-- Đăng xuất (Logout) MenuItem -->
+    <MenuItem Text="🚪 Đăng xuất khỏi hệ thống" Clicked="OnLogoutMenuItemClicked" />
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">

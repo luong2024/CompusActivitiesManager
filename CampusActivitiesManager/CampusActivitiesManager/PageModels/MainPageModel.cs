@@ -21,7 +21,28 @@ namespace CampusActivitiesManager.PageModels
         private string _studentGreeting = "Xin chào, Sinh viên 👋";
 
         [ObservableProperty]
-        private double _trainingPointsProgress = 0.92;
+        private double _trainingPointsProgress = 0.0;
+
+        [ObservableProperty]
+        private double _semesterProgress = 0.0;
+
+        [ObservableProperty]
+        private double _yearProgress = 0.0;
+
+        [ObservableProperty]
+        private string _semesterGoalDisplay = "0/50 ĐRL";
+
+        [ObservableProperty]
+        private string _yearGoalDisplay = "0/250 ĐRL";
+
+        [ObservableProperty]
+        private bool _isSemesterQualified;
+
+        [ObservableProperty]
+        private bool _isYearQualified;
+
+        [ObservableProperty]
+        private int _pendingApprovalCount;
 
         [ObservableProperty]
         private List<CampusEvent> _allEvents = [];
@@ -102,25 +123,37 @@ namespace CampusActivitiesManager.PageModels
 
                 IsAdminOrManager = u.Role == Role.Admin || u.Role == Role.Manager;
 
+                int currentPts = u.TrainingPoints;
+
                 CurrentStudent = new Account
                 {
                     FullName = u.FullName,
                     StudentCode = string.IsNullOrWhiteSpace(u.Username) ? (u.Role == Role.Admin ? "ADMIN" : "MANAGER") : u.Username.ToUpper(),
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
-                    ClassName = u.Role == Role.Admin ? "Ban Quản Trị Hệ Thống" : (u.Role == Role.Manager ? "Ban Tổ Chức Sự Kiện" : "D20CNTT1"),
-                    AcademicYear = u.Role == Role.Admin ? "Quản trị viên" : (u.Role == Role.Manager ? "Quản lý sự kiện" : "K20 (2020–2025)"),
+                    ClassName = u.Role == Role.Admin ? "Ban Quản Trị Hệ Thống" : (u.Role == Role.Manager ? "Ban Tổ Chức Sự Kiện" : (u.ClassName ?? "D20CNTT1")),
+                    AcademicYear = u.Role == Role.Admin ? "Quản trị viên" : (u.Role == Role.Manager ? "Quản lý sự kiện" : (u.IsSecretary ? "Bí thư chi đoàn" : "K20 (2020–2025)")),
                     Role = role,
                     Status = AccountStatus.DangHoc,
-                    TrainingPoints = 92
+                    TrainingPoints = currentPts
                 };
 
                 StudentGreeting = u.Role switch
                 {
                     Role.Admin => $"Xin chào, Quản trị viên {u.FullName} 🛡️",
                     Role.Manager => $"Xin chào, Ban tổ chức {u.FullName} 🎪",
+                    Role.Lecturer => $"Xin chào, Giảng viên {u.FullName} 👨‍🏫",
+                    Role.Secretary => $"Xin chào, Bí thư {u.FullName} 🎓",
                     _ => $"Xin chào, {u.FullName} 👋"
                 };
+
+                TrainingPointsProgress = Math.Clamp((double)currentPts / 50.0, 0.0, 1.0);
+                SemesterProgress = Math.Clamp((double)currentPts / 50.0, 0.0, 1.0);
+                YearProgress = Math.Clamp((double)currentPts / 250.0, 0.0, 1.0);
+                SemesterGoalDisplay = $"{currentPts}/50 ĐRL";
+                YearGoalDisplay = $"{currentPts}/250 ĐRL";
+                IsSemesterQualified = currentPts >= 50;
+                IsYearQualified = currentPts >= 250;
             }
             else
             {
@@ -135,12 +168,18 @@ namespace CampusActivitiesManager.PageModels
                     AcademicYear = "K20 (2020–2025)",
                     Role = AccountRole.SinhVien,
                     Status = AccountStatus.DangHoc,
-                    TrainingPoints = 92
+                    TrainingPoints = 0
                 };
                 StudentGreeting = "Xin chào, Nguyễn An Cương 👋";
+                TrainingPointsProgress = 0.0;
+                SemesterProgress = 0.0;
+                YearProgress = 0.0;
+                SemesterGoalDisplay = "0/50 ĐRL";
+                YearGoalDisplay = "0/250 ĐRL";
+                IsSemesterQualified = false;
+                IsYearQualified = false;
             }
 
-            TrainingPointsProgress = Math.Clamp(CurrentStudent.TrainingPoints / 100.0, 0.0, 1.0);
             QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-71965";
         }
 
@@ -171,24 +210,19 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 IsBusy = true;
-                var events = await _eventService.GetEventsAsync();
+                // Chỉ lấy sự kiện hợp lệ theo role và lớp học của user (Admin xem được cả pending)
+                var events = await _eventService.GetEventsForUserAsync(_authService.CurrentUser);
 
-                if (events != null && events.Count > 0)
-                {
-                    // Mark the first 2 events as registered for demo realism
-                    for (int i = 0; i < events.Count; i++)
-                    {
-                        if (i == 0 || i == 1)
-                        {
-                            events[i].IsRegistered = true;
-                        }
-                    }
+                AllEvents = events ?? [];
 
-                    AllEvents = events;
-                }
+                var allRaw = await _eventService.GetEventsAsync(includePending: true);
+                PendingApprovalCount = allRaw.Count(e => e.ApprovalStatus == "Pending");
 
                 UpcomingCount = AllEvents.Count;
-                MyRegisteredEvents = AllEvents.Where(e => e.IsRegistered).ToList();
+
+                string myCode = _authService.CurrentUser?.Username ?? "B20DCCN001";
+                MyRegisteredEvents = AllEvents.Where(e => e.Registrations != null &&
+                    e.Registrations.Any(r => r.StudentCode.Equals(myCode, StringComparison.OrdinalIgnoreCase) && r.Status != "Cancelled")).ToList();
                 RegisteredCount = MyRegisteredEvents.Count;
 
                 ApplyCategoryFilter();
@@ -430,6 +464,15 @@ namespace CampusActivitiesManager.PageModels
             else
             {
                 _authService?.Logout();
+            }
+        }
+
+        [RelayCommand]
+        public async Task OpenEventDetail(CampusEvent evt)
+        {
+            if (evt != null && Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync($"eventdetail?eventId={evt.ID}");
             }
         }
     }

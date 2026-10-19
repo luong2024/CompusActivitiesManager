@@ -137,7 +137,7 @@ namespace CampusActivitiesManager.PageModels
             {
                 if (Shell.Current != null)
                 {
-                    await Shell.Current.DisplayAlert("Thông báo", "Vui lòng nhập hoặc quét mã QR hợp lệ", "Đóng");
+                    await Shell.Current.DisplayAlert("Thông báo", "Vui lòng nhập hoặc quét mã QR đường dẫn sự kiện hợp lệ.", "Đóng");
                 }
                 return;
             }
@@ -149,10 +149,15 @@ namespace CampusActivitiesManager.PageModels
 
                 int eventId = SelectedEvent?.ID ?? 1;
 
-                // If QR code contains metadata format "CAMPUS|EVT:{id}|STU:{code}..."
-                if (code.Contains("EVT:"))
+                // Parse eventId from code (supports: "1", "EVT:1", "event/1", "campus://event/1", "https://campus.edu.vn/events/1")
+                var cleanCode = code.Trim();
+                if (int.TryParse(cleanCode, out int directId))
                 {
-                    var parts = code.Split('|');
+                    eventId = directId;
+                }
+                else if (cleanCode.Contains("EVT:"))
+                {
+                    var parts = cleanCode.Split('|');
                     foreach (var part in parts)
                     {
                         if (part.StartsWith("EVT:") && int.TryParse(part.Replace("EVT:", ""), out int parsedId))
@@ -161,19 +166,18 @@ namespace CampusActivitiesManager.PageModels
                         }
                     }
                 }
-
-                var (success, msg, record) = await _attendanceService.CheckInWithQrAsync(eventId, StudentCode, code.Trim());
-                IsSuccess = success;
-                StatusMessage = msg;
-                LastRecord = record;
-                HasResult = true;
-
-                if (success && Shell.Current != null)
+                else if (cleanCode.Contains("event/"))
                 {
-                    await Shell.Current.DisplayAlert(
-                        "Điểm danh thành công! 🎉",
-                        $"{msg}\nSự kiện: {record?.EventName ?? SelectedEvent?.Name}\nThời gian: {DateTime.Now:HH:mm dd/MM/yyyy}\nĐiểm rèn luyện: +5 ĐRL",
-                        "Xác nhận");
+                    var segment = cleanCode.Substring(cleanCode.LastIndexOf("event/") + 6);
+                    if (int.TryParse(segment, out int parsedId))
+                    {
+                        eventId = parsedId;
+                    }
+                }
+
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.GoToAsync($"eventdetail?eventId={eventId}");
                 }
             }
             finally
@@ -183,12 +187,20 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
+        public async Task OpenSelectedEventDetailAsync()
+        {
+            if (SelectedEvent != null && Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync($"eventdetail?eventId={SelectedEvent.ID}");
+            }
+        }
+
+        [RelayCommand]
         public async Task SimulateQuickScanAsync()
         {
             int eventId = SelectedEvent?.ID ?? 1;
-            var ticketCode = _qrCodeService.GenerateTicketPayload(eventId, StudentCode, SelectedEvent?.Name ?? "Sự kiện");
-            QrInput = ticketCode;
-            await ProcessQrCodeAsync(ticketCode);
+            QrInput = $"campus://event/{eventId}";
+            await ProcessQrCodeAsync(QrInput);
         }
 
         [RelayCommand]

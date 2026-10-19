@@ -86,10 +86,22 @@ namespace CampusActivitiesManager.Models
         public string Notes { get; set; } = string.Empty;
 
         [JsonPropertyName("trainingPointsAwarded")]
-        public int TrainingPointsAwarded { get; set; } = 5;
+        public int TrainingPointsAwarded { get; set; } = 10;
 
+        [JsonPropertyName("pointsDeducted")]
+        public int PointsDeducted { get; set; } = 5;
+
+        /// <summary>
+        /// "PendingReview" (Chờ duyệt ảnh), "Approved" (Đã duyệt), "Rejected" (Từ chối)
+        /// </summary>
         [JsonPropertyName("status")]
-        public string Status { get; set; } = "Present";
+        public string Status { get; set; } = "Approved";
+
+        [JsonPropertyName("reviewerName")]
+        public string? ReviewerName { get; set; }
+
+        [JsonPropertyName("reviewNotes")]
+        public string? ReviewNotes { get; set; }
 
         // UI Presentation Properties
         [JsonIgnore]
@@ -98,32 +110,55 @@ namespace CampusActivitiesManager.Models
         [JsonIgnore]
         public string MethodIcon => Method switch
         {
-            "QR" => "📷",
-            "Photo" => "🖼️",
+            "Photo" => "📸",
+            "QR" => "🔗",
             "Manual" => "✍️",
-            _ => "✅"
+            _ => "🖼️"
         };
 
         [JsonIgnore]
         public string MethodDisplay => Method switch
         {
-            "QR" => "Quét mã QR",
-            "Photo" => "Ảnh minh chứng",
-            "Manual" => "Thủ công (BTC)",
+            "Photo" => "Ảnh minh chứng camera",
+            "QR" => "Đường dẫn sự kiện",
+            "Manual" => "Duyệt thủ công",
             _ => Method
         };
 
         [JsonIgnore]
-        public string PointsDisplay => $"+{TrainingPointsAwarded} ĐRL";
+        public string PointsDisplay => Status switch
+        {
+            "Approved" => $"+{TrainingPointsAwarded} ĐRL",
+            "Rejected" => $"-{PointsDeducted} ĐRL",
+            _ => "Chờ duyệt..."
+        };
 
         [JsonIgnore]
-        public Color StatusColor => Status == "Present" ? Color.FromArgb("#16A34A") : Color.FromArgb("#DC2626");
+        public Color StatusColor => Status switch
+        {
+            "Approved" => Color.FromArgb("#16A34A"),
+            "PendingReview" => Color.FromArgb("#D97706"),
+            "Rejected" => Color.FromArgb("#DC2626"),
+            _ => Color.FromArgb("#6B7280")
+        };
 
         [JsonIgnore]
-        public Color StatusBadgeBg => Status == "Present" ? Color.FromArgb("#DCFCE7") : Color.FromArgb("#FEE2E2");
+        public Color StatusBadgeBg => Status switch
+        {
+            "Approved" => Color.FromArgb("#DCFCE7"),
+            "PendingReview" => Color.FromArgb("#FEF3C7"),
+            "Rejected" => Color.FromArgb("#FEE2E2"),
+            _ => Color.FromArgb("#F3F4F6")
+        };
 
         [JsonIgnore]
-        public string StatusDisplay => Status == "Present" ? "Đã tham gia" : "Vắng mặt";
+        public string StatusDisplay => Status switch
+        {
+            "Approved" => "Đã duyệt (+Điểm) ✅",
+            "PendingReview" => "Chờ duyệt ảnh ⏳",
+            "Rejected" => "Bị từ chối (-Điểm) ❌",
+            _ => Status
+        };
     }
 
     public class CampusNotificationDto

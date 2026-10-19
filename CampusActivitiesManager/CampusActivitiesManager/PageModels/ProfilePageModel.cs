@@ -20,6 +20,21 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private string _avatarUrl = string.Empty;
 
+        [ObservableProperty]
+        private string _username = string.Empty;
+
+        [ObservableProperty]
+        private string _email = string.Empty;
+
+        [ObservableProperty]
+        private string _roleDisplay = "Sinh viên";
+
+        [ObservableProperty]
+        private string _className = "D20CNTT1";
+
+        [ObservableProperty]
+        private int _trainingPoints = 0;
+
         public ProfilePageModel(IUserService userService, IAuthenticationService authService, ModalErrorHandler errorHandler)
         {
             _userService = userService;
@@ -36,8 +51,37 @@ namespace CampusActivitiesManager.PageModels
             {
                 FullName = user.FullName;
                 PhoneNumber = user.PhoneNumber;
+                Username = user.Username;
+                Email = user.Email;
+                ClassName = user.ClassName ?? "D20CNTT1";
+                TrainingPoints = user.TrainingPoints;
+                RoleDisplay = user.Role switch
+                {
+                    Role.Admin => "Quản trị viên (Admin)",
+                    Role.Manager => "Ban tổ chức / Quản lý sự kiện",
+                    Role.Lecturer => "Giảng viên / Cố vấn",
+                    Role.Secretary => "Bí thư chi đoàn lớp",
+                    _ => "Sinh viên (User)"
+                };
             }
             await Task.CompletedTask;
+        }
+
+        [RelayCommand]
+        public async Task LogoutAsync()
+        {
+            if (Shell.Current == null) return;
+
+            bool confirm = await Shell.Current.DisplayAlert(
+                "Đăng xuất",
+                "Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng Campus Activities Manager?",
+                "Đăng xuất",
+                "Hủy");
+
+            if (!confirm) return;
+
+            _authService.Logout();
+            await Shell.Current.GoToAsync("//login");
         }
 
         [RelayCommand]

@@ -49,12 +49,11 @@ namespace CampusActivitiesManager
             bool isAdmin = authService.IsAdmin;
             bool isManagerOrAdmin = isAdmin || (authService.CurrentUser != null && (authService.CurrentUser.Role == Role.Manager || authService.CurrentUser.Role == Role.Admin));
 
-            NavLogin.IsVisible = true;
-            NavStudentDashboard.IsVisible = isLoggedIn;
-            NavProfile.IsVisible = isLoggedIn;
-            NavUsers.IsVisible = isAdmin;
-            NavEvents.IsVisible = isManagerOrAdmin;
-            NavQrScanner.IsVisible = isLoggedIn;
+            if (FlyoutUsers != null)
+                FlyoutUsers.IsVisible = isAdmin;
+
+            if (FlyoutReports != null)
+                FlyoutReports.IsVisible = isManagerOrAdmin;
         }
 
         private void RegisterRoutes()
@@ -75,6 +74,8 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute(nameof(AttendanceHistoryPage), typeof(AttendanceHistoryPage));
             Routing.RegisterRoute(nameof(EventAttendanceReportPage), typeof(EventAttendanceReportPage));
             Routing.RegisterRoute(nameof(EventFormPage), typeof(EventFormPage));
+            Routing.RegisterRoute(nameof(EventDetailPage), typeof(EventDetailPage));
+            Routing.RegisterRoute(nameof(ClassHubPage), typeof(ClassHubPage));
 
             // URL alias routes for GoToAsync calls
             Routing.RegisterRoute("createuser", typeof(CreateUserPage));
@@ -89,6 +90,18 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute("attendancehistory", typeof(AttendanceHistoryPage));
             Routing.RegisterRoute("attendancereport", typeof(EventAttendanceReportPage));
             Routing.RegisterRoute("eventform", typeof(EventFormPage));
+            Routing.RegisterRoute("eventdetail", typeof(EventDetailPage));
+            Routing.RegisterRoute("classhub", typeof(ClassHubPage));
+        }
+
+        private async void OnLogoutMenuItemClicked(object sender, EventArgs e)
+        {
+            bool confirm = await DisplayAlert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?", "Đăng xuất", "Hủy");
+            if (!confirm) return;
+
+            var authService = Handler?.MauiContext?.Services.GetService<IAuthenticationService>();
+            authService?.Logout();
+            await GoToAsync("//login");
         }
 
         public static async Task NavigateWithGuardAsync(string route, Role requiredRole, IAuthenticationService authService)

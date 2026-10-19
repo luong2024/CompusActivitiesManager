@@ -337,16 +337,23 @@
                                     </Grid>
 
                                     <!-- Action Section 2: Management, Report & Media Tools (Full Width Grid) -->
-                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="6">
-                                        <!-- Attendance Report Button -->
-                                        <Button Grid.Column="0" Text="📊 Sổ điểm danh" 
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ViewAttendanceReportCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                    <Grid ColumnDefinitions="*,*,Auto,Auto,Auto" ColumnSpacing="6">
+                                        <!-- Event Details Button -->
+                                        <Button Grid.Column="0" Text="🔍 Chi tiết" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEventDetailCommand, x:DataType=pageModels:EventManagementPageModel}" 
                                                 CommandParameter="{Binding .}"
                                                 HeightRequest="36" CornerRadius="10" FontSize="11.5" FontAttributes="Bold"
                                                 BackgroundColor="#EFF6FF" TextColor="#1D4ED8" Padding="6,0" />
 
+                                        <!-- Attendance Report Button -->
+                                        <Button Grid.Column="1" Text="📊 Điểm danh" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ViewAttendanceReportCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                CommandParameter="{Binding .}"
+                                                HeightRequest="36" CornerRadius="10" FontSize="11.5" FontAttributes="Bold"
+                                                BackgroundColor="#F0FDF4" TextColor="#15803D" Padding="6,0" />
+
                                         <!-- Video Button -->
-                                        <Button Grid.Column="1" Text="▶ Video" 
+                                        <Button Grid.Column="2" Text="▶ Video" 
                                                 IsVisible="{Binding HasVideo}"
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenVideoCommand, x:DataType=pageModels:EventManagementPageModel}" 
                                                 CommandParameter="{Binding .}"
@@ -354,7 +361,7 @@
                                                 BackgroundColor="#FEE2E2" TextColor="#DC2626" Padding="10,0" />
 
                                         <!-- Edit Button (Manager or Admin) -->
-                                        <Button Grid.Column="2" Text="✏️ Sửa" 
+                                        <Button Grid.Column="3" Text="✏️" 
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEditModalCommand, x:DataType=pageModels:EventManagementPageModel}" 
                                                 CommandParameter="{Binding .}"
                                                 IsVisible="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=IsManagerOrAdmin, x:DataType=pageModels:EventManagementPageModel}"
@@ -362,12 +369,12 @@
                                                 CornerRadius="10" 
                                                 FontSize="11.5" 
                                                 FontAttributes="Bold"
-                                                Padding="10,0"
+                                                Padding="8,0"
                                                 BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
                                                 TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" />
 
                                         <!-- Delete Button (Manager or Admin) -->
-                                        <Button Grid.Column="3" Text="🗑️" 
+                                        <Button Grid.Column="4" Text="🗑️" 
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=DeleteEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
                                                 CommandParameter="{Binding .}"
                                                 IsVisible="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=IsManagerOrAdmin, x:DataType=pageModels:EventManagementPageModel}"

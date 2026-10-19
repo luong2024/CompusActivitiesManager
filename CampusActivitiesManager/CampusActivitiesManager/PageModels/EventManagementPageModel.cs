@@ -579,5 +579,12 @@ namespace CampusActivitiesManager.PageModels
                 _errorHandler.HandleError(ex);
             }
         }
+
+        [RelayCommand]
+        private async Task OpenEventDetail(CampusEvent evt)
+        {
+            if (evt == null || Shell.Current == null) return;
+            await Shell.Current.GoToAsync($"eventdetail?eventId={evt.ID}");
+        }
     }
 }
