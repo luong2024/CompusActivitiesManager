@@ -17,6 +17,13 @@ templatesTest/
 .idea/
 *.zip
 *.binlog
+*.xlsx
+*.xls
+*.docx
+*.doc
+*.pptx
+*.ppt
+*.pdf
 /src/Controls/tests/TestCases.HostApp/MauiProgram.user.cs
 CustomAgentLogsTmp/
 .github/.baseline-state.json
