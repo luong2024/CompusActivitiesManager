@@ -124,7 +124,7 @@ namespace CampusActivitiesManager.Services
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
-            else if (cleanUser == "manager" || cleanUser == "manager@campus.edu.vn")
+            else if (cleanUser == "manager" || cleanUser == "manager@campus.edu.vn" || cleanUser == "manager@campus.edu")
             {
                 _currentUser = new User
                 {
@@ -137,6 +137,37 @@ namespace CampusActivitiesManager.Services
                 };
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
+            }
+            else if (cleanUser == "cuong.na@campus.edu.vn" || cleanUser == "b20dccn001" || cleanUser == "b20dccn001@campus.edu.vn" || cleanUser == "student" || cleanUser == "student1@campus.edu")
+            {
+                _currentUser = new User
+                {
+                    Id = "student-sys-04",
+                    Username = "B20DCCN001",
+                    FullName = "Nguyễn An Cương",
+                    Email = "cuong.na@campus.edu.vn",
+                    Role = Role.User,
+                    IsActive = true
+                };
+                CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                return true;
+            }
+            else
+            {
+                try
+                {
+                    var localUser = await _userService.GetUserByUsernameAsync(username.Trim());
+                    if (localUser != null && localUser.IsActive)
+                    {
+                        _currentUser = localUser;
+                        CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                        return true;
+                    }
+                }
+                catch
+                {
+                    // Ignore
+                }
             }
 
             return false;

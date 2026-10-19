@@ -18,6 +18,135 @@ namespace CampusActivitiesManager.Services
             Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
         };
 
+        private static readonly List<EventCategoryDto> _categories = new()
+        {
+            new() { ID = 1, Title = "Học thuật", Color = "#2563EB" },
+            new() { ID = 2, Title = "Thể thao", Color = "#10B981" },
+            new() { ID = 3, Title = "Tình nguyện", Color = "#EF4444" },
+            new() { ID = 4, Title = "Kỹ năng mềm", Color = "#7C3AED" },
+            new() { ID = 5, Title = "Văn hóa - Nghệ thuật", Color = "#0284C7" }
+        };
+
+        private static readonly List<CampusEvent> _localEvents = new()
+        {
+            new()
+            {
+                ID = 1,
+                Name = "Hội thảo AI & Công nghệ Thông tin 2026",
+                Description = "Cập nhật xu hướng Generative AI và Cloud Computing cho sinh viên toàn trường",
+                Icon = "💻",
+                CategoryID = 1,
+                Category = _categories[0],
+                Location = "Hội trường A2",
+                StartDate = DateTime.Now.AddDays(2).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(2).ToString("dd/MM/yyyy"),
+                MaxParticipants = 200,
+                Status = "Sắp diễn ra",
+                IsApproved = true,
+                ApprovalStatus = "Approved",
+                CreatedByRole = "Admin",
+                CreatedByName = "Quản trị viên Hệ thống",
+                ApprovedBy = "Admin",
+                ImageUrl = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80"
+            },
+            new()
+            {
+                ID = 2,
+                Name = "Giải Bóng đá Sinh viên Toàn trường",
+                Description = "Khai mạc giải đấu thể thao thường niên tranh cúp vô địch tại Sân vận động",
+                Icon = "⚽",
+                CategoryID = 2,
+                Category = _categories[1],
+                Location = "Sân Vận Động Trường",
+                StartDate = DateTime.Now.AddDays(5).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(10).ToString("dd/MM/yyyy"),
+                MaxParticipants = 350,
+                Status = "Sắp diễn ra",
+                IsApproved = true,
+                ApprovalStatus = "Approved",
+                CreatedByRole = "Admin",
+                CreatedByName = "Quản trị viên Hệ thống",
+                ApprovedBy = "Admin",
+                ImageUrl = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80"
+            },
+            new()
+            {
+                ID = 3,
+                Name = "Chiến dịch Tình nguyện Mùa Hè Xanh",
+                Description = "Hoạt động tình nguyện hỗ trợ cộng đồng, xây dựng sân chơi và dạy học vùng cao",
+                Icon = "🌿",
+                CategoryID = 3,
+                Category = _categories[2],
+                Location = "Tỉnh Hòa Bình",
+                StartDate = DateTime.Now.AddDays(15).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(25).ToString("dd/MM/yyyy"),
+                MaxParticipants = 80,
+                Status = "Sắp diễn ra",
+                IsApproved = true,
+                ApprovalStatus = "Approved",
+                CreatedByRole = "Admin",
+                CreatedByName = "Quản trị viên Hệ thống",
+                ApprovedBy = "Admin",
+                ImageUrl = "https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=800&q=80"
+            },
+            new()
+            {
+                ID = 4,
+                Name = "Workshop Kỹ năng Thuyết trình & Phỏng vấn",
+                Description = "Phát triển kỹ năng giao tiếp tự tin và chinh phục nhà tuyển dụng công nghệ",
+                Icon = "🗣️",
+                CategoryID = 4,
+                Category = _categories[3],
+                Location = "Phòng Hội thảo 302-B1",
+                StartDate = DateTime.Now.AddDays(8).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(8).ToString("dd/MM/yyyy"),
+                MaxParticipants = 120,
+                Status = "Sắp diễn ra",
+                IsApproved = true,
+                ApprovalStatus = "Approved",
+                CreatedByRole = "Admin",
+                CreatedByName = "Quản trị viên Hệ thống",
+                ApprovedBy = "Admin"
+            },
+            new()
+            {
+                ID = 5,
+                Name = "Đêm nhạc Acoustic Chào Tân Sinh viên",
+                Description = "Giao lưu âm nhạc và văn nghệ đặc sắc giữa các câu lạc bộ toàn trường",
+                Icon = "🎸",
+                CategoryID = 5,
+                Category = _categories[4],
+                Location = "Sảnh Giảng đường C",
+                StartDate = DateTime.Now.AddDays(12).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(12).ToString("dd/MM/yyyy"),
+                MaxParticipants = 400,
+                Status = "Sắp diễn ra",
+                IsApproved = true,
+                ApprovalStatus = "Approved",
+                CreatedByRole = "Admin",
+                CreatedByName = "Quản trị viên Hệ thống",
+                ApprovedBy = "Admin"
+            },
+            new()
+            {
+                ID = 6,
+                Name = "Tọa đàm Khởi nghiệp Sinh viên Đổi mới Sáng tạo 2026",
+                Description = "Cơ hội nhận vốn đầu tư thiên thần cho các dự án khởi nghiệp công nghệ của sinh viên",
+                Icon = "💡",
+                CategoryID = 1,
+                Category = _categories[0],
+                Location = "Hội trường tầng 5 Thư viện",
+                StartDate = DateTime.Now.AddDays(20).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(20).ToString("dd/MM/yyyy"),
+                MaxParticipants = 150,
+                Status = "Chờ phê duyệt",
+                IsApproved = false,
+                ApprovalStatus = "Pending",
+                CreatedByRole = "Manager",
+                CreatedByName = "Ban Tổ chức Sự kiện"
+            }
+        };
+
         public EventService(ModalErrorHandler errorHandler, ILogger<EventService> logger)
         {
             _httpClient = HttpHelper.CreateApiClient();
@@ -42,11 +171,10 @@ namespace CampusActivitiesManager.Services
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "API get events failed, falling back to local defaults");
+                _logger.LogWarning(ex, "API get events failed, using local in-app event store");
             }
 
-            var defaults = GetDefaultEvents();
-            return includePending ? defaults : defaults.Where(e => e.IsApproved).ToList();
+            return includePending ? _localEvents.ToList() : _localEvents.Where(e => e.IsApproved).ToList();
         }
 
         public async Task<CampusEvent?> GetEventByIdAsync(int id)
@@ -68,8 +196,7 @@ namespace CampusActivitiesManager.Services
                 _logger.LogWarning(ex, "API get event by id {Id} failed", id);
             }
 
-            var defaults = GetDefaultEvents();
-            return defaults.FirstOrDefault(e => e.ID == id);
+            return _localEvents.FirstOrDefault(e => e.ID == id);
         }
 
         public async Task<bool> CreateEventAsync(CampusEvent evt)
@@ -96,14 +223,18 @@ namespace CampusActivitiesManager.Services
                 };
 
                 var response = await _httpClient.PostAsJsonAsync(Constants.EventsApiUrl, payload);
-                return response.IsSuccessStatusCode;
+                if (response.IsSuccessStatusCode) return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating event via API");
-                _errorHandler.HandleError(ex);
-                return false;
+                _logger.LogWarning(ex, "API create event failed, applying locally");
             }
+
+            int newId = _localEvents.Any() ? _localEvents.Max(e => e.ID) + 1 : 1;
+            evt.ID = newId;
+            evt.Category = _categories.FirstOrDefault(c => c.ID == evt.CategoryID) ?? _categories[0];
+            _localEvents.Add(evt);
+            return true;
         }
 
         public async Task<bool> UpdateEventAsync(CampusEvent evt)
@@ -128,14 +259,33 @@ namespace CampusActivitiesManager.Services
                 };
 
                 var response = await _httpClient.PutAsJsonAsync($"{Constants.EventsApiUrl}/{evt.ID}", payload);
-                return response.IsSuccessStatusCode;
+                if (response.IsSuccessStatusCode) return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating event via API");
-                _errorHandler.HandleError(ex);
-                return false;
+                _logger.LogWarning(ex, "API update event failed, applying locally");
             }
+
+            var local = _localEvents.FirstOrDefault(e => e.ID == evt.ID);
+            if (local != null)
+            {
+                local.Name = evt.Name;
+                local.Description = evt.Description;
+                local.Icon = evt.Icon;
+                local.CategoryID = evt.CategoryID;
+                local.Category = _categories.FirstOrDefault(c => c.ID == evt.CategoryID) ?? local.Category;
+                local.Location = evt.Location;
+                local.StartDate = evt.StartDate;
+                local.EndDate = evt.EndDate;
+                local.MaxParticipants = evt.MaxParticipants;
+                local.Status = evt.Status;
+                local.IsApproved = evt.IsApproved;
+                local.ApprovalStatus = evt.ApprovalStatus;
+                local.ImageUrl = evt.ImageUrl;
+                local.VideoUrl = evt.VideoUrl;
+                return true;
+            }
+            return false;
         }
 
         public async Task<bool> ApproveEventAsync(int id, bool approve, string? approvedBy = "Admin", string? reason = null)
@@ -151,14 +301,23 @@ namespace CampusActivitiesManager.Services
                 };
 
                 var response = await _httpClient.PostAsJsonAsync($"{Constants.EventsApiUrl}/{id}/{endpoint}", payload);
-                return response.IsSuccessStatusCode;
+                if (response.IsSuccessStatusCode) return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error approving/rejecting event via API");
-                _errorHandler.HandleError(ex);
-                return false;
+                _logger.LogWarning(ex, "API approve event failed, applying locally");
             }
+
+            var local = _localEvents.FirstOrDefault(e => e.ID == id);
+            if (local != null)
+            {
+                local.IsApproved = approve;
+                local.ApprovalStatus = approve ? "Approved" : "Rejected";
+                local.ApprovedBy = approvedBy;
+                local.RejectionReason = reason;
+                return true;
+            }
+            return false;
         }
 
         public async Task<bool> DeleteEventAsync(int id)
@@ -166,14 +325,20 @@ namespace CampusActivitiesManager.Services
             try
             {
                 var response = await _httpClient.DeleteAsync($"{Constants.EventsApiUrl}/{id}");
-                return response.IsSuccessStatusCode;
+                if (response.IsSuccessStatusCode) return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting event via API");
-                _errorHandler.HandleError(ex);
-                return false;
+                _logger.LogWarning(ex, "API delete event failed, applying locally");
             }
+
+            var local = _localEvents.FirstOrDefault(e => e.ID == id);
+            if (local != null)
+            {
+                _localEvents.Remove(local);
+                return true;
+            }
+            return false;
         }
 
         public async Task<List<EventCategoryDto>> GetCategoriesAsync()
@@ -192,100 +357,10 @@ namespace CampusActivitiesManager.Services
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "API get categories failed, using default list");
+                _logger.LogWarning(ex, "API get categories failed, using default in-app list");
             }
 
-            return GetDefaultCategories();
-        }
-
-        private List<EventCategoryDto> GetDefaultCategories()
-        {
-            return new List<EventCategoryDto>
-            {
-                new() { ID = 1, Title = "Học thuật", Color = "#2563EB" },
-                new() { ID = 2, Title = "Thể thao", Color = "#10B981" },
-                new() { ID = 3, Title = "Tình nguyện", Color = "#EF4444" },
-                new() { ID = 4, Title = "Kỹ năng mềm", Color = "#7C3AED" },
-                new() { ID = 5, Title = "Văn hóa - Nghệ thuật", Color = "#0284C7" }
-            };
-        }
-
-        private List<CampusEvent> GetDefaultEvents()
-        {
-            var cats = GetDefaultCategories().ToDictionary(c => c.ID, c => c);
-            return new List<CampusEvent>
-            {
-                new()
-                {
-                    ID = 1,
-                    Name = "Hội thảo AI & Công nghệ Thông tin 2026",
-                    Description = "Cập nhật xu hướng Generative AI và Cloud Computing cho sinh viên toàn trường",
-                    Icon = "💻",
-                    CategoryID = 1,
-                    Category = cats[1],
-                    Location = "Hội trường A2",
-                    StartDate = "20/10/2026",
-                    EndDate = "20/10/2026",
-                    MaxParticipants = 200,
-                    Status = "Sắp diễn ra"
-                },
-                new()
-                {
-                    ID = 2,
-                    Name = "Giải Bóng đá Sinh viên Toàn trường",
-                    Description = "Khai mạc giải đấu thể thao thường niên tranh cúp vô địch tại Sân vận động",
-                    Icon = "⚽",
-                    CategoryID = 2,
-                    Category = cats[2],
-                    Location = "Sân Vận Động Trường",
-                    StartDate = "25/10/2026",
-                    EndDate = "30/10/2026",
-                    MaxParticipants = 350,
-                    Status = "Sắp diễn ra"
-                },
-                new()
-                {
-                    ID = 3,
-                    Name = "Chiến dịch Tình nguyện Mùa Hè Xanh",
-                    Description = "Hoạt động tình nguyện hỗ trợ cộng đồng, xây dựng sân chơi và dạy học vùng cao",
-                    Icon = "🌿",
-                    CategoryID = 3,
-                    Category = cats[3],
-                    Location = "Tỉnh Hòa Bình",
-                    StartDate = "05/11/2026",
-                    EndDate = "15/11/2026",
-                    MaxParticipants = 80,
-                    Status = "Sắp diễn ra"
-                },
-                new()
-                {
-                    ID = 4,
-                    Name = "Workshop Kỹ năng Thuyết trình & Phỏng vấn",
-                    Description = "Phát triển kỹ năng giao tiếp tự tin và chinh phục nhà tuyển dụng công nghệ",
-                    Icon = "🗣️",
-                    CategoryID = 4,
-                    Category = cats[4],
-                    Location = "Phòng Hội thảo 302-B1",
-                    StartDate = "12/11/2026",
-                    EndDate = "12/11/2026",
-                    MaxParticipants = 120,
-                    Status = "Sắp diễn ra"
-                },
-                new()
-                {
-                    ID = 5,
-                    Name = "Đêm nhạc Acoustic Chào Tân Sinh viên",
-                    Description = "Giao lưu âm nhạc và văn nghệ đặc sắc giữa các câu lạc bộ toàn trường",
-                    Icon = "🎸",
-                    CategoryID = 5,
-                    Category = cats[5],
-                    Location = "Sảnh Giảng đường C",
-                    StartDate = "18/11/2026",
-                    EndDate = "18/11/2026",
-                    MaxParticipants = 400,
-                    Status = "Sắp diễn ra"
-                }
-            };
+            return _categories.ToList();
         }
     }
 }
