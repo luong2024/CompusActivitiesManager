@@ -38,6 +38,9 @@ namespace CampusActivitiesManager.PageModels
         private bool _canCheckInPhoto;
 
         [ObservableProperty]
+        private bool _canAdminApprove;
+
+        [ObservableProperty]
         private bool _hasVideo;
 
         [ObservableProperty]
@@ -115,6 +118,9 @@ namespace CampusActivitiesManager.PageModels
 
             var myReg = EventItem.GetUserRegistration(studentId);
 
+            // Nút duyệt của Admin chỉ hiển thị khi người dùng là Admin VÀ sự kiện đang ở trạng thái Pending
+            CanAdminApprove = IsAdmin && EventItem.IsPendingApproval;
+
             RegistrationsList.Clear();
             foreach (var reg in EventItem.Registrations)
             {
@@ -144,7 +150,8 @@ namespace CampusActivitiesManager.PageModels
                 RegistrationStatusColor = Color.FromArgb("#16A34A");
                 CanRegister = false;
                 CanCancel = false;
-                CanCheckInPhoto = true; // Đã duyệt thì được điểm danh ảnh!
+                // Điểm danh chỉ khả dụng khi sự kiện đã duyệt và CHƯA kết thúc
+                CanCheckInPhoto = !EventItem.IsEventEnded && !EventItem.IsEventNotStarted;
             }
             else if (myReg.Status == "Rejected")
             {
@@ -216,6 +223,25 @@ namespace CampusActivitiesManager.PageModels
         public async Task GoToPhotoCheckInAsync()
         {
             if (EventItem == null) return;
+
+            if (EventItem.IsEventEnded)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Hết hạn điểm danh ⛔",
+                    $"Sự kiện \"{EventItem.Name}\" đã kết thúc vào lúc {EventItem.EndTime} ngày {EventItem.EndDate}.\n\nBạn không thể điểm danh sau thời gian kết thúc sự kiện!",
+                    "Đóng");
+                return;
+            }
+
+            if (EventItem.IsEventNotStarted)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Chưa mở điểm danh ⏳",
+                    $"Sự kiện \"{EventItem.Name}\" chưa bắt đầu.\n\nKhung giờ tổ chức: {EventItem.StartTime} - {EventItem.EndTime} ngày {EventItem.StartDate}.\nVui lòng quay lại trong khung giờ sự kiện diễn ra!",
+                    "Đóng");
+                return;
+            }
+
             await Shell.Current.GoToAsync($"photoattendance?eventId={EventItem.ID}");
         }
 

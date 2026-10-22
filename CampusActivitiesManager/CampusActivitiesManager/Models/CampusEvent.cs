@@ -99,6 +99,12 @@ namespace CampusActivitiesManager.Models
         [JsonPropertyName("endDate")]
         public string EndDate { get; set; } = string.Empty;
 
+        [JsonPropertyName("startTime")]
+        public string StartTime { get; set; } = "08:00";
+
+        [JsonPropertyName("endTime")]
+        public string EndTime { get; set; } = "11:30";
+
         [JsonPropertyName("maxParticipants")]
         public int MaxParticipants { get; set; } = 150;
 
@@ -161,6 +167,98 @@ namespace CampusActivitiesManager.Models
         public string VideoUrl { get; set; } = string.Empty;
 
         // UI Helpers
+        [JsonIgnore]
+        public bool IsPendingApproval => string.Equals(ApprovalStatus, "Pending", StringComparison.OrdinalIgnoreCase);
+
+        [JsonIgnore]
+        public bool CanAdminApprove { get; set; } = false;
+
+        [JsonIgnore]
+        public DateTime StartDateTime => ParseDateTime(StartDate, StartTime, isEnd: false);
+
+        [JsonIgnore]
+        public DateTime EndDateTime => ParseDateTime(EndDate, EndTime, isEnd: true);
+
+        [JsonIgnore]
+        public bool IsEventEnded => DateTime.Now > EndDateTime;
+
+        [JsonIgnore]
+        public bool IsEventNotStarted => DateTime.Now < StartDateTime;
+
+        [JsonIgnore]
+        public bool IsAttendanceOpen => !IsEventEnded && !IsEventNotStarted;
+
+        [JsonIgnore]
+        public bool CanCheckIn => IsAttendanceOpen && IsApproved;
+
+        [JsonIgnore]
+        public string AttendanceTimeWindowDisplay => $"⏰ {StartTime} - {EndTime} | 📅 {(string.IsNullOrEmpty(StartDate) ? "Sắp thông báo" : StartDate)}";
+
+        [JsonIgnore]
+        public string AttendanceStatusBadge
+        {
+            get
+            {
+                if (IsEventEnded) return "Hết hạn điểm danh ⛔";
+                if (IsEventNotStarted) return "Chưa mở điểm danh ⏳";
+                return "Đang mở điểm danh 🟢";
+            }
+        }
+
+        [JsonIgnore]
+        public string AttendanceStatusBg
+        {
+            get
+            {
+                if (IsEventEnded) return "#FEE2E2";
+                if (IsEventNotStarted) return "#FEF3C7";
+                return "#DCFCE7";
+            }
+        }
+
+        [JsonIgnore]
+        public string AttendanceStatusTextColor
+        {
+            get
+            {
+                if (IsEventEnded) return "#DC2626";
+                if (IsEventNotStarted) return "#D97706";
+                return "#15803D";
+            }
+        }
+
+        private static DateTime ParseDateTime(string dateStr, string timeStr, bool isEnd)
+        {
+            DateTime date = DateTime.Today;
+            if (!string.IsNullOrWhiteSpace(dateStr))
+            {
+                string[] dateFormats = new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "dd-MM-yyyy", "M/d/yyyy" };
+                if (!DateTime.TryParseExact(dateStr.Trim(), dateFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out date))
+                {
+                    if (!DateTime.TryParse(dateStr.Trim(), out date))
+                    {
+                        date = DateTime.Today;
+                    }
+                }
+            }
+
+            TimeSpan time = isEnd ? new TimeSpan(21, 30, 0) : new TimeSpan(8, 0, 0);
+            if (!string.IsNullOrWhiteSpace(timeStr))
+            {
+                string[] timeFormats = new[] { "hh\\:mm", "h\\:mm", "HH\\:mm", "H\\:mm", "hh\\:mm\\:ss", "HH\\:mm\\:ss" };
+                if (TimeSpan.TryParseExact(timeStr.Trim(), timeFormats, System.Globalization.CultureInfo.InvariantCulture, out var parsedTime))
+                {
+                    time = parsedTime;
+                }
+                else if (TimeSpan.TryParse(timeStr.Trim(), out var fallbackTime))
+                {
+                    time = fallbackTime;
+                }
+            }
+
+            return date.Date.Add(time);
+        }
+
         [JsonIgnore]
         public string ApprovalStatusDisplay => ApprovalStatus switch
         {
@@ -276,7 +374,7 @@ namespace CampusActivitiesManager.Models
         };
 
         [JsonIgnore]
-        public string TimeLocationDisplay => $"📍 {Location}  •  📅 {(string.IsNullOrEmpty(StartDate) ? "Sắp thông báo" : StartDate)}";
+        public string TimeLocationDisplay => $"📍 {Location}  •  ⏰ {StartTime}-{EndTime} ({(string.IsNullOrEmpty(StartDate) ? "Sắp thông báo" : StartDate)})";
 
         [JsonIgnore]
         public int RegisteredCount => Registrations?.Count(r => r.Status == "Approved" || r.Status == "Pending") ?? 0;

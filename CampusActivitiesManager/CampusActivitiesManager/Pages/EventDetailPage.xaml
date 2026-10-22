@@ -106,12 +106,25 @@
                         <Label Text="Thông tin tổ chức" FontSize="15" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
 
-                        <!-- Time -->
+                        <!-- Time & Date -->
                         <Grid ColumnDefinitions="30,*" RowDefinitions="Auto,Auto" RowSpacing="2">
                             <Label Grid.Column="0" Text="🕒" FontSize="16" VerticalOptions="Center" />
                             <Label Grid.Column="1" Text="Thời gian diễn ra:" FontSize="12" TextColor="{StaticResource Gray500}" />
                             <Label Grid.Row="1" Grid.Column="1" Text="{Binding EventItem.DateRangeFormatted}" FontSize="14" FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
+                        </Grid>
+
+                        <!-- Daily Time Window -->
+                        <Grid ColumnDefinitions="30,*" RowDefinitions="Auto,Auto" RowSpacing="2">
+                            <Label Grid.Column="0" Text="⏰" FontSize="16" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="Khung giờ tổ chức &amp; điểm danh:" FontSize="12" TextColor="{StaticResource Gray500}" />
+                            <HorizontalStackLayout Grid.Row="1" Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                                <Label Text="{Binding EventItem.AttendanceTimeWindowDisplay}" FontSize="13.5" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" VerticalOptions="Center" />
+                                <Border StrokeShape="RoundRectangle 6" BackgroundColor="{Binding EventItem.AttendanceStatusBg}" Padding="6,2" StrokeThickness="0" VerticalOptions="Center">
+                                    <Label Text="{Binding EventItem.AttendanceStatusBadge}" FontSize="10.5" FontAttributes="Bold" TextColor="{Binding EventItem.AttendanceStatusTextColor}" />
+                                </Border>
+                            </HorizontalStackLayout>
                         </Grid>
 
                         <!-- Location -->
@@ -164,6 +177,16 @@
                         <Label Text="{Binding UserRegistrationStatus}" FontSize="16" FontAttributes="Bold"
                                TextColor="{Binding RegistrationStatusColor}" />
 
+                        <!-- Attendance Time Window Info Banner -->
+                        <Border StrokeShape="RoundRectangle 10" BackgroundColor="{Binding EventItem.AttendanceStatusBg}" 
+                                StrokeThickness="0" Padding="12,8">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalOptions="Center">
+                                <Label Text="⏰" FontSize="16" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="{Binding EventItem.AttendanceStatusBadge, StringFormat='Điểm danh: {0}'}" 
+                                       FontSize="12" FontAttributes="Bold" TextColor="{Binding EventItem.AttendanceStatusTextColor}" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+
                         <!-- Action: Register -->
                         <Button Text="✍️ Đăng ký tham gia hoạt động" FontSize="15" FontAttributes="Bold"
                                 BackgroundColor="{StaticResource Primary}" TextColor="{StaticResource White}"
@@ -178,7 +201,7 @@
                                 IsVisible="{Binding CanCancel}"
                                 Command="{Binding CancelRegistrationCommand}" />
 
-                        <!-- Action: Photo Check-In (when Approved) -->
+                        <!-- Action: Photo Check-In (when Approved AND event is active) -->
                         <Button Text="📸 Điểm danh bằng ảnh minh chứng" FontSize="15" FontAttributes="Bold"
                                 BackgroundColor="#16A34A" TextColor="{StaticResource White}"
                                 CornerRadius="12" HeightRequest="48"
@@ -187,9 +210,9 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Admin Action Card (if Event is Pending Approval) -->
+                <!-- Admin Action Card (Visible ONLY if Admin AND Event is Pending Approval) -->
                 <Border Style="{StaticResource CardStyle}" Padding="16" BackgroundColor="#FEF3C7" Stroke="#FCD34D"
-                        IsVisible="{Binding IsAdmin}">
+                        IsVisible="{Binding CanAdminApprove}">
                     <VerticalStackLayout Spacing="10">
                         <Label Text="🛡️ Khu vực Quản trị viên (Admin)" FontSize="15" FontAttributes="Bold" TextColor="#92400E" />
                         <Label Text="Phê duyệt hoặc từ chối bài đăng sự kiện này trên ứng dụng." FontSize="13" TextColor="#B45309" />
@@ -236,7 +259,7 @@
                                             </VerticalStackLayout>
 
                                             <!-- Approve button (for Pending) -->
-                                            <Button Grid.Column="1" Text="Duyệt" FontSize="11" BackgroundColor="#16A34A" TextColor="{StaticResource White}"
+                                             <Button Grid.Column="1" Text="Duyệt" FontSize="11" BackgroundColor="#16A34A" TextColor="{StaticResource White}"
                                                     CornerRadius="6" Padding="8,4" HeightRequest="32"
                                                     IsVisible="{Binding CanBeApproved}"
                                                     Command="{Binding Source={RelativeSource AncestorType={x:Type pm:EventDetailPageModel}}, Path=ApproveParticipantCommand}"

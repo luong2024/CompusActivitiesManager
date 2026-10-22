@@ -223,6 +223,45 @@ namespace CampusActivitiesManager.PageModels
                 return;
             }
 
+            // Kiểm tra ràng buộc thời gian: Sau giờ kết thúc KHÔNG THỂ ĐIỂM DANH
+            if (SelectedEvent.IsEventEnded)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Hết hạn điểm danh ⛔",
+                        $"Sự kiện \"{SelectedEvent.Name}\" đã kết thúc vào lúc {SelectedEvent.EndTime} ngày {SelectedEvent.EndDate}.\n\nBạn không thể điểm danh sau thời gian kết thúc sự kiện!",
+                        "Đóng");
+                }
+                return;
+            }
+
+            // Kiểm tra ràng buộc thời gian: Chưa tới giờ bắt đầu KHÔNG THỂ ĐIỂM DANH
+            if (SelectedEvent.IsEventNotStarted)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Chưa mở điểm danh ⏳",
+                        $"Sự kiện \"{SelectedEvent.Name}\" chưa bắt đầu.\n\nKhung giờ tổ chức: {SelectedEvent.StartTime} - {SelectedEvent.EndTime} ngày {SelectedEvent.StartDate}.\nVui lòng quay lại trong khung giờ sự kiện diễn ra!",
+                        "Đóng");
+                }
+                return;
+            }
+
+            // Ràng buộc phê duyệt: Hoạt động chưa được Quản trị viên duyệt không được điểm danh
+            if (!SelectedEvent.IsApproved)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Chưa được phê duyệt ⏳",
+                        $"Hoạt động \"{SelectedEvent.Name}\" đang chờ Quản trị viên (Admin) duyệt trước khi mở điểm danh.",
+                        "Đóng");
+                }
+                return;
+            }
+
             if (!HasCapturedPhoto || CapturedPhotoBytes == null)
             {
                 if (Shell.Current != null)
@@ -247,11 +286,15 @@ namespace CampusActivitiesManager.PageModels
                         "Điểm danh thành công! 🎉",
                         $"Ảnh minh chứng của bạn đã được ghi nhận vào hệ thống!\n" +
                         $"Sự kiện: {SelectedEvent.Name}\n" +
-                        $"Quyền lợi: +5 Điểm rèn luyện\n" +
+                        $"Quyền lợi: +{SelectedEvent.PointsReward} Điểm rèn luyện (khi duyệt)\n" +
                         $"Thời gian: {DateTime.Now:HH:mm dd/MM/yyyy}",
                         "Tuyệt vời");
 
                     ClearPhoto();
+                }
+                else if (!success && Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Không thể điểm danh ⚠️", msg, "Đóng");
                 }
             }
             finally

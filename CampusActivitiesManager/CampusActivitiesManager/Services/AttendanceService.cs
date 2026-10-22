@@ -129,9 +129,29 @@ namespace CampusActivitiesManager.Services
         public async Task<(bool Success, string Message, AttendanceRecord? Record)> CheckInWithPhotoAsync(int eventId, string studentCode, string photoBase64, string? notes)
         {
             var evt = await _eventService.GetEventByIdAsync(eventId);
-            string evtTitle = evt?.Title ?? ("Sự kiện hoạt động #" + eventId);
-            int reward = evt?.PointsReward ?? 10;
-            int penalty = evt?.PointsPenalty ?? 5;
+            if (evt == null)
+            {
+                return (false, "Không tìm thấy thông tin sự kiện để điểm danh.", null);
+            }
+
+            if (!evt.IsApproved)
+            {
+                return (false, "Hoạt động này đang chờ Quản trị viên duyệt, chưa mở chức năng điểm danh.", null);
+            }
+
+            if (evt.IsEventEnded)
+            {
+                return (false, $"Sự kiện đã kết thúc vào lúc {evt.EndTime} ngày {evt.EndDate}. Hệ thống đã khóa điểm danh sau thời gian kết thúc!", null);
+            }
+
+            if (evt.IsEventNotStarted)
+            {
+                return (false, $"Sự kiện chưa bắt đầu (diễn ra từ {evt.StartTime} đến {evt.EndTime} ngày {evt.StartDate}). Vui lòng quay lại trong khung giờ tổ chức!", null);
+            }
+
+            string evtTitle = evt.Title ?? ("Sự kiện hoạt động #" + eventId);
+            int reward = evt.PointsReward;
+            int penalty = evt.PointsPenalty;
 
             var record = new AttendanceRecord
             {

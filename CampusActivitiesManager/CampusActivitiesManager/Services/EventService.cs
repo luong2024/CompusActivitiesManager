@@ -30,6 +30,8 @@ namespace CampusActivitiesManager.Services
                 Location = "Hội trường A2",
                 StartDate = DateTime.Now.AddDays(2).ToString("dd/MM/yyyy"),
                 EndDate = DateTime.Now.AddDays(2).ToString("dd/MM/yyyy"),
+                StartTime = "08:00",
+                EndTime = "11:30",
                 MaxParticipants = 200,
                 Status = "Sắp diễn ra",
                 IsApproved = true,
@@ -56,6 +58,8 @@ namespace CampusActivitiesManager.Services
                 Location = "Sân Vận Động Trường",
                 StartDate = DateTime.Now.AddDays(5).ToString("dd/MM/yyyy"),
                 EndDate = DateTime.Now.AddDays(10).ToString("dd/MM/yyyy"),
+                StartTime = "07:30",
+                EndTime = "17:00",
                 MaxParticipants = 350,
                 Status = "Sắp diễn ra",
                 IsApproved = true,
@@ -81,6 +85,8 @@ namespace CampusActivitiesManager.Services
                 Location = "Tỉnh Hòa Bình",
                 StartDate = DateTime.Now.AddDays(15).ToString("dd/MM/yyyy"),
                 EndDate = DateTime.Now.AddDays(25).ToString("dd/MM/yyyy"),
+                StartTime = "06:30",
+                EndTime = "18:00",
                 MaxParticipants = 80,
                 Status = "Sắp diễn ra",
                 IsApproved = true,
@@ -106,6 +112,8 @@ namespace CampusActivitiesManager.Services
                 Location = "Phòng học 402 Nhà A3",
                 StartDate = DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
                 EndDate = DateTime.Now.AddDays(3).ToString("dd/MM/yyyy"),
+                StartTime = "19:00",
+                EndTime = "21:00",
                 MaxParticipants = 50,
                 Status = "Sắp diễn ra",
                 IsApproved = true,
@@ -131,6 +139,8 @@ namespace CampusActivitiesManager.Services
                 Location = "Phòng Hội thảo 302-B1",
                 StartDate = DateTime.Now.AddDays(8).ToString("dd/MM/yyyy"),
                 EndDate = DateTime.Now.AddDays(8).ToString("dd/MM/yyyy"),
+                StartTime = "14:00",
+                EndTime = "16:30",
                 MaxParticipants = 50,
                 Status = "Sắp diễn ra",
                 IsApproved = true,
@@ -156,6 +166,8 @@ namespace CampusActivitiesManager.Services
                 Location = "Hội trường tầng 5 Thư viện",
                 StartDate = DateTime.Now.AddDays(20).ToString("dd/MM/yyyy"),
                 EndDate = DateTime.Now.AddDays(20).ToString("dd/MM/yyyy"),
+                StartTime = "08:30",
+                EndTime = "11:30",
                 MaxParticipants = 150,
                 Status = "Chờ phê duyệt",
                 IsApproved = false,
@@ -168,6 +180,59 @@ namespace CampusActivitiesManager.Services
                 PointsReward = 10,
                 PointsPenalty = 5,
                 ImageUrl = "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80"
+            },
+            new()
+            {
+                ID = 7,
+                Name = "Ngày Hội Hiến Máu Tình Nguyện Giọt Hồng PTIT 2026",
+                Description = "Chương trình hiến máu nhân đạo cứu người đã diễn ra tuần trước. Sự kiện đã kết thúc, hệ thống đã khóa chức năng điểm danh nhận điểm.",
+                Icon = "🩸",
+                CategoryID = 3,
+                Category = _categories[2],
+                Location = "Sảnh Giảng đường A2",
+                StartDate = DateTime.Now.AddDays(-3).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(-3).ToString("dd/MM/yyyy"),
+                StartTime = "07:30",
+                EndTime = "11:30",
+                MaxParticipants = 250,
+                Status = "Đã kết thúc",
+                IsApproved = true,
+                ApprovalStatus = "Approved",
+                CreatedByRole = "Admin",
+                CreatedByName = "Quản trị viên Hệ thống",
+                ApprovedBy = "Admin",
+                Scope = "Public",
+                TargetClass = "Tất cả",
+                RegistrationType = "Auto",
+                PointsReward = 15,
+                PointsPenalty = 0,
+                ImageUrl = "https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=800&q=80"
+            },
+            new()
+            {
+                ID = 8,
+                Name = "Cuộc thi Lập trình Hackathon PTIT Innovation 2026",
+                Description = "Thử thách 24 giờ xây dựng sản phẩm AI ứng dụng chuyển đổi số giáo dục. Đề xuất từ Câu lạc bộ IT, đang đợi Admin phê duyệt.",
+                Icon = "🚀",
+                CategoryID = 1,
+                Category = _categories[0],
+                Location = "Phòng Lab AI Tầng 4",
+                StartDate = DateTime.Now.AddDays(12).ToString("dd/MM/yyyy"),
+                EndDate = DateTime.Now.AddDays(13).ToString("dd/MM/yyyy"),
+                StartTime = "08:00",
+                EndTime = "18:00",
+                MaxParticipants = 120,
+                Status = "Chờ phê duyệt",
+                IsApproved = false,
+                ApprovalStatus = "Pending",
+                CreatedByRole = "Manager",
+                CreatedByName = "CLB Công Nghệ Sinh Viên",
+                Scope = "Public",
+                TargetClass = "Tất cả",
+                RegistrationType = "RequiresApproval",
+                PointsReward = 20,
+                PointsPenalty = 5,
+                ImageUrl = "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80"
             }
         };
 
@@ -254,6 +319,9 @@ namespace CampusActivitiesManager.Services
                 evt.Status = "Chờ phê duyệt";
             }
 
+            if (string.IsNullOrWhiteSpace(evt.StartTime)) evt.StartTime = "08:00";
+            if (string.IsNullOrWhiteSpace(evt.EndTime)) evt.EndTime = "11:30";
+
             _localEvents.Insert(0, evt);
             _logger.LogInformation("Event '{Name}' created (ID: {Id}, Scope: {Scope}, Approved: {IsApproved})", evt.Name, evt.ID, evt.Scope, evt.IsApproved);
             return true;
@@ -273,6 +341,8 @@ namespace CampusActivitiesManager.Services
                 local.Location = evt.Location;
                 local.StartDate = evt.StartDate;
                 local.EndDate = evt.EndDate;
+                local.StartTime = evt.StartTime;
+                local.EndTime = evt.EndTime;
                 local.MaxParticipants = evt.MaxParticipants;
                 local.Status = evt.Status;
                 local.ImageUrl = evt.ImageUrl;
