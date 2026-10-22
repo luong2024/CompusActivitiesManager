@@ -12,12 +12,12 @@
     <Shell.FlyoutHeader>
         <Border Background="{StaticResource PrimaryGradientBrush}" Padding="20,24" StrokeThickness="0">
             <HorizontalStackLayout Spacing="14" VerticalOptions="Center">
-                <Border WidthRequest="44" HeightRequest="44" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0" Padding="0">
-                    <Label Text="🎓" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Border x:Name="FlyoutAvatarBorder" WidthRequest="46" HeightRequest="46" StrokeShape="RoundRectangle 23" BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0" Padding="0">
+                    <Label x:Name="FlyoutAvatarText" Text="🎓" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{StaticResource White}"/>
                 </Border>
                 <VerticalStackLayout VerticalOptions="Center" Spacing="2">
-                    <Label Text="Campus Hub" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource White}"/>
-                    <Label Text="Quản lý Hoạt động Sinh viên" FontSize="12" TextColor="{StaticResource HeaderSubtitleColor}"/>
+                    <Label x:Name="FlyoutUserName" Text="Campus Hub" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource White}"/>
+                    <Label x:Name="FlyoutUserRole" Text="Quản lý Hoạt động Sinh viên" FontSize="12" TextColor="{StaticResource HeaderSubtitleColor}"/>
                 </VerticalStackLayout>
             </HorizontalStackLayout>
         </Border>
@@ -57,12 +57,19 @@
         </Tab>
     </TabBar>
 
+    <!-- Danh mục điều hướng trong thanh Menu (Flyout Menu Items) -->
+    <MenuItem Text="🏠 Trang chủ" Clicked="OnNavigateHomeClicked" />
+    <MenuItem Text="📅 Sự kiện &amp; Hoạt động" Clicked="OnNavigateEventsClicked" />
+    <MenuItem Text="📷 Quét mã QR sự kiện" Clicked="OnNavigateQrClicked" />
+    <MenuItem Text="🎓 Quản lý Lớp học" Clicked="OnNavigateClassClicked" />
+    <MenuItem Text="👤 Hồ sơ cá nhân" Clicked="OnNavigateProfileClicked" />
+
     <!-- Admin & Management Special Flyout Items -->
-    <FlyoutItem x:Name="FlyoutUsers" Title="Quản lý Người dùng (Admin)" Icon="{StaticResource IconUsers}">
+    <FlyoutItem x:Name="FlyoutUsers" Title="👥 Quản lý Người dùng (Admin)" Icon="{StaticResource IconUsers}">
         <ShellContent Route="users" ContentTemplate="{DataTemplate pages:UserManagementPage}" />
     </FlyoutItem>
 
-    <FlyoutItem x:Name="FlyoutReports" Title="Báo cáo &amp; Điểm danh" Icon="{StaticResource IconProjects}">
+    <FlyoutItem x:Name="FlyoutReports" Title="📊 Báo cáo &amp; Điểm danh" Icon="{StaticResource IconProjects}">
         <ShellContent Route="attendancereport" ContentTemplate="{DataTemplate pages:EventAttendanceReportPage}" />
     </FlyoutItem>
 

@@ -1,202 +1,214 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
-             xmlns:pm="clr-namespace:CampusActivitiesManager.PageModels"
-             x:Class="CampusActivitiesManager.Pages.ClassHubPage"
-             x:DataType="pm:ClassHubPageModel"
-             Title="Lớp Học"
-             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource DarkPageBackground}}"
-             Shell.NavBarIsVisible="False">
-
-    <Grid RowDefinitions="Auto,*">
-        <!-- Header -->
-        <Border Grid.Row="0" Background="{StaticResource PrimaryGradientBrush}" Padding="20,40,20,20" StrokeThickness="0">
-            <VerticalStackLayout Spacing="8">
-                <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                    <VerticalStackLayout Grid.Column="0" Spacing="2">
-                        <Label Text="Quản Lý Lớp Học" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource White}" />
-                        <Label Text="{Binding UserRoleTitle}" FontSize="12" TextColor="{StaticResource HeaderSubtitleColor}" />
-                    </VerticalStackLayout>
-                    <Border Grid.Column="1" WidthRequest="40" HeightRequest="40" StrokeShape="RoundRectangle 20"
-                            BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0">
-                        <Label Text="🏛️" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
-                    </Border>
-                </Grid>
-
-                <!-- Class Picker for Admin, or Display Tag for others -->
-                <Border BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0" StrokeShape="RoundRectangle 10" Padding="12,6">
-                    <Grid ColumnDefinitions="Auto,*">
-                        <Label Grid.Column="0" Text="Lớp: " FontSize="14" FontAttributes="Bold" TextColor="{StaticResource White}" VerticalOptions="Center" />
-                        <Picker Grid.Column="1"
-                                ItemsSource="{Binding AvailableClasses}"
-                                ItemDisplayBinding="{Binding ClassName, x:DataType='models:ClassRoom'}"
-                                SelectedItem="{Binding SelectedClass}"
-                                TextColor="{StaticResource White}" TitleColor="{StaticResource White}"
-                                FontSize="14" FontAttributes="Bold" />
-                    </Grid>
-                </Border>
-            </VerticalStackLayout>
-        </Border>
-
-        <!-- Main Body -->
-        <ScrollView Grid.Row="1" Padding="16,16,16,30">
-            <VerticalStackLayout Spacing="16">
-
-                <!-- Class Summary Card -->
-                <Border Style="{StaticResource CardStyle}" Padding="16">
-                    <VerticalStackLayout Spacing="12">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0" Text="{Binding SelectedClass.ClassName, StringFormat='Thông tin Lớp {0}'}"
-                                   FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
-                            <Border Grid.Column="1" BackgroundColor="#DBEAFE" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="8,4">
-                                <Label Text="{Binding TotalStudents, StringFormat='{0} Sinh viên'}" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
-                            </Border>
-                        </Grid>
-
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="8" ColumnSpacing="12">
-                            <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
-                                <Label Text="Cố vấn học tập (GV):" FontSize="11" TextColor="{StaticResource Gray500}" />
-                                <Label Text="{Binding SelectedClass.AdvisorName}" FontSize="13" FontAttributes="Bold"
-                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
-                            </VerticalStackLayout>
-
-                            <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
-                                <Label Text="Bí thư chi đoàn:" FontSize="11" TextColor="{StaticResource Gray500}" />
-                                <Label Text="{Binding SelectedClass.SecretaryName}" FontSize="13" FontAttributes="Bold"
-                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
-                            </VerticalStackLayout>
-                        </Grid>
-
-                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource BorderLight}" />
-
-                        <!-- Training Points Progress Overview -->
-                        <Label Text="Tiêu chuẩn Điểm Rèn Luyện (ĐRL) Nhà Trường:" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Gray600}" />
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                            <Border Grid.Column="0" BackgroundColor="#F0FDF4" StrokeThickness="1" Stroke="#BBF7D0" StrokeShape="RoundRectangle 8" Padding="10">
-                                <VerticalStackLayout Spacing="2">
-                                    <Label Text="🎯 Kỳ học: ≥ 50 ĐRL" FontSize="11" FontAttributes="Bold" TextColor="#166534" />
-                                    <Label Text="{Binding QualifiedSemesterCount, StringFormat='{0} SV đạt chuẩn'}" FontSize="12" TextColor="#15803D" />
-                                </VerticalStackLayout>
-                            </Border>
-                            <Border Grid.Column="1" BackgroundColor="#EFF6FF" StrokeThickness="1" Stroke="#BFDBFE" StrokeShape="RoundRectangle 8" Padding="10">
-                                <VerticalStackLayout Spacing="2">
-                                    <Label Text="🏆 Năm học: ≥ 250 ĐRL" FontSize="11" FontAttributes="Bold" TextColor="#1E40AF" />
-                                    <Label Text="{Binding QualifiedYearCount, StringFormat='{0} SV đạt chuẩn'}" FontSize="12" TextColor="#1D4ED8" />
-                                </VerticalStackLayout>
-                            </Border>
-                        </Grid>
-                    </VerticalStackLayout>
-                </Border>
-
-                <!-- Section: Class Activities -->
-                <Border Style="{StaticResource CardStyle}" Padding="16">
-                    <VerticalStackLayout Spacing="12">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                <Label Text="Hoạt động nội bộ của Lớp" FontSize="15" FontAttributes="Bold"
-                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
-                                <Label Text="Chỉ sinh viên lớp này mới được xem và tham gia" FontSize="11" TextColor="{StaticResource Gray500}" />
-                            </VerticalStackLayout>
-
-                            <!-- Create Class Activity Button -->
-                            <Button Grid.Column="1" Text="+ Tạo hoạt động" FontSize="11" FontAttributes="Bold"
-                                    BackgroundColor="{StaticResource Primary}" TextColor="{StaticResource White}"
-                                    CornerRadius="8" Padding="10,4" HeightRequest="34"
-                                    IsVisible="{Binding CanCreateClassEvent}"
-                                    Command="{Binding CreateClassEventCommand}" />
-                        </Grid>
-
-                        <CollectionView ItemsSource="{Binding ClassEventsList}">
-                            <CollectionView.EmptyView>
-                                <Label Text="Chưa có hoạt động nội bộ nào được tạo cho lớp này."
-                                       FontSize="12" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" Margin="0,12" />
-                            </CollectionView.EmptyView>
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:CampusEvent">
-                                    <Border Margin="0,4" Padding="12" StrokeShape="RoundRectangle 10" BackgroundColor="#F8FAFC" Stroke="#E2E8F0">
-                                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                                            <VerticalStackLayout Grid.Column="0" Spacing="3">
-                                                <Label Text="{Binding Title}" FontSize="14" FontAttributes="Bold" TextColor="#0F172A" />
-                                                <Label Text="{Binding DateRangeFormatted}" FontSize="11" TextColor="#64748B" />
-                                                <HorizontalStackLayout Spacing="6">
-                                                    <Label Text="{Binding PointsReward, StringFormat='+{0} ĐRL'}" FontSize="11" FontAttributes="Bold" TextColor="#16A34A" />
-                                                    <Label Text="{Binding ApprovalBadgeText}" FontSize="11" FontAttributes="Bold" TextColor="{Binding ApprovalBadgeColor}" />
-                                                </HorizontalStackLayout>
-                                            </VerticalStackLayout>
-
-                                            <Button Grid.Column="1" Text="Chi tiết" FontSize="11" BackgroundColor="{StaticResource Primary}"
-                                                    TextColor="{StaticResource White}" CornerRadius="6" HeightRequest="32" Padding="10,0"
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pm:ClassHubPageModel}}, Path=OpenEventDetailCommand}"
-                                                    CommandParameter="{Binding .}" />
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </VerticalStackLayout>
-                </Border>
-
-                <!-- Section: Student Training Points Monitoring -->
-                <Border Style="{StaticResource CardStyle}" Padding="16">
-                    <VerticalStackLayout Spacing="12">
-                        <Label Text="Danh sách Sinh viên &amp; Tiến độ ĐRL" FontSize="15" FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
-                        <Label Text="Điểm ban đầu: 0 ĐRL. Mục tiêu: Kỳ ≥ 50 ĐRL, Năm ≥ 250 ĐRL." FontSize="11" TextColor="{StaticResource Gray500}" />
-
-                        <CollectionView ItemsSource="{Binding StudentsList}">
-                            <CollectionView.EmptyView>
-                                <Label Text="Không có sinh viên nào trong lớp này."
-                                       FontSize="13" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" Margin="0,12" />
-                            </CollectionView.EmptyView>
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:User">
-                                    <Border Margin="0,6" Padding="12" StrokeShape="RoundRectangle 10" BackgroundColor="#FFFFFF" Stroke="#E2E8F0">
-                                        <VerticalStackLayout Spacing="8">
-                                            <Grid ColumnDefinitions="*,Auto">
-                                                <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                                    <HorizontalStackLayout Spacing="6">
-                                                        <Label Text="{Binding FullName}" FontSize="14" FontAttributes="Bold" TextColor="#0F172A" />
-                                                        <Border BackgroundColor="#FEF3C7" StrokeThickness="0" StrokeShape="RoundRectangle 4" Padding="6,2"
-                                                                IsVisible="{Binding IsSecretary}">
-                                                            <Label Text="Bí thư" FontSize="9" FontAttributes="Bold" TextColor="#B45309" />
-                                                        </Border>
-                                                    </HorizontalStackLayout>
-                                                    <Label Text="{Binding Username, StringFormat='MSSV: {0}'}" FontSize="11" TextColor="#64748B" />
-                                                </VerticalStackLayout>
-
-                                                <!-- Current Points Badge -->
-                                                <Border Grid.Column="1" BackgroundColor="#EFF6FF" Stroke="#BFDBFE" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10,4">
-                                                    <Label Text="{Binding TrainingPoints, StringFormat='{0} ĐRL'}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
-                                                </Border>
-                                            </Grid>
-
-                                            <!-- Progress 1: Semester (50 pts) -->
-                                            <VerticalStackLayout Spacing="2">
-                                                <Grid ColumnDefinitions="*,Auto">
-                                                    <Label Grid.Column="0" Text="Chỉ tiêu Học kỳ (50 ĐRL)" FontSize="10" TextColor="#64748B" />
-                                                    <Label Grid.Column="1" Text="{Binding SemesterProgressPercent, StringFormat='{0}%'}" FontSize="10" FontAttributes="Bold" TextColor="#16A34A" />
-                                                </Grid>
-                                                <ProgressBar Progress="{Binding SemesterProgress}" ProgressColor="#16A34A" HeightRequest="6" />
-                                            </VerticalStackLayout>
-
-                                            <!-- Progress 2: Year (250 pts) -->
-                                            <VerticalStackLayout Spacing="2">
-                                                <Grid ColumnDefinitions="*,Auto">
-                                                    <Label Grid.Column="0" Text="Chỉ tiêu Năm học (250 ĐRL)" FontSize="10" TextColor="#64748B" />
-                                                    <Label Grid.Column="1" Text="{Binding YearProgressPercent, StringFormat='{0}%'}" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
-                                                </Grid>
-                                                <ProgressBar Progress="{Binding YearProgress}" ProgressColor="{StaticResource Primary}" HeightRequest="6" />
-                                            </VerticalStackLayout>
-                                        </VerticalStackLayout>
-                                    </Border>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </VerticalStackLayout>
-                </Border>
-
-            </VerticalStackLayout>
-        </ScrollView>
-    </Grid>
-</ContentPage>
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
+             xmlns:pm="clr-namespace:CampusActivitiesManager.PageModels"
+             x:Class="CampusActivitiesManager.Pages.ClassHubPage"
+             x:DataType="pm:ClassHubPageModel"
+             Title="Lớp Học"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource DarkPageBackground}}"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryGradientBrush}" Padding="20,40,20,20" StrokeThickness="0">
+            <VerticalStackLayout Spacing="8">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                    <Border Grid.Column="0"
+                            WidthRequest="40" HeightRequest="40"
+                            StrokeShape="RoundRectangle 10"
+                            BackgroundColor="{StaticResource TranslucentWhite}"
+                            StrokeThickness="0"
+                            VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ToggleMenuCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="☰" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource White}" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                        <Label Text="Quản Lý Lớp Học" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                        <Label Text="{Binding UserRoleTitle}" FontSize="12" TextColor="{StaticResource HeaderSubtitleColor}" />
+                    </VerticalStackLayout>
+                    <Border Grid.Column="2" WidthRequest="40" HeightRequest="40" StrokeShape="RoundRectangle 20"
+                            BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0">
+                        <Label Text="🏛️" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                </Grid>
+
+                <!-- Class Picker for Admin, or Display Tag for others -->
+                <Border BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0" StrokeShape="RoundRectangle 10" Padding="12,6">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Label Grid.Column="0" Text="Lớp: " FontSize="14" FontAttributes="Bold" TextColor="{StaticResource White}" VerticalOptions="Center" />
+                        <Picker Grid.Column="1"
+                                ItemsSource="{Binding AvailableClasses}"
+                                ItemDisplayBinding="{Binding ClassName, x:DataType='models:ClassRoom'}"
+                                SelectedItem="{Binding SelectedClass}"
+                                TextColor="{StaticResource White}" TitleColor="{StaticResource White}"
+                                FontSize="14" FontAttributes="Bold" />
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Main Body -->
+        <ScrollView Grid.Row="1" Padding="16,16,16,30">
+            <VerticalStackLayout Spacing="16">
+
+                <!-- Class Summary Card -->
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="{Binding SelectedClass.ClassName, StringFormat='Thông tin Lớp {0}'}"
+                                   FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                            <Border Grid.Column="1" BackgroundColor="#DBEAFE" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="8,4">
+                                <Label Text="{Binding TotalStudents, StringFormat='{0} Sinh viên'}" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="8" ColumnSpacing="12">
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
+                                <Label Text="Cố vấn học tập (GV):" FontSize="11" TextColor="{StaticResource Gray500}" />
+                                <Label Text="{Binding SelectedClass.AdvisorName}" FontSize="13" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
+                                <Label Text="Bí thư chi đoàn:" FontSize="11" TextColor="{StaticResource Gray500}" />
+                                <Label Text="{Binding SelectedClass.SecretaryName}" FontSize="13" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource BorderLight}" />
+
+                        <!-- Training Points Progress Overview -->
+                        <Label Text="Tiêu chuẩn Điểm Rèn Luyện (ĐRL) Nhà Trường:" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Gray600}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Border Grid.Column="0" BackgroundColor="#F0FDF4" StrokeThickness="1" Stroke="#BBF7D0" StrokeShape="RoundRectangle 8" Padding="10">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="🎯 Kỳ học: ≥ 50 ĐRL" FontSize="11" FontAttributes="Bold" TextColor="#166534" />
+                                    <Label Text="{Binding QualifiedSemesterCount, StringFormat='{0} SV đạt chuẩn'}" FontSize="12" TextColor="#15803D" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Column="1" BackgroundColor="#EFF6FF" StrokeThickness="1" Stroke="#BFDBFE" StrokeShape="RoundRectangle 8" Padding="10">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="🏆 Năm học: ≥ 250 ĐRL" FontSize="11" FontAttributes="Bold" TextColor="#1E40AF" />
+                                    <Label Text="{Binding QualifiedYearCount, StringFormat='{0} SV đạt chuẩn'}" FontSize="12" TextColor="#1D4ED8" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Section: Class Activities -->
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="Hoạt động nội bộ của Lớp" FontSize="15" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
+                                <Label Text="Chỉ sinh viên lớp này mới được xem và tham gia" FontSize="11" TextColor="{StaticResource Gray500}" />
+                            </VerticalStackLayout>
+
+                            <!-- Create Class Activity Button -->
+                            <Button Grid.Column="1" Text="+ Tạo hoạt động" FontSize="11" FontAttributes="Bold"
+                                    BackgroundColor="{StaticResource Primary}" TextColor="{StaticResource White}"
+                                    CornerRadius="8" Padding="10,4" HeightRequest="34"
+                                    IsVisible="{Binding CanCreateClassEvent}"
+                                    Command="{Binding CreateClassEventCommand}" />
+                        </Grid>
+
+                        <CollectionView ItemsSource="{Binding ClassEventsList}">
+                            <CollectionView.EmptyView>
+                                <Label Text="Chưa có hoạt động nội bộ nào được tạo cho lớp này."
+                                       FontSize="12" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" Margin="0,12" />
+                            </CollectionView.EmptyView>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:CampusEvent">
+                                    <Border Margin="0,4" Padding="12" StrokeShape="RoundRectangle 10" BackgroundColor="#F8FAFC" Stroke="#E2E8F0">
+                                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                            <VerticalStackLayout Grid.Column="0" Spacing="3">
+                                                <Label Text="{Binding Title}" FontSize="14" FontAttributes="Bold" TextColor="#0F172A" />
+                                                <Label Text="{Binding DateRangeFormatted}" FontSize="11" TextColor="#64748B" />
+                                                <HorizontalStackLayout Spacing="6">
+                                                    <Label Text="{Binding PointsReward, StringFormat='+{0} ĐRL'}" FontSize="11" FontAttributes="Bold" TextColor="#16A34A" />
+                                                    <Label Text="{Binding ApprovalBadgeText}" FontSize="11" FontAttributes="Bold" TextColor="{Binding ApprovalBadgeColor}" />
+                                                </HorizontalStackLayout>
+                                            </VerticalStackLayout>
+
+                                            <Button Grid.Column="1" Text="Chi tiết" FontSize="11" BackgroundColor="{StaticResource Primary}"
+                                                    TextColor="{StaticResource White}" CornerRadius="6" HeightRequest="32" Padding="10,0"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pm:ClassHubPageModel}}, Path=OpenEventDetailCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Section: Student Training Points Monitoring -->
+                <Border Style="{StaticResource CardStyle}" Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Danh sách Sinh viên &amp; Tiến độ ĐRL" FontSize="15" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
+                        <Label Text="Điểm ban đầu: 0 ĐRL. Mục tiêu: Kỳ ≥ 50 ĐRL, Năm ≥ 250 ĐRL." FontSize="11" TextColor="{StaticResource Gray500}" />
+
+                        <CollectionView ItemsSource="{Binding StudentsList}">
+                            <CollectionView.EmptyView>
+                                <Label Text="Không có sinh viên nào trong lớp này."
+                                       FontSize="13" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" Margin="0,12" />
+                            </CollectionView.EmptyView>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:User">
+                                    <Border Margin="0,6" Padding="12" StrokeShape="RoundRectangle 10" BackgroundColor="#FFFFFF" Stroke="#E2E8F0">
+                                        <VerticalStackLayout Spacing="8">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                                    <HorizontalStackLayout Spacing="6">
+                                                        <Label Text="{Binding FullName}" FontSize="14" FontAttributes="Bold" TextColor="#0F172A" />
+                                                        <Border BackgroundColor="#FEF3C7" StrokeThickness="0" StrokeShape="RoundRectangle 4" Padding="6,2"
+                                                                IsVisible="{Binding IsSecretary}">
+                                                            <Label Text="Bí thư" FontSize="9" FontAttributes="Bold" TextColor="#B45309" />
+                                                        </Border>
+                                                    </HorizontalStackLayout>
+                                                    <Label Text="{Binding Username, StringFormat='MSSV: {0}'}" FontSize="11" TextColor="#64748B" />
+                                                </VerticalStackLayout>
+
+                                                <!-- Current Points Badge -->
+                                                <Border Grid.Column="1" BackgroundColor="#EFF6FF" Stroke="#BFDBFE" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="10,4">
+                                                    <Label Text="{Binding TrainingPoints, StringFormat='{0} ĐRL'}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Progress 1: Semester (50 pts) -->
+                                            <VerticalStackLayout Spacing="2">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <Label Grid.Column="0" Text="Chỉ tiêu Học kỳ (50 ĐRL)" FontSize="10" TextColor="#64748B" />
+                                                    <Label Grid.Column="1" Text="{Binding SemesterProgressPercent, StringFormat='{0}%'}" FontSize="10" FontAttributes="Bold" TextColor="#16A34A" />
+                                                </Grid>
+                                                <ProgressBar Progress="{Binding SemesterProgress}" ProgressColor="#16A34A" HeightRequest="6" />
+                                            </VerticalStackLayout>
+
+                                            <!-- Progress 2: Year (250 pts) -->
+                                            <VerticalStackLayout Spacing="2">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <Label Grid.Column="0" Text="Chỉ tiêu Năm học (250 ĐRL)" FontSize="10" TextColor="#64748B" />
+                                                    <Label Grid.Column="1" Text="{Binding YearProgressPercent, StringFormat='{0}%'}" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                                </Grid>
+                                                <ProgressBar Progress="{Binding YearProgress}" ProgressColor="{StaticResource Primary}" HeightRequest="6" />
+                                            </VerticalStackLayout>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
