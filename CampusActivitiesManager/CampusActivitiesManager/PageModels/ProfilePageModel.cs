@@ -25,7 +25,7 @@ namespace CampusActivitiesManager.PageModels
             _userService = userService;
             _authService = authService;
             _errorHandler = errorHandler;
-            Title = "Th√¥ng tin c√° nh√¢n";
+            Title = "ThÙng tin c· nh‚n";
         }
 
         [RelayCommand]
@@ -51,30 +51,21 @@ namespace CampusActivitiesManager.PageModels
                 
                 var request = new UpdateProfileRequest
                 {
-                    Id = _authService.CurrentUser?.Id,
-                    Email = _authService.CurrentUser?.Email,
                     FullName = FullName,
                     PhoneNumber = PhoneNumber,
                     AvatarUrl = AvatarUrl
                 };
 
                 var result = await _userService.UpdateProfileAsync(request);
-                if (_authService.CurrentUser != null)
-                {
-                    _authService.CurrentUser.FullName = FullName;
-                    _authService.CurrentUser.PhoneNumber = PhoneNumber;
-                    var accountUpdated = await _userService.UpdateUserAsync(_authService.CurrentUser);
-                    result = result || accountUpdated;
-                }
                 
                 if (result)
                 {
-                    await Shell.Current.DisplayAlert("Th√†nh c√¥ng", "C·∫≠p nh·∫≠t th√¥ng tin th√†nh c√¥ng", "OK");
+                    await Shell.Current.DisplayAlert("Th‡nh cÙng", "C?p nh?t thÙng tin th‡nh cÙng", "OK");
                     await _authService.RefreshCurrentUserAsync();
                 }
                 else
                 {
-                    await Shell.Current.DisplayAlert("L·ªói", "Kh√¥ng th·ªÉ c·∫≠p nh·∫≠t th√¥ng tin", "OK");
+                    await Shell.Current.DisplayAlert("L?i", "KhÙng th? c?p nh?t thÙng tin", "OK");
                 }
             }
             catch (Exception ex)
