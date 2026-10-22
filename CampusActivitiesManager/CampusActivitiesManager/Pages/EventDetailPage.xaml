@@ -8,16 +8,16 @@
 
     <ScrollView Margin="20">
         <VerticalStackLayout Spacing="15">
-            <Label Text="{Binding EventDto.Icon}" FontSize="64" HorizontalOptions="Center" />
-            <Label Text="{Binding EventDto.Name}" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+            <Label Text="{Binding CampusEvent.Icon}" FontSize="64" HorizontalOptions="Center" />
+            <Label Text="{Binding CampusEvent.Name}" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
             
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
                 <Label Text="Phân loại: " FontSize="16" FontAttributes="Bold" />
-                <Label Text="{Binding EventDto.Category.Title}" FontSize="16" TextColor="{Binding EventDto.Category.Color}" />
+                <Label Text="{Binding CampusEvent.Category.Title}" FontSize="16" TextColor="{Binding CampusEvent.Category.Color}" />
             </HorizontalStackLayout>
             
             <Label Text="Mô tả:" FontSize="18" FontAttributes="Bold" Margin="0,10,0,0"/>
-            <Label Text="{Binding EventDto.Description}" FontSize="16" />
+            <Label Text="{Binding CampusEvent.Description}" FontSize="16" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

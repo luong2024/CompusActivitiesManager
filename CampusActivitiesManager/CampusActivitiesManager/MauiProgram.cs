@@ -92,6 +92,8 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<AttendanceHistoryViewModel>();
             builder.Services.AddTransient<EventAttendanceReportViewModel>();
             builder.Services.AddTransient<EventFormPageModel>();
+            builder.Services.AddTransient<EventListPageModel>();
+            builder.Services.AddTransient<EventDetailPageModel>();
 
             // Pages
             builder.Services.AddTransient<MainPage>();
@@ -117,6 +119,8 @@ namespace CampusActivitiesManager
             builder.Services.AddTransientWithShellRoute<PhotoAttendancePage, PhotoAttendanceViewModel>("photoattendance");
             builder.Services.AddTransientWithShellRoute<AttendanceHistoryPage, AttendanceHistoryViewModel>("attendancehistory");
             builder.Services.AddTransientWithShellRoute<EventAttendanceReportPage, EventAttendanceReportViewModel>("attendancereport");
+            builder.Services.AddTransientWithShellRoute<EventListPage, EventListPageModel>("eventlist");
+            builder.Services.AddTransientWithShellRoute<EventDetailPage, EventDetailPageModel>("eventdetails");
             return builder.Build();
         }
     }

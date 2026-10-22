@@ -12,7 +12,7 @@ namespace CampusActivitiesManager.PageModels
         private readonly IEventService _eventService;
 
         [ObservableProperty]
-        private ObservableCollection<EventDto> _events = new();
+        private ObservableCollection<CampusEvent> _events = new();
 
         [ObservableProperty]
         private bool _isRefreshing;
@@ -67,7 +67,7 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
-        private Task NavigateToEvent(EventDto eventDto)
+        private Task NavigateToEvent(CampusEvent eventDto)
         {
             if (eventDto == null) return Task.CompletedTask;
             return Shell.Current.GoToAsync($"eventdetails?id={eventDto.ID}", new Dictionary<string, object>

@@ -17,7 +17,7 @@
     <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshEventsCommand}">
         <CollectionView ItemsSource="{Binding Events}" Margin="10">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:EventDto">
+                <DataTemplate x:DataType="models:CampusEvent">
                     <Border Margin="0,0,0,10" Padding="10">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventListPageModel}}, Path=NavigateToEventCommand}" CommandParameter="{Binding .}"/>
