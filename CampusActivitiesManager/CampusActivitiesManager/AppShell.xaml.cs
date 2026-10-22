@@ -78,6 +78,8 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute(nameof(AttendanceHistoryPage), typeof(AttendanceHistoryPage));
             Routing.RegisterRoute(nameof(EventAttendanceReportPage), typeof(EventAttendanceReportPage));
             Routing.RegisterRoute(nameof(EventFormPage), typeof(EventFormPage));
+            Routing.RegisterRoute(nameof(EventListPage), typeof(EventListPage));
+            Routing.RegisterRoute(nameof(EventDetailPage), typeof(EventDetailPage));
 
             // URL alias routes for GoToAsync calls
             Routing.RegisterRoute("createuser", typeof(CreateUserPage));

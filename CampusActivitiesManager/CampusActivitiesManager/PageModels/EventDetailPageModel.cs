@@ -4,11 +4,11 @@ using Microsoft.Maui.Controls;
 
 namespace CampusActivitiesManager.PageModels
 {
-    [QueryProperty(nameof(EventDto), "Event")]
+    [QueryProperty(nameof(CampusEvent), "Event")]
     public partial class EventDetailPageModel : ObservableObject
     {
         [ObservableProperty]
-        private EventDto _eventDto;
+        private CampusEvent _campusEvent = new();
 
         public EventDetailPageModel()
         {
