@@ -22,7 +22,7 @@ namespace CampusActivitiesManager.PageModels
         private Role _selectedRole = Role.User;
 
         [ObservableProperty]
-        private List<Role> _availableRoles = [Role.Admin, Role.Manager, Role.User, Role.Guest];
+        private List<Role> _availableRoles = [Role.Admin, Role.Manager, Role.Lecturer, Role.Secretary, Role.User, Role.Guest];
 
         [ObservableProperty]
         private string _roleDescription = string.Empty;

@@ -174,11 +174,14 @@ namespace CampusActivitiesManager.PageModels
                 SemesterQualificationRate = $"{rate}%";
 
                 // 2. Tải hoạt động riêng của lớp (Chỉ hoạt động đã duyệt mới hiện cho sinh viên thường)
-                var allEvents = await _eventService.GetEventsAsync(includePending: IsAdmin);
+                bool isSecretary = _authService.IsSecretary;
+                bool isLecturer = currentUser?.Role == Role.Lecturer || (currentUser?.Role == Role.Manager && !string.IsNullOrEmpty(currentUser?.AssignedClass));
+                bool canSeePendingClassEvents = IsAdmin || isSecretary || isLecturer;
+                var allEvents = await _eventService.GetEventsAsync(includePending: canSeePendingClassEvents);
                 var classEvents = allEvents.Where(e =>
                     e.Scope == "ClassOnly" &&
                     string.Equals(e.TargetClass, SelectedClass.ClassName, StringComparison.OrdinalIgnoreCase) &&
-                    (IsAdmin || (e.IsApproved && e.ApprovalStatus == "Approved"))
+                    (canSeePendingClassEvents || (e.IsApproved && e.ApprovalStatus == "Approved"))
                 ).ToList();
 
                 ClassEventsList.Clear();

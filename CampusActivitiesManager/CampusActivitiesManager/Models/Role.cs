@@ -24,7 +24,8 @@ namespace CampusActivitiesManager.Models
         public static string GetDisplayName(this Role role) => role switch
         {
             Role.Admin => "Admin (Quản trị viên)",
-            Role.Manager => "Giảng viên / Quản lý sự kiện",
+            Role.Manager => "Quản lý sự kiện",
+            Role.Lecturer => "Giảng viên / Cố vấn học tập",
             Role.Secretary => "Bí thư Lớp (Ban cán sự)",
             Role.User => "Sinh viên / Học sinh",
             Role.Guest => "Khách vãng lai",
@@ -34,7 +35,8 @@ namespace CampusActivitiesManager.Models
         public static string GetShortName(this Role role) => role switch
         {
             Role.Admin => "Admin",
-            Role.Manager => "Giảng viên",
+            Role.Manager => "Quản lý",
+            Role.Lecturer => "Giảng viên",
             Role.Secretary => "Bí thư",
             Role.User => "Sinh viên",
             Role.Guest => "Khách",
@@ -44,7 +46,8 @@ namespace CampusActivitiesManager.Models
         public static string GetBadgeColorHex(this Role role) => role switch
         {
             Role.Admin => "#DC2626",      // Đỏ cho Admin
-            Role.Manager => "#2563EB",    // Xanh dương cho Giảng viên / Quản lý
+            Role.Manager => "#0284C7",    // Xanh dương sáng cho Quản lý
+            Role.Lecturer => "#2563EB",   // Xanh dương đậm cho Giảng viên
             Role.Secretary => "#7C3AED",  // Tím cho Bí thư
             Role.User => "#16A34A",       // Xanh lá cho Sinh viên
             Role.Guest => "#6B7280",      // Xám cho Guest
@@ -54,7 +57,8 @@ namespace CampusActivitiesManager.Models
         public static string GetDescription(this Role role) => role switch
         {
             Role.Admin => "Toàn quyền quản trị hệ thống: duyệt tất cả bài đăng hoạt động, duyệt điểm danh, quản lý tài khoản và lớp học.",
-            Role.Manager => "Giảng viên chủ nhiệm / Quản lý sự kiện: quản lý học sinh lớp mình, tạo hoạt động trường/lớp, duyệt đăng ký và duyệt điểm danh (+/- điểm).",
+            Role.Manager => "Quản lý sự kiện: tạo hoạt động, duyệt đăng ký tham gia và duyệt điểm danh (+/- điểm).",
+            Role.Lecturer => "Giảng viên chủ nhiệm: quản lý sinh viên lớp mình, tạo hoạt động cho lớp, theo dõi điểm rèn luyện của lớp.",
             Role.Secretary => "Bí thư lớp: kiểm soát học sinh trong lớp, tạo hoạt động riêng cho lớp, theo dõi điểm rèn luyện các bạn.",
             Role.User => "Học sinh / Sinh viên: xem thông tin sự kiện, đăng ký tham gia, điểm danh bằng ảnh, tích lũy điểm rèn luyện đạt chuẩn kỳ/năm.",
             Role.Guest => "Chỉ có quyền xem thông tin cơ bản.",

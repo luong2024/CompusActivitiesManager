@@ -26,7 +26,7 @@ namespace CampusActivitiesManager.PageModels
         private Role _selectedRole = Role.User;
 
         [ObservableProperty]
-        private List<Role> _availableRoles = [Role.Admin, Role.Manager, Role.User, Role.Guest];
+        private List<Role> _availableRoles = [Role.Admin, Role.Manager, Role.Lecturer, Role.Secretary, Role.User, Role.Guest];
 
         public CreateUserViewModel(IUserService<User> userService, ModalErrorHandler errorHandler)
         {

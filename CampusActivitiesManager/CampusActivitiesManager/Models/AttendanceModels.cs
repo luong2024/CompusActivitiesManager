@@ -103,6 +103,34 @@ namespace CampusActivitiesManager.Models
         [JsonPropertyName("reviewNotes")]
         public string? ReviewNotes { get; set; }
 
+        [JsonIgnore]
+        public bool IsPendingReview => Status == "PendingReview";
+
+        [JsonIgnore]
+        public bool HasPhoto => !string.IsNullOrWhiteSpace(PhotoUrl);
+
+        [JsonIgnore]
+        public ImageSource? PhotoImageSource
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(PhotoUrl)) return null;
+                try
+                {
+                    if (PhotoUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) || PhotoUrl.EndsWith(".png") || PhotoUrl.EndsWith(".jpg"))
+                    {
+                        return PhotoUrl;
+                    }
+                    var bytes = Convert.FromBase64String(PhotoUrl);
+                    return ImageSource.FromStream(() => new MemoryStream(bytes));
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
+
         // UI Presentation Properties
         [JsonIgnore]
         public string FormattedCheckInTime => CheckInTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm");

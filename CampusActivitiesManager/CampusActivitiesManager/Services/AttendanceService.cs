@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
@@ -6,6 +7,10 @@ namespace CampusActivitiesManager.Services
 {
     public class AttendanceService : IAttendanceService
     {
+        private static readonly string AttendanceFilePath = Path.Combine(FileSystem.AppDataDirectory, "campus_attendance.json");
+        private static readonly SemaphoreSlim _fileLock = new(1, 1);
+        private static bool _isLoadedFromFile = false;
+
         private static readonly List<AttendanceRecord> _localRecords = new()
         {
             new AttendanceRecord
@@ -18,7 +23,7 @@ namespace CampusActivitiesManager.Services
                 CheckInTime = DateTime.UtcNow.AddDays(-2),
                 Method = "QR",
                 TrainingPointsAwarded = 5,
-                Status = "Present",
+                Status = "Approved",
                 Notes = "Quét mã QR tại cửa hội trường"
             },
             new AttendanceRecord
@@ -31,7 +36,7 @@ namespace CampusActivitiesManager.Services
                 CheckInTime = DateTime.UtcNow.AddDays(-5),
                 Method = "Photo",
                 TrainingPointsAwarded = 5,
-                Status = "Present",
+                Status = "Approved",
                 Notes = "Điểm danh kèm ảnh tham dự"
             }
         };
@@ -84,9 +89,72 @@ namespace CampusActivitiesManager.Services
             _logger = logger;
         }
 
+        private static async Task EnsureLoadedAsync()
+        {
+            if (_isLoadedFromFile) return;
+
+            await _fileLock.WaitAsync();
+            try
+            {
+                if (_isLoadedFromFile) return;
+
+                if (File.Exists(AttendanceFilePath))
+                {
+                    try
+                    {
+                        var json = await File.ReadAllTextAsync(AttendanceFilePath);
+                        if (!string.IsNullOrWhiteSpace(json))
+                        {
+                            var list = JsonSerializer.Deserialize<List<AttendanceRecord>>(json);
+                            if (list != null && list.Count > 0)
+                            {
+                                _localRecords.Clear();
+                                _localRecords.AddRange(list);
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                else
+                {
+                    await SaveRecordsToDiskInternalAsync();
+                }
+
+                _isLoadedFromFile = true;
+            }
+            finally
+            {
+                _fileLock.Release();
+            }
+        }
+
+        private static async Task SaveRecordsToDiskInternalAsync()
+        {
+            try
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(_localRecords, options);
+                await File.WriteAllTextAsync(AttendanceFilePath, json);
+            }
+            catch { }
+        }
+
+        public async Task SaveRecordsToDiskAsync()
+        {
+            await _fileLock.WaitAsync();
+            try
+            {
+                await SaveRecordsToDiskInternalAsync();
+            }
+            finally
+            {
+                _fileLock.Release();
+            }
+        }
+
         public async Task<(bool Success, string Message, AttendanceRecord? Record)> CheckInWithQrAsync(int eventId, string studentCode, string qrPayload)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
 
             if (string.IsNullOrWhiteSpace(qrPayload))
             {
@@ -122,12 +190,15 @@ namespace CampusActivitiesManager.Services
                 IsRead = false
             });
 
+            await SaveRecordsToDiskAsync();
             _logger.LogInformation("QR event link opened for event {EventId}, student {StudentCode}", eventId, studentCode);
             return (true, "Đã mở thông tin sự kiện từ mã QR!", record);
         }
 
         public async Task<(bool Success, string Message, AttendanceRecord? Record)> CheckInWithPhotoAsync(int eventId, string studentCode, string photoBase64, string? notes)
         {
+            await EnsureLoadedAsync();
+
             var evt = await _eventService.GetEventByIdAsync(eventId);
             if (evt == null)
             {
@@ -181,13 +252,15 @@ namespace CampusActivitiesManager.Services
                 IsRead = false
             });
 
+            await SaveRecordsToDiskAsync();
             _logger.LogInformation("Photo Check-in submitted for event {EventId}, student {StudentCode}. Status: PendingReview", eventId, studentCode);
             return (true, "Gửi minh chứng ảnh thành công! Đang chờ duyệt điểm danh (+ " + reward + " ĐRL nếu duyệt, - " + penalty + " ĐRL nếu từ chối).", record);
         }
 
         public async Task<(bool Success, string Message)> ReviewAttendanceAsync(string recordId, bool isApproved, string reviewerName, string? notes = null)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
+
             var record = _localRecords.FirstOrDefault(r => r.Id.Equals(recordId, StringComparison.OrdinalIgnoreCase));
             if (record == null)
             {
@@ -220,6 +293,7 @@ namespace CampusActivitiesManager.Services
                     IsRead = false
                 });
 
+                await SaveRecordsToDiskAsync();
                 _logger.LogInformation("Attendance {RecordId} approved by {Reviewer}. Awarded +{Points} to {Student}", recordId, reviewerName, reward, record.StudentCode);
                 return (true, $"Đã duyệt điểm danh! Cộng +{reward} ĐRL cho sinh viên {record.StudentCode}.");
             }
@@ -242,6 +316,7 @@ namespace CampusActivitiesManager.Services
                     IsRead = false
                 });
 
+                await SaveRecordsToDiskAsync();
                 _logger.LogInformation("Attendance {RecordId} rejected by {Reviewer}. Deducted -{Points} from {Student}", recordId, reviewerName, penalty, record.StudentCode);
                 return (true, $"Đã từ chối điểm danh. Trừ -{penalty} ĐRL của sinh viên {record.StudentCode}.");
             }
@@ -249,7 +324,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<List<AttendanceRecord>> GetPendingAttendanceReviewsAsync(int? eventId = null)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var query = _localRecords.Where(r => r.Status == "PendingReview");
             if (eventId.HasValue && eventId.Value > 0)
             {
@@ -260,13 +335,13 @@ namespace CampusActivitiesManager.Services
 
         public async Task<List<AttendanceRecord>> GetAllAttendanceRecordsAsync()
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             return _localRecords.ToList();
         }
 
         public async Task<(bool Success, string Message, AttendanceRecord? Record)> MarkManualAttendanceAsync(int eventId, string studentCode, string status, int points, string notes)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
 
             var record = new AttendanceRecord
             {
@@ -278,24 +353,27 @@ namespace CampusActivitiesManager.Services
                 CheckInTime = DateTime.UtcNow,
                 Method = "Manual",
                 TrainingPointsAwarded = points,
-                Status = string.IsNullOrWhiteSpace(status) ? "Present" : status,
+                Status = "Approved",
                 Notes = notes
             };
 
             _localRecords.Insert(0, record);
+            await _userService.AdjustTrainingPointsAsync(studentCode, points);
+            await SaveRecordsToDiskAsync();
+
             _logger.LogInformation("Manual attendance recorded for event {EventId}, student {StudentCode}", eventId, studentCode);
             return (true, "Cập nhật điểm danh thành công!", record);
         }
 
         public async Task<List<AttendanceRecord>> GetEventAttendanceAsync(int eventId)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             return _localRecords.Where(r => r.EventId == eventId).ToList();
         }
 
         public async Task<List<AttendanceRecord>> GetStudentAttendanceHistoryAsync(string studentCode)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             if (string.IsNullOrWhiteSpace(studentCode))
                 return _localRecords.ToList();
 
@@ -305,7 +383,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<string> ExportAttendanceCsvAsync(int eventId)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var list = _localRecords.Where(r => r.EventId == eventId).ToList();
 
             var sb = new StringBuilder();

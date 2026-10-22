@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
@@ -7,6 +8,10 @@ namespace CampusActivitiesManager.Services
     {
         private readonly ModalErrorHandler _errorHandler;
         private readonly ILogger<UserService> _logger;
+
+        private static readonly string UsersFilePath = Path.Combine(FileSystem.AppDataDirectory, "campus_users.json");
+        private static readonly SemaphoreSlim _fileLock = new(1, 1);
+        private static bool _isLoadedFromFile = false;
 
         private static readonly List<ClassRoom> _classes = new()
         {
@@ -139,9 +144,72 @@ namespace CampusActivitiesManager.Services
             _logger = logger;
         }
 
+        private static async Task EnsureLoadedAsync()
+        {
+            if (_isLoadedFromFile) return;
+
+            await _fileLock.WaitAsync();
+            try
+            {
+                if (_isLoadedFromFile) return;
+
+                if (File.Exists(UsersFilePath))
+                {
+                    try
+                    {
+                        var json = await File.ReadAllTextAsync(UsersFilePath);
+                        if (!string.IsNullOrWhiteSpace(json))
+                        {
+                            var list = JsonSerializer.Deserialize<List<User>>(json);
+                            if (list != null && list.Count > 0)
+                            {
+                                _localUsers.Clear();
+                                _localUsers.AddRange(list);
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                else
+                {
+                    await SaveUsersToDiskInternalAsync();
+                }
+
+                _isLoadedFromFile = true;
+            }
+            finally
+            {
+                _fileLock.Release();
+            }
+        }
+
+        private static async Task SaveUsersToDiskInternalAsync()
+        {
+            try
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(_localUsers, options);
+                await File.WriteAllTextAsync(UsersFilePath, json);
+            }
+            catch { }
+        }
+
+        public async Task SaveUsersToDiskAsync()
+        {
+            await _fileLock.WaitAsync();
+            try
+            {
+                await SaveUsersToDiskInternalAsync();
+            }
+            finally
+            {
+                _fileLock.Release();
+            }
+        }
+
         public async Task<List<User>> GetUsersListAsync()
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             return _localUsers.ToList();
         }
 
@@ -149,7 +217,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<User?> GetUserByIdAsync(string id)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             return _localUsers.FirstOrDefault(u => u.Id == id);
         }
 
@@ -157,7 +225,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<User?> GetUserByUsernameAsync(string username)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var clean = username.Trim().ToLower();
             return _localUsers.FirstOrDefault(u =>
                 u.Email.ToLower() == clean ||
@@ -167,7 +235,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<List<User>> GetStudentsByClassAsync(string className)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             if (string.IsNullOrWhiteSpace(className) || className == "Tất cả")
             {
                 return _localUsers.Where(u => u.Role == Role.User || u.Role == Role.Secretary).ToList();
@@ -180,7 +248,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> AdjustTrainingPointsAsync(string studentCodeOrId, int pointsDelta)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var user = _localUsers.FirstOrDefault(u =>
                 u.Id.Equals(studentCodeOrId, StringComparison.OrdinalIgnoreCase) ||
                 u.Username.Equals(studentCodeOrId, StringComparison.OrdinalIgnoreCase));
@@ -189,6 +257,7 @@ namespace CampusActivitiesManager.Services
             {
                 user.TrainingPoints = Math.Max(0, user.TrainingPoints + pointsDelta);
                 _logger.LogInformation("Adjusted training points for {Username} by {Delta}. New points: {Points}", user.Username, pointsDelta, user.TrainingPoints);
+                await SaveUsersToDiskAsync();
                 return true;
             }
             return false;
@@ -202,13 +271,14 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> UpdateUserRoleAsync(string id, Role newRole)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var local = _localUsers.FirstOrDefault(u => u.Id == id);
             if (local != null)
             {
                 local.Role = newRole;
                 local.IsSecretary = (newRole == Role.Secretary);
                 _logger.LogInformation("Updated role for user {Id} to {Role}", id, newRole);
+                await SaveUsersToDiskAsync();
                 return true;
             }
             return false;
@@ -216,12 +286,13 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> DeleteUserAsync(string id)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var local = _localUsers.FirstOrDefault(u => u.Id == id);
             if (local != null)
             {
                 _localUsers.Remove(local);
                 _logger.LogInformation("Deleted user {Id}", id);
+                await SaveUsersToDiskAsync();
                 return true;
             }
             return false;
@@ -231,13 +302,13 @@ namespace CampusActivitiesManager.Services
 
         public async Task<int> SaveUserAsync(User user)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             if (string.IsNullOrEmpty(user.Id))
             {
                 user.Id = "user_" + Guid.NewGuid().ToString("N")[..8];
             }
 
-            var existing = _localUsers.FirstOrDefault(u => u.Id == user.Id);
+            var existing = _localUsers.FirstOrDefault(u => u.Id == user.Id || u.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase));
             if (existing != null)
             {
                 existing.FullName = user.FullName;
@@ -247,12 +318,14 @@ namespace CampusActivitiesManager.Services
                 existing.ClassName = user.ClassName;
                 existing.IsSecretary = user.IsSecretary;
                 existing.IsActive = user.IsActive;
+                existing.TrainingPoints = user.TrainingPoints;
             }
             else
             {
                 _localUsers.Add(user);
             }
             _logger.LogInformation("Saved user {Username} ({Id})", user.Username, user.Id);
+            await SaveUsersToDiskAsync();
             return 1;
         }
 
@@ -260,12 +333,13 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> UpdateProfileAsync(UpdateProfileRequest request)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var local = _localUsers.FirstOrDefault(u => u.Email.Equals(request.Email, StringComparison.OrdinalIgnoreCase));
             if (local != null)
             {
                 local.FullName = request.FullName;
                 local.PhoneNumber = request.PhoneNumber;
+                await SaveUsersToDiskAsync();
                 return true;
             }
             return true;
@@ -273,7 +347,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> UpdateUserAsync(User user)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var local = _localUsers.FirstOrDefault(u => u.Id == user.Id);
             if (local != null)
             {
@@ -284,6 +358,8 @@ namespace CampusActivitiesManager.Services
                 local.ClassName = user.ClassName;
                 local.IsSecretary = user.IsSecretary;
                 local.IsActive = user.IsActive;
+                local.TrainingPoints = user.TrainingPoints;
+                await SaveUsersToDiskAsync();
                 return true;
             }
             return false;
@@ -293,12 +369,13 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> ToggleUserStatusAsync(string id)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var local = _localUsers.FirstOrDefault(u => u.Id == id);
             if (local != null)
             {
                 local.IsActive = !local.IsActive;
                 _logger.LogInformation("Toggled active status for user {Id} to {Status}", id, local.IsActive);
+                await SaveUsersToDiskAsync();
                 return true;
             }
             return false;
@@ -306,7 +383,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task SeedDefaultUsersAsync()
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
         }
     }
 }

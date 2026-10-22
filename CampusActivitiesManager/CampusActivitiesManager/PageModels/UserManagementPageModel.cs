@@ -290,8 +290,10 @@ namespace CampusActivitiesManager.PageModels
                 "Hủy",
                 null,
                 "Admin (Quản trị viên)",
-                "Manager (Quản lý hoạt động)",
-                "User (Sinh viên / Thành viên)",
+                "Manager (Quản lý sự kiện)",
+                "Lecturer (Giảng viên / Cố vấn học tập)",
+                "Secretary (Bí thư chi đoàn)",
+                "User (Sinh viên / Học sinh)",
                 "Guest (Khách vãng lai)");
 
             if (string.IsNullOrEmpty(action) || action == "Hủy")
@@ -300,8 +302,10 @@ namespace CampusActivitiesManager.PageModels
             Role chosenRole = action switch
             {
                 "Admin (Quản trị viên)" => Role.Admin,
-                "Manager (Quản lý hoạt động)" => Role.Manager,
-                "User (Sinh viên / Thành viên)" => Role.User,
+                "Manager (Quản lý sự kiện)" => Role.Manager,
+                "Lecturer (Giảng viên / Cố vấn học tập)" => Role.Lecturer,
+                "Secretary (Bí thư chi đoàn)" => Role.Secretary,
+                "User (Sinh viên / Học sinh)" => Role.User,
                 "Guest (Khách vãng lai)" => Role.Guest,
                 _ => user.Role
             };
