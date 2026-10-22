@@ -120,6 +120,9 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private bool _isSaving;
 
+        [ObservableProperty]
+        private bool _canCreateEvent;
+
         public EventManagementPageModel(
             IEventService eventService,
             IAuthenticationService authService,
@@ -136,21 +139,25 @@ namespace CampusActivitiesManager.PageModels
         {
             if (_authService?.CurrentUser != null)
             {
-                var role = _authService.CurrentUser.Role;
-                IsAdmin = role == Role.Admin;
-                IsManagerOrAdmin = role == Role.Admin || role == Role.Manager;
-                CurrentUserRoleName = role switch
+                var user = _authService.CurrentUser;
+                IsAdmin = user.Role == Role.Admin;
+                IsManagerOrAdmin = user.Role == Role.Admin || user.Role == Role.Manager;
+                CanCreateEvent = IsAdmin || user.Role == Role.Manager || user.Role == Role.Secretary || user.IsSecretary;
+                CurrentUserRoleName = user.Role switch
                 {
                     Role.Admin => "Quản trị viên (Admin)",
                     Role.Manager => "Ban tổ chức (Manager)",
-                    _ => "Sinh viên (User)"
+                    Role.Lecturer => "Giảng viên (Lecturer)",
+                    Role.Secretary => "Bí thư chi đoàn",
+                    _ => "Sinh viên (Student)"
                 };
             }
             else
             {
-                IsAdmin = true;
-                IsManagerOrAdmin = true;
-                CurrentUserRoleName = "Quản trị viên (Admin)";
+                IsAdmin = false;
+                IsManagerOrAdmin = false;
+                CanCreateEvent = false;
+                CurrentUserRoleName = "Khách (Chưa đăng nhập)";
             }
         }
 
@@ -185,8 +192,41 @@ namespace CampusActivitiesManager.PageModels
                 Categories = await _eventService.GetCategoriesAsync();
                 CategoryNames = Categories.Select(c => c.Title).ToList();
 
-                // Load events (including pending ones for management)
-                Events = await _eventService.GetEventsAsync(includePending: true);
+                var currentUser = _authService?.CurrentUser;
+                bool isAdmin = currentUser?.Role == Role.Admin;
+                bool isManager = currentUser?.Role == Role.Manager;
+
+                if (isAdmin)
+                {
+                    Events = await _eventService.GetEventsAsync(includePending: true);
+                }
+                else if (isManager)
+                {
+                    // Quản lý sự kiện: xem các sự kiện đã duyệt + sự kiện do chính mình tạo (kể cả pending của mình)
+                    var all = await _eventService.GetEventsAsync(includePending: true);
+                    Events = all.Where(e =>
+                        (e.IsApproved && e.ApprovalStatus == "Approved") ||
+                        string.Equals(e.CreatedByUsername, currentUser?.Username, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(e.CreatedByName, currentUser?.FullName, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+                else
+                {
+                    // Học sinh / Sinh viên thường: CHỈ XEM CÁC HOẠT ĐỘNG ĐÃ ĐƯỢC DUYỆT!
+                    Events = await _eventService.GetEventsForUserAsync(currentUser);
+                }
+
+                // Cập nhật quyền quản lý và duyệt cho từng sự kiện
+                if (Events != null)
+                {
+                    foreach (var evt in Events)
+                    {
+                        evt.CanAdminApprove = isAdmin && evt.IsPendingApproval;
+                        evt.CanUserManage = isAdmin ||
+                            (!string.IsNullOrEmpty(currentUser?.Username) && string.Equals(evt.CreatedByUsername, currentUser.Username, StringComparison.OrdinalIgnoreCase)) ||
+                            (!string.IsNullOrEmpty(currentUser?.FullName) && string.Equals(evt.CreatedByName, currentUser.FullName, StringComparison.OrdinalIgnoreCase));
+                    }
+                }
 
                 UpdateMetrics();
                 ApplyFilter();
@@ -232,12 +272,18 @@ namespace CampusActivitiesManager.PageModels
 
         private void ApplyFilter()
         {
-            // Thiết lập quyền duyệt cho từng sự kiện: Chỉ hiển thị nút duyệt khi người dùng là Admin VÀ bài đăng đang Pending
+            var currentUser = _authService?.CurrentUser;
+            bool isAdmin = currentUser?.Role == Role.Admin;
+
+            // Thiết lập quyền duyệt và quản lý cho từng sự kiện
             if (Events != null)
             {
                 foreach (var evt in Events)
                 {
-                    evt.CanAdminApprove = IsAdmin && evt.IsPendingApproval;
+                    evt.CanAdminApprove = isAdmin && evt.IsPendingApproval;
+                    evt.CanUserManage = isAdmin ||
+                        (!string.IsNullOrEmpty(currentUser?.Username) && string.Equals(evt.CreatedByUsername, currentUser.Username, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(currentUser?.FullName) && string.Equals(evt.CreatedByName, currentUser.FullName, StringComparison.OrdinalIgnoreCase));
                 }
             }
 
@@ -271,6 +317,12 @@ namespace CampusActivitiesManager.PageModels
         [RelayCommand]
         private void OpenCreateModal()
         {
+            if (!CanCreateEvent)
+            {
+                Shell.Current?.DisplayAlert("Phân quyền ⚠️", "Chỉ Ban tổ chức sự kiện hoặc Quản trị viên mới có thể tạo sự kiện mới.", "Đã hiểu");
+                return;
+            }
+
             IsEditing = false;
             ModalTitle = "Tạo Sự Kiện Mới";
             EditingId = 0;
@@ -292,9 +344,15 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
-        private void OpenEditModal(CampusEvent evt)
+        private async Task OpenEditModal(CampusEvent evt)
         {
             if (evt == null) return;
+
+            if (!IsAdmin && !evt.CanUserManage)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Bạn chỉ có quyền chỉnh sửa hoạt động do chính bạn tạo ra!", "Đã hiểu");
+                return;
+            }
 
             IsEditing = true;
             ModalTitle = "Chỉnh Sửa Sự Kiện";
@@ -399,8 +457,9 @@ namespace CampusActivitiesManager.PageModels
                 bool isUserAdmin = _authService?.CurrentUser?.Role == Role.Admin;
                 bool isApproved = isUserAdmin;
                 string approvalStatus = isUserAdmin ? "Approved" : "Pending";
-                string createdRole = isUserAdmin ? "Admin" : "Manager";
+                string createdRole = isUserAdmin ? "Admin" : (_authService?.CurrentUser?.Role.ToString() ?? "Manager");
                 string createdName = _authService?.CurrentUser?.FullName ?? (isUserAdmin ? "Admin" : "Ban tổ chức");
+                string createdUsername = _authService?.CurrentUser?.Username ?? (isUserAdmin ? "admin" : "manager");
 
                 var evtModel = new CampusEvent
                 {
@@ -422,7 +481,8 @@ namespace CampusActivitiesManager.PageModels
                     IsApproved = IsEditing ? (Events.FirstOrDefault(e => e.ID == EditingId)?.IsApproved ?? isApproved) : isApproved,
                     ApprovalStatus = IsEditing ? (Events.FirstOrDefault(e => e.ID == EditingId)?.ApprovalStatus ?? approvalStatus) : approvalStatus,
                     CreatedByRole = createdRole,
-                    CreatedByName = createdName
+                    CreatedByName = createdName,
+                    CreatedByUsername = createdUsername
                 };
 
                 bool success;
@@ -559,6 +619,12 @@ namespace CampusActivitiesManager.PageModels
         {
             if (evt == null) return;
 
+            if (!IsAdmin && !evt.CanUserManage)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Bạn chỉ có quyền xóa hoạt động do chính bạn tạo ra!", "Đã hiểu");
+                return;
+            }
+
             bool confirm = await Shell.Current.DisplayAlert(
                 "Xác nhận xóa sự kiện",
                 $"Bạn có chắc chắn muốn xóa sự kiện \"{evt.Name}\"? Hành động này không thể hoàn tác.",
@@ -595,6 +661,13 @@ namespace CampusActivitiesManager.PageModels
         private async Task ViewAttendanceReport(CampusEvent evt)
         {
             if (evt == null) return;
+
+            if (!IsAdmin && !evt.CanUserManage)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Bạn chỉ có quyền xem báo cáo điểm danh của hoạt động do chính bạn quản lý!", "Đã hiểu");
+                return;
+            }
+
             if (Shell.Current != null)
             {
                 await Shell.Current.GoToAsync($"//attendancereport?eventId={evt.ID}");

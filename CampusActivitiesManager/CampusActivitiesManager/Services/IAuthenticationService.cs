@@ -11,6 +11,7 @@ namespace CampusActivitiesManager.Services
         Role CurrentRole { get; }
         bool IsAdmin { get; }
         bool IsManager { get; }
+        bool IsLecturer { get; }
         bool IsSecretary { get; }
         bool IsAuthenticated { get; }
 

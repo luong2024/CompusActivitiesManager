@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
@@ -7,6 +14,10 @@ namespace CampusActivitiesManager.Services
     {
         private readonly ModalErrorHandler _errorHandler;
         private readonly ILogger<EventService> _logger;
+
+        private static bool _isInitialized = false;
+        private static readonly SemaphoreSlim _fileLock = new(1, 1);
+        private static string EventsFilePath => Path.Combine(FileSystem.AppDataDirectory, "campus_events.json");
 
         private static readonly List<EventCategoryDto> _categories = new()
         {
@@ -38,6 +49,7 @@ namespace CampusActivitiesManager.Services
                 ApprovalStatus = "Approved",
                 CreatedByRole = "Admin",
                 CreatedByName = "Quản trị viên Hệ thống",
+                CreatedByUsername = "admin",
                 ApprovedBy = "Admin",
                 Scope = "Public",
                 TargetClass = "Tất cả",
@@ -66,6 +78,7 @@ namespace CampusActivitiesManager.Services
                 ApprovalStatus = "Approved",
                 CreatedByRole = "Admin",
                 CreatedByName = "Quản trị viên Hệ thống",
+                CreatedByUsername = "admin",
                 ApprovedBy = "Admin",
                 Scope = "Public",
                 TargetClass = "Tất cả",
@@ -93,6 +106,7 @@ namespace CampusActivitiesManager.Services
                 ApprovalStatus = "Approved",
                 CreatedByRole = "Admin",
                 CreatedByName = "Quản trị viên Hệ thống",
+                CreatedByUsername = "admin",
                 ApprovedBy = "Admin",
                 Scope = "Public",
                 TargetClass = "Tất cả",
@@ -120,6 +134,7 @@ namespace CampusActivitiesManager.Services
                 ApprovalStatus = "Approved",
                 CreatedByRole = "Secretary",
                 CreatedByName = "Lê Hoàng Bí Thư",
+                CreatedByUsername = "bithu",
                 ApprovedBy = "Admin",
                 Scope = "ClassOnly",
                 TargetClass = "D20CNTT1",
@@ -147,6 +162,7 @@ namespace CampusActivitiesManager.Services
                 ApprovalStatus = "Approved",
                 CreatedByRole = "Manager",
                 CreatedByName = "ThS. Nguyễn Văn Quản",
+                CreatedByUsername = "manager",
                 ApprovedBy = "Admin",
                 Scope = "ClassOnly",
                 TargetClass = "D20CNTT1",
@@ -174,6 +190,7 @@ namespace CampusActivitiesManager.Services
                 ApprovalStatus = "Pending",
                 CreatedByRole = "Manager",
                 CreatedByName = "ThS. Nguyễn Văn Quản",
+                CreatedByUsername = "manager",
                 Scope = "Public",
                 TargetClass = "Tất cả",
                 RegistrationType = "RequiresApproval",
@@ -200,6 +217,7 @@ namespace CampusActivitiesManager.Services
                 ApprovalStatus = "Approved",
                 CreatedByRole = "Admin",
                 CreatedByName = "Quản trị viên Hệ thống",
+                CreatedByUsername = "admin",
                 ApprovedBy = "Admin",
                 Scope = "Public",
                 TargetClass = "Tất cả",
@@ -227,6 +245,7 @@ namespace CampusActivitiesManager.Services
                 ApprovalStatus = "Pending",
                 CreatedByRole = "Manager",
                 CreatedByName = "CLB Công Nghệ Sinh Viên",
+                CreatedByUsername = "manager",
                 Scope = "Public",
                 TargetClass = "Tất cả",
                 RegistrationType = "RequiresApproval",
@@ -242,20 +261,95 @@ namespace CampusActivitiesManager.Services
             _logger = logger;
         }
 
+        private async Task EnsureLoadedAsync()
+        {
+            if (_isInitialized) return;
+            await _fileLock.WaitAsync();
+            try
+            {
+                if (_isInitialized) return;
+
+                if (File.Exists(EventsFilePath))
+                {
+                    try
+                    {
+                        var json = await File.ReadAllTextAsync(EventsFilePath);
+                        if (!string.IsNullOrWhiteSpace(json))
+                        {
+                            var loaded = JsonSerializer.Deserialize<List<CampusEvent>>(json);
+                            if (loaded != null && loaded.Count > 0)
+                            {
+                                _localEvents.Clear();
+                                _localEvents.AddRange(loaded);
+                                _logger.LogInformation("Loaded {Count} events from persistent storage ({Path})", _localEvents.Count, EventsFilePath);
+                                _isInitialized = true;
+                                return;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to load events from disk. Initializing with default seed.");
+                    }
+                }
+
+                // If file does not exist, save current seed to disk for future runs
+                await SaveEventsToDiskInternalAsync();
+                _isInitialized = true;
+            }
+            finally
+            {
+                _fileLock.Release();
+            }
+        }
+
+        private async Task SaveEventsToDiskAsync()
+        {
+            await _fileLock.WaitAsync();
+            try
+            {
+                await SaveEventsToDiskInternalAsync();
+            }
+            finally
+            {
+                _fileLock.Release();
+            }
+        }
+
+        private async Task SaveEventsToDiskInternalAsync()
+        {
+            try
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(_localEvents, options);
+                var dir = Path.GetDirectoryName(EventsFilePath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+                await File.WriteAllTextAsync(EventsFilePath, json);
+                _logger.LogInformation("Saved {Count} events to disk ({Path})", _localEvents.Count, EventsFilePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to persist events to disk");
+            }
+        }
+
         public async Task<List<CampusEvent>> GetEventsAsync(bool includePending = false)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             return includePending 
                 ? _localEvents.ToList() 
-                : _localEvents.Where(e => e.IsApproved).ToList();
+                : _localEvents.Where(e => e.IsApproved && e.ApprovalStatus == "Approved").ToList();
         }
 
         public async Task<List<CampusEvent>> GetEventsForUserAsync(User? user)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             if (user == null)
             {
-                return _localEvents.Where(e => e.IsApproved && e.Scope == "Public").ToList();
+                return _localEvents.Where(e => e.IsApproved && e.ApprovalStatus == "Approved" && e.Scope == "Public").ToList();
             }
 
             // Admin: xem được toàn bộ sự kiện (cả chờ duyệt, cả sự kiện các lớp)
@@ -264,41 +358,54 @@ namespace CampusActivitiesManager.Services
                 return _localEvents.ToList();
             }
 
-            // Manager / Giảng viên: xem sự kiện công khai đã duyệt + sự kiện của lớp mình phụ trách + sự kiện do mình tạo
-            if (user.Role == Role.Manager || user.Role == Role.Lecturer)
+            // Manager: xem sự kiện do mình tạo (kể cả pending) + sự kiện công khai ĐÃ DUYỆT + sự kiện lớp được phân công ĐÃ DUYỆT
+            if (user.Role == Role.Manager)
             {
                 var myAssignedClass = user.AssignedClass ?? user.ClassName;
                 return _localEvents.Where(e =>
-                    e.CreatedByName == user.FullName ||
-                    (e.IsApproved && (e.Scope == "Public" || e.TargetClass == myAssignedClass))
+                    string.Equals(e.CreatedByUsername, user.Username, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(e.CreatedByName, user.FullName, StringComparison.OrdinalIgnoreCase) ||
+                    (e.IsApproved && e.ApprovalStatus == "Approved" && (e.Scope == "Public" || e.TargetClass == myAssignedClass))
                 ).ToList();
             }
 
-            // Bí thư lớp: xem sự kiện công khai đã duyệt + sự kiện lớp mình + sự kiện do mình tạo
+            // Giảng viên: xem sự kiện do mình tạo + sự kiện lớp phụ trách ĐÃ DUYỆT + sự kiện công khai ĐÃ DUYỆT
+            if (user.Role == Role.Lecturer)
+            {
+                var myAssignedClass = user.AssignedClass ?? user.ClassName;
+                return _localEvents.Where(e =>
+                    string.Equals(e.CreatedByUsername, user.Username, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(e.CreatedByName, user.FullName, StringComparison.OrdinalIgnoreCase) ||
+                    (e.IsApproved && e.ApprovalStatus == "Approved" && (e.Scope == "Public" || e.TargetClass == myAssignedClass))
+                ).ToList();
+            }
+
+            // Bí thư lớp: xem sự kiện do mình tạo + sự kiện lớp mình ĐÃ DUYỆT + sự kiện công khai ĐÃ DUYỆT
             if (user.Role == Role.Secretary || user.IsSecretary)
             {
                 return _localEvents.Where(e =>
-                    e.CreatedByName == user.FullName ||
-                    (e.IsApproved && (e.Scope == "Public" || e.TargetClass == user.ClassName))
+                    string.Equals(e.CreatedByUsername, user.Username, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(e.CreatedByName, user.FullName, StringComparison.OrdinalIgnoreCase) ||
+                    (e.IsApproved && e.ApprovalStatus == "Approved" && (e.Scope == "Public" || e.TargetClass == user.ClassName))
                 ).ToList();
             }
 
-            // Học sinh / Sinh viên thường: chỉ xem sự kiện công khai ĐÃ DUYỆT hoặc sự kiện lớp mình ĐÃ DUYỆT
+            // Học sinh / Sinh viên thường: CHỈ XEM sự kiện công khai ĐÃ DUYỆT hoặc sự kiện lớp mình ĐÃ DUYỆT
             return _localEvents.Where(e =>
-                e.IsApproved &&
+                e.IsApproved && e.ApprovalStatus == "Approved" &&
                 (e.Scope == "Public" || string.Equals(e.TargetClass, user.ClassName, StringComparison.OrdinalIgnoreCase))
             ).ToList();
         }
 
         public async Task<CampusEvent?> GetEventByIdAsync(int id)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             return _localEvents.FirstOrDefault(e => e.ID == id);
         }
 
         public async Task<bool> CreateEventAsync(CampusEvent evt)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             int newId = _localEvents.Any() ? _localEvents.Max(e => e.ID) + 1 : 1;
             evt.ID = newId;
             evt.Category = _categories.FirstOrDefault(c => c.ID == evt.CategoryID) ?? _categories[0];
@@ -323,13 +430,14 @@ namespace CampusActivitiesManager.Services
             if (string.IsNullOrWhiteSpace(evt.EndTime)) evt.EndTime = "11:30";
 
             _localEvents.Insert(0, evt);
+            await SaveEventsToDiskAsync();
             _logger.LogInformation("Event '{Name}' created (ID: {Id}, Scope: {Scope}, Approved: {IsApproved})", evt.Name, evt.ID, evt.Scope, evt.IsApproved);
             return true;
         }
 
         public async Task<bool> UpdateEventAsync(CampusEvent evt)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var local = _localEvents.FirstOrDefault(e => e.ID == evt.ID);
             if (local != null)
             {
@@ -352,6 +460,7 @@ namespace CampusActivitiesManager.Services
                 local.RegistrationType = evt.RegistrationType;
                 local.PointsReward = evt.PointsReward;
                 local.PointsPenalty = evt.PointsPenalty;
+                await SaveEventsToDiskAsync();
                 _logger.LogInformation("Event {Id} updated", evt.ID);
                 return true;
             }
@@ -360,7 +469,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> ApproveEventAsync(int id, bool approve, string? approvedBy = "Admin", string? reason = null)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var local = _localEvents.FirstOrDefault(e => e.ID == id);
             if (local != null)
             {
@@ -369,6 +478,7 @@ namespace CampusActivitiesManager.Services
                 local.Status = approve ? "Sắp diễn ra" : "Đã từ chối";
                 local.ApprovedBy = approvedBy ?? "Admin";
                 local.RejectionReason = reason;
+                await SaveEventsToDiskAsync();
                 _logger.LogInformation("Event {Id} approval status updated to {Status} by {Approver}", id, local.ApprovalStatus, approvedBy);
                 return true;
             }
@@ -377,11 +487,12 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> DeleteEventAsync(int id)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var local = _localEvents.FirstOrDefault(e => e.ID == id);
             if (local != null)
             {
                 _localEvents.Remove(local);
+                await SaveEventsToDiskAsync();
                 _logger.LogInformation("Event {Id} deleted", id);
                 return true;
             }
@@ -390,20 +501,20 @@ namespace CampusActivitiesManager.Services
 
         public async Task<List<EventCategoryDto>> GetCategoriesAsync()
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             return _categories.ToList();
         }
 
         public async Task<(bool Success, string Message, string Status)> RegisterUserForEventAsync(int eventId, User user)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var evt = _localEvents.FirstOrDefault(e => e.ID == eventId);
             if (evt == null)
             {
                 return (false, "Không tìm thấy hoạt động.", "NotFound");
             }
 
-            if (!evt.IsApproved)
+            if (!evt.IsApproved || evt.ApprovalStatus != "Approved")
             {
                 return (false, "Hoạt động chưa được phê duyệt bởi Quản trị viên.", "NotApproved");
             }
@@ -442,6 +553,8 @@ namespace CampusActivitiesManager.Services
             evt.Registrations.Add(reg);
             evt.IsRegistered = true;
 
+            await SaveEventsToDiskAsync();
+
             string msg = regStatus == "Approved"
                 ? "Đăng ký thành công! Bạn đã được tự động duyệt tham gia."
                 : "Đăng ký thành công! Đơn đăng ký đang chờ Ban tổ chức phê duyệt.";
@@ -452,7 +565,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<(bool Success, string Message)> CancelRegistrationAsync(int eventId, string studentCodeOrId)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var evt = _localEvents.FirstOrDefault(e => e.ID == eventId);
             if (evt == null)
                 return (false, "Không tìm thấy hoạt động.");
@@ -469,6 +582,7 @@ namespace CampusActivitiesManager.Services
 
             evt.Registrations.Remove(reg);
             evt.IsRegistered = false;
+            await SaveEventsToDiskAsync();
 
             _logger.LogInformation("User {StudentCode} cancelled pending registration for event {EventId}", studentCodeOrId, eventId);
             return (true, "Đã hủy đăng ký tham gia thành công!");
@@ -476,7 +590,7 @@ namespace CampusActivitiesManager.Services
 
         public async Task<bool> ApproveRegistrationAsync(int eventId, string registrationId, bool approve)
         {
-            await Task.CompletedTask;
+            await EnsureLoadedAsync();
             var evt = _localEvents.FirstOrDefault(e => e.ID == eventId);
             if (evt == null) return false;
 
@@ -484,6 +598,7 @@ namespace CampusActivitiesManager.Services
             if (reg != null)
             {
                 reg.Status = approve ? "Approved" : "Rejected";
+                await SaveEventsToDiskAsync();
                 _logger.LogInformation("Registration {Id} for event {EventId} set to {Status}", registrationId, eventId, reg.Status);
                 return true;
             }

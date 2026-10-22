@@ -31,6 +31,36 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private bool _hasError = false;
 
+        [RelayCommand]
+        public void QuickSelectRole(string role)
+        {
+            switch (role?.ToLower())
+            {
+                case "admin":
+                    UsernameOrEmail = "admin@campus.edu.vn";
+                    Password = "Admin@123456";
+                    break;
+                case "manager":
+                    UsernameOrEmail = "manager@campus.edu.vn";
+                    Password = "Manager@123456";
+                    break;
+                case "giangvien":
+                case "lecturer":
+                    UsernameOrEmail = "giangvien@campus.edu.vn";
+                    Password = "Teacher@123456";
+                    break;
+                case "bithu":
+                case "secretary":
+                    UsernameOrEmail = "bithu@campus.edu.vn";
+                    Password = "Secretary@123456";
+                    break;
+                case "student":
+                    UsernameOrEmail = "B20DCCN001";
+                    Password = "Student@123456";
+                    break;
+            }
+        }
+
         public LoginPageModel(IAuthenticationService authService)
         {
             _authService = authService;
@@ -81,7 +111,7 @@ namespace CampusActivitiesManager.PageModels
                 var user = _authService.CurrentUser;
 
                 // AC 28.4.3: Navigate all accounts to main dashboard first upon login
-                await Shell.Current.GoToAsync("//main");
+                await Shell.Current.GoToAsync("//homeTab/main");
             }
             catch (Exception ex)
             {
@@ -104,7 +134,7 @@ namespace CampusActivitiesManager.PageModels
                 bool success = await _authService.LoginAsync("admin@campus.edu.vn", "Admin@123456");
                 if (success)
                 {
-                    await Shell.Current.GoToAsync("//main");
+                    await Shell.Current.GoToAsync("//homeTab/main");
                 }
             }
             finally

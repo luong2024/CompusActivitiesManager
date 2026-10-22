@@ -124,6 +124,9 @@ namespace CampusActivitiesManager.Models
         [JsonPropertyName("createdByName")]
         public string CreatedByName { get; set; } = string.Empty;
 
+        [JsonPropertyName("createdByUsername")]
+        public string CreatedByUsername { get; set; } = string.Empty;
+
         [JsonPropertyName("approvedBy")]
         public string? ApprovedBy { get; set; }
 
@@ -172,6 +175,9 @@ namespace CampusActivitiesManager.Models
 
         [JsonIgnore]
         public bool CanAdminApprove { get; set; } = false;
+
+        [JsonIgnore]
+        public bool CanUserManage { get; set; } = false;
 
         [JsonIgnore]
         public DateTime StartDateTime => ParseDateTime(StartDate, StartTime, isEnd: false);

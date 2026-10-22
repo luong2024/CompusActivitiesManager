@@ -29,6 +29,9 @@ namespace CampusActivitiesManager.PageModels
         private bool _isManagerOrAdmin;
 
         [ObservableProperty]
+        private bool _canManageEvent;
+
+        [ObservableProperty]
         private bool _canRegister;
 
         [ObservableProperty]
@@ -101,6 +104,17 @@ namespace CampusActivitiesManager.PageModels
                 IsManager = _authService.IsManager;
                 IsManagerOrAdmin = IsAdmin || IsManager;
 
+                // Sinh viên thường không được xem hoạt động chưa duyệt
+                if (!IsAdmin && !IsManager && (!evt.IsApproved || evt.ApprovalStatus != "Approved"))
+                {
+                    if (Shell.Current != null)
+                    {
+                        await Shell.Current.DisplayAlert("Thông báo 🛡️", "Hoạt động này đang chờ Quản trị viên (Admin) phê duyệt và chưa được công khai cho sinh viên.", "Quay lại");
+                        await Shell.Current.GoToAsync("..");
+                    }
+                    return;
+                }
+
                 UpdateRegistrationState();
             }
             finally
@@ -117,6 +131,12 @@ namespace CampusActivitiesManager.PageModels
             string studentId = currentUser?.Username ?? "B20DCCN001";
 
             var myReg = EventItem.GetUserRegistration(studentId);
+
+            // Quyền quản lý sự kiện: Admin có toàn quyền, Quản lý sự kiện chỉ có quyền trong sự kiện do mình tạo
+            CanManageEvent = IsAdmin || (IsManager && (
+                string.Equals(EventItem.CreatedByUsername, currentUser?.Username, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(EventItem.CreatedByName, currentUser?.FullName, StringComparison.OrdinalIgnoreCase)
+            ));
 
             // Nút duyệt của Admin chỉ hiển thị khi người dùng là Admin VÀ sự kiện đang ở trạng thái Pending
             CanAdminApprove = IsAdmin && EventItem.IsPendingApproval;
@@ -325,6 +345,12 @@ namespace CampusActivitiesManager.PageModels
         {
             if (reg == null || EventItem == null) return;
 
+            if (!CanManageEvent)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Bạn chỉ có quyền xét duyệt sinh viên cho sự kiện do chính bạn quản lý!", "Đã hiểu");
+                return;
+            }
+
             bool ok = await _eventService.ApproveRegistrationAsync(EventItem.ID, reg.Id, true);
             if (ok)
             {
@@ -338,6 +364,12 @@ namespace CampusActivitiesManager.PageModels
         {
             if (reg == null || EventItem == null) return;
 
+            if (!CanManageEvent)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Bạn chỉ có quyền xét duyệt sinh viên cho sự kiện do chính bạn quản lý!", "Đã hiểu");
+                return;
+            }
+
             bool ok = await _eventService.ApproveRegistrationAsync(EventItem.ID, reg.Id, false);
             if (ok)
             {
@@ -350,6 +382,13 @@ namespace CampusActivitiesManager.PageModels
         public async Task GoToAttendanceReportAsync()
         {
             if (EventItem == null) return;
+
+            if (!CanManageEvent)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Bạn chỉ có quyền xem điểm danh của sự kiện do chính bạn quản lý!", "Đã hiểu");
+                return;
+            }
+
             await Shell.Current.GoToAsync($"attendancereport?eventId={EventItem.ID}");
         }
 

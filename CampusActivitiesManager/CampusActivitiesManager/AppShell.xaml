@@ -23,10 +23,12 @@
         </Border>
     </Shell.FlyoutHeader>
 
-    <!-- Màn hình Đăng nhập (Login) - Ẩn khỏi Flyout -->
+    <!-- Màn hình Đăng nhập (Login) - Ẩn khỏi Flyout & Không hiện TabBar -->
     <ShellContent
         Route="login"
         FlyoutItemIsVisible="False"
+        Shell.TabBarIsVisible="False"
+        Shell.FlyoutBehavior="Disabled"
         ContentTemplate="{DataTemplate pages:LoginPage}" />
 
     <!-- 🌟 Commercial Bottom TabBar (Trang chủ, Sự kiện, Quét QR, Lớp học, Cá nhân) -->

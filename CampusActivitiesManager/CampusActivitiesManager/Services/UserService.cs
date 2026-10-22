@@ -71,6 +71,19 @@ namespace CampusActivitiesManager.Services
             },
             new User
             {
+                Id = "lecturer-sys-05",
+                Username = "giangvien",
+                FullName = "TS. Trần Văn Minh",
+                Email = "giangvien@campus.edu.vn",
+                PhoneNumber = "0906789012",
+                Role = Role.Lecturer,
+                ClassName = "Khoa CNTT",
+                AssignedClass = "D21CNTT1",
+                IsActive = true,
+                TrainingPoints = 0
+            },
+            new User
+            {
                 Id = "secretary-sys-03",
                 Username = "bithu",
                 FullName = "Lê Hoàng Bí Thư",

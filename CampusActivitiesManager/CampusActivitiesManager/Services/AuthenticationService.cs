@@ -19,6 +19,8 @@ namespace CampusActivitiesManager.Services
 
         public bool IsManager => _currentUser?.Role == Role.Manager;
 
+        public bool IsLecturer => _currentUser?.Role == Role.Lecturer;
+
         public bool IsSecretary => _currentUser?.Role == Role.Secretary || _currentUser?.IsSecretary == true;
 
         public bool IsAuthenticated => _currentUser != null && _currentUser.IsActive;
@@ -81,6 +83,22 @@ namespace CampusActivitiesManager.Services
                     Role = Role.Manager,
                     ClassName = "Khoa CNTT",
                     AssignedClass = "D20CNTT1",
+                    IsActive = true
+                };
+                CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                return true;
+            }
+            else if (cleanUser == "giangvien" || cleanUser == "teacher" || cleanUser == "gv" || cleanUser == "giangvien@campus.edu.vn" || cleanUser == "teacher@campus.edu.vn")
+            {
+                _currentUser = (await _userService.GetUserByIdAsync("lecturer-sys-05")) ?? new User
+                {
+                    Id = "lecturer-sys-05",
+                    Username = "giangvien",
+                    FullName = "TS. Trần Văn Minh",
+                    Email = "giangvien@campus.edu.vn",
+                    Role = Role.Lecturer,
+                    ClassName = "Khoa CNTT",
+                    AssignedClass = "D21CNTT1",
                     IsActive = true
                 };
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
@@ -163,7 +181,8 @@ namespace CampusActivitiesManager.Services
 
             return _currentUser.Role switch
             {
-                Role.Manager => requiredRole is Role.Manager or Role.Secretary or Role.User or Role.Guest,
+                Role.Manager => requiredRole is Role.Manager or Role.Lecturer or Role.Secretary or Role.User or Role.Guest,
+                Role.Lecturer => requiredRole is Role.Lecturer or Role.User or Role.Guest,
                 Role.Secretary => requiredRole is Role.Secretary or Role.User or Role.Guest,
                 Role.User => requiredRole is Role.User or Role.Guest,
                 Role.Guest => requiredRole == Role.Guest,
