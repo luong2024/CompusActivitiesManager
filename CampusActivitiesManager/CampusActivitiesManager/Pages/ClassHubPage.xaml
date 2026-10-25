@@ -56,6 +56,27 @@
         <ScrollView Grid.Row="1" Padding="16,16,16,100">
             <VerticalStackLayout Spacing="16">
 
+                <!-- Admin Class Management & Lecturer Assignment Area -->
+                <Border Style="{StaticResource CardStyle}" Padding="16" IsVisible="{Binding IsAdmin}"
+                        BackgroundColor="#F0FDF4" Stroke="#BBF7D0" StrokeThickness="1">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="🏛️ Quản lý Lớp &amp; Phân công Giảng viên" FontSize="14" FontAttributes="Bold" TextColor="#166534" />
+                                <Label Text="Admin tạo lớp mới và chỉ định Giảng viên phụ trách (1 GV có thể quản lý nhiều lớp)" FontSize="11" TextColor="#15803D" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Text="+ Thêm Lớp" FontSize="11" FontAttributes="Bold"
+                                    BackgroundColor="#16A34A" TextColor="{StaticResource White}"
+                                    CornerRadius="8" Padding="10,0" HeightRequest="34"
+                                    Command="{Binding CreateClassCommand}" />
+                            <Button Grid.Column="2" Text="Phân công GV" FontSize="11" FontAttributes="Bold"
+                                    BackgroundColor="{StaticResource Primary}" TextColor="{StaticResource White}"
+                                    CornerRadius="8" Padding="10,0" HeightRequest="34"
+                                    Command="{Binding AssignLecturerCommand}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- Class Summary Card -->
                 <Border Style="{StaticResource CardStyle}" Padding="16">
                     <VerticalStackLayout Spacing="12">

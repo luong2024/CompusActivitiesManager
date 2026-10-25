@@ -81,6 +81,7 @@ namespace CampusActivitiesManager.Services
                     Role = Role.Manager,
                     ClassName = "Khoa CNTT",
                     AssignedClass = "D20CNTT1",
+                    ManagedClasses = "D20CNTT1",
                     IsActive = true
                 };
                 PersistSession(_currentUser.Username);
@@ -98,6 +99,7 @@ namespace CampusActivitiesManager.Services
                     Role = Role.Lecturer,
                     ClassName = "Khoa CNTT",
                     AssignedClass = "D21CNTT1",
+                    ManagedClasses = "D21CNTT1, D22QTKD1",
                     IsActive = true
                 };
                 PersistSession(_currentUser.Username);

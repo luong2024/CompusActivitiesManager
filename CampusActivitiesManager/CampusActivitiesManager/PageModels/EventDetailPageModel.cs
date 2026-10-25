@@ -20,6 +20,14 @@ namespace CampusActivitiesManager.PageModels
         private bool _isLoading;
 
         [ObservableProperty]
+        private bool _isNotLoading = true;
+
+        partial void OnIsLoadingChanged(bool value)
+        {
+            IsNotLoading = !value;
+        }
+
+        [ObservableProperty]
         private bool _isAdmin;
 
         [ObservableProperty]
@@ -70,9 +78,13 @@ namespace CampusActivitiesManager.PageModels
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            if (query.TryGetValue("eventId", out var idObj) && idObj != null)
+            object idObj = null;
+            if (query.TryGetValue("eventId", out idObj) ||
+                query.TryGetValue("EventId", out idObj) ||
+                query.TryGetValue("id", out idObj) ||
+                query.TryGetValue("ID", out idObj))
             {
-                if (int.TryParse(idObj.ToString(), out int eventId))
+                if (idObj != null && int.TryParse(idObj.ToString(), out int eventId))
                 {
                     _ = LoadEventAsync(eventId);
                 }
@@ -104,8 +116,11 @@ namespace CampusActivitiesManager.PageModels
                 IsManager = _authService.IsManager;
                 IsManagerOrAdmin = IsAdmin || IsManager;
 
-                // Sinh viên thường không được xem hoạt động chưa duyệt
-                if (!IsAdmin && !IsManager && (!evt.IsApproved || evt.ApprovalStatus != "Approved"))
+                bool isCreator = string.Equals(evt.CreatedByUsername, currentUser?.Username, StringComparison.OrdinalIgnoreCase);
+                bool isStaff = IsAdmin || IsManager || currentUser?.Role == Role.Lecturer || currentUser?.Role == Role.Secretary;
+
+                // Sinh viên thường không được xem hoạt động chưa duyệt (trừ người tạo, ban tổ chức, giảng viên, bí thư)
+                if (!isStaff && !isCreator && (!evt.IsApproved || evt.ApprovalStatus != "Approved"))
                 {
                     if (Shell.Current != null)
                     {

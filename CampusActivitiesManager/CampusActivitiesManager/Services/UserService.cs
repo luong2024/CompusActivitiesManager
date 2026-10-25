@@ -10,8 +10,10 @@ namespace CampusActivitiesManager.Services
         private readonly ILogger<UserService> _logger;
 
         private static readonly string UsersFilePath = Path.Combine(FileSystem.AppDataDirectory, "campus_users.json");
+        private static readonly string ClassesFilePath = Path.Combine(FileSystem.AppDataDirectory, "campus_classes.json");
         private static readonly SemaphoreSlim _fileLock = new(1, 1);
         private static bool _isLoadedFromFile = false;
+        private static bool _isClassesLoaded = false;
 
         private static readonly List<ClassRoom> _classes = new()
         {
@@ -20,7 +22,9 @@ namespace CampusActivitiesManager.Services
                 ClassName = "D20CNTT1",
                 Department = "Khoa Công nghệ Thông tin",
                 AdvisorName = "ThS. Nguyễn Văn Quản",
+                AdvisorUsername = "manager",
                 SecretaryName = "Lê Hoàng Bí Thư",
+                SecretaryUsername = "bithu",
                 AcademicYear = "K20 (2020 - 2025)",
                 StudentCount = 45,
                 Description = "Lớp Kỹ thuật Phần mềm & Trí tuệ Nhân tạo D20"
@@ -30,7 +34,9 @@ namespace CampusActivitiesManager.Services
                 ClassName = "D21CNTT1",
                 Department = "Khoa Công nghệ Thông tin",
                 AdvisorName = "TS. Trần Văn Minh",
+                AdvisorUsername = "giangvien",
                 SecretaryName = "Trần Thị Mai",
+                SecretaryUsername = "B21DCCN045",
                 AcademicYear = "K21 (2021 - 2026)",
                 StudentCount = 50,
                 Description = "Lớp Hệ thống Thông tin & An toàn Mạng D21"
@@ -39,8 +45,10 @@ namespace CampusActivitiesManager.Services
             {
                 ClassName = "D22QTKD1",
                 Department = "Khoa Quản trị Kinh doanh",
-                AdvisorName = "ThS. Vũ Thị Hương",
+                AdvisorName = "TS. Trần Văn Minh",
+                AdvisorUsername = "giangvien",
                 SecretaryName = "Hoàng Kim Ngân",
+                SecretaryUsername = "B22DCCN001",
                 AcademicYear = "K22 (2022 - 2027)",
                 StudentCount = 52,
                 Description = "Lớp Quản trị Doanh nghiệp & Marketing D22"
@@ -263,10 +271,121 @@ namespace CampusActivitiesManager.Services
             return false;
         }
 
+        private static async Task EnsureClassesLoadedAsync()
+        {
+            if (_isClassesLoaded) return;
+            try
+            {
+                if (File.Exists(ClassesFilePath))
+                {
+                    var json = await File.ReadAllTextAsync(ClassesFilePath);
+                    if (!string.IsNullOrWhiteSpace(json))
+                    {
+                        var list = JsonSerializer.Deserialize<List<ClassRoom>>(json);
+                        if (list != null && list.Count > 0)
+                        {
+                            _classes.Clear();
+                            _classes.AddRange(list);
+                        }
+                    }
+                }
+                else
+                {
+                    await SaveClassesToDiskInternalAsync();
+                }
+                _isClassesLoaded = true;
+            }
+            catch { }
+        }
+
+        private static async Task SaveClassesToDiskInternalAsync()
+        {
+            try
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(_classes, options);
+                await File.WriteAllTextAsync(ClassesFilePath, json);
+            }
+            catch { }
+        }
+
         public async Task<List<ClassRoom>> GetClassesAsync()
         {
-            await Task.CompletedTask;
+            await EnsureClassesLoadedAsync();
             return _classes.ToList();
+        }
+
+        public async Task<bool> AddClassAsync(ClassRoom classRoom)
+        {
+            if (classRoom == null || string.IsNullOrWhiteSpace(classRoom.ClassName)) return false;
+            await EnsureClassesLoadedAsync();
+            var existing = _classes.FirstOrDefault(c => string.Equals(c.ClassName, classRoom.ClassName.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
+            {
+                existing.Department = classRoom.Department;
+                existing.AdvisorName = classRoom.AdvisorName;
+                existing.AdvisorUsername = classRoom.AdvisorUsername;
+                existing.SecretaryName = classRoom.SecretaryName;
+                existing.SecretaryUsername = classRoom.SecretaryUsername;
+                existing.AcademicYear = classRoom.AcademicYear;
+                existing.Description = classRoom.Description;
+            }
+            else
+            {
+                _classes.Add(classRoom);
+            }
+
+            if (!string.IsNullOrWhiteSpace(classRoom.AdvisorUsername))
+            {
+                var lecturer = _localUsers.FirstOrDefault(u => string.Equals(u.Username, classRoom.AdvisorUsername, StringComparison.OrdinalIgnoreCase));
+                if (lecturer != null)
+                {
+                    lecturer.AddManagedClass(classRoom.ClassName);
+                    await SaveUsersToDiskAsync();
+                }
+            }
+
+            await SaveClassesToDiskInternalAsync();
+            return true;
+        }
+
+        public async Task<bool> AssignLecturerToClassAsync(string className, string lecturerUsername, string lecturerName)
+        {
+            await EnsureClassesLoadedAsync();
+            var targetClass = _classes.FirstOrDefault(c => string.Equals(c.ClassName, className.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (targetClass == null) return false;
+
+            targetClass.AdvisorUsername = lecturerUsername;
+            targetClass.AdvisorName = lecturerName;
+
+            var lecturer = _localUsers.FirstOrDefault(u => string.Equals(u.Username, lecturerUsername, StringComparison.OrdinalIgnoreCase));
+            if (lecturer != null)
+            {
+                lecturer.AddManagedClass(className);
+                await SaveUsersToDiskAsync();
+            }
+
+            await SaveClassesToDiskInternalAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteClassAsync(string className)
+        {
+            await EnsureClassesLoadedAsync();
+            var target = _classes.FirstOrDefault(c => string.Equals(c.ClassName, className.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (target != null)
+            {
+                _classes.Remove(target);
+                await SaveClassesToDiskInternalAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<List<User>> GetLecturersAsync()
+        {
+            await EnsureLoadedAsync();
+            return _localUsers.Where(u => u.Role == Role.Lecturer || u.Role == Role.Manager).ToList();
         }
 
         public async Task<bool> UpdateUserRoleAsync(string id, Role newRole)

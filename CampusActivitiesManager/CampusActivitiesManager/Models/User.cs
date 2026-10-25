@@ -63,6 +63,42 @@ namespace CampusActivitiesManager.Models
 
         private string _assignedClass = "D20CNTT1"; // Lớp chủ nhiệm (đối với Giảng viên)
 
+        [ObservableProperty]
+        private string _managedClasses = "D20CNTT1"; // Danh sách các lớp phụ trách của Giảng viên (1 giảng viên có thể phụ trách nhiều lớp)
+
+        public bool IsInChargeOfClass(string className)
+        {
+            if (string.IsNullOrWhiteSpace(className)) return false;
+            if (string.Equals(AssignedClass, className, StringComparison.OrdinalIgnoreCase)) return true;
+            if (string.Equals(ClassName, className, StringComparison.OrdinalIgnoreCase)) return true;
+            if (!string.IsNullOrWhiteSpace(ManagedClasses))
+            {
+                var parts = ManagedClasses.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                return parts.Any(p => string.Equals(p.Trim(), className.Trim(), StringComparison.OrdinalIgnoreCase));
+            }
+            return false;
+        }
+
+        public void AddManagedClass(string className)
+        {
+            if (string.IsNullOrWhiteSpace(className)) return;
+            if (string.IsNullOrWhiteSpace(ManagedClasses))
+            {
+                ManagedClasses = className.Trim();
+                if (string.IsNullOrWhiteSpace(AssignedClass)) AssignedClass = className.Trim();
+                return;
+            }
+
+            var parts = ManagedClasses.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(p => p.Trim())
+                                      .ToList();
+            if (!parts.Any(p => string.Equals(p, className.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                parts.Add(className.Trim());
+                ManagedClasses = string.Join(", ", parts);
+            }
+        }
+
 
 
         [ObservableProperty]

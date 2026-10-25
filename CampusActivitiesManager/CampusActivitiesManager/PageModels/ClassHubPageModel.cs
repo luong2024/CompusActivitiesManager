@@ -108,9 +108,33 @@ namespace CampusActivitiesManager.PageModels
                     _ => "Sinh viên lớp"
                 };
 
-                AvailableClasses = await _userService.GetClassesAsync();
+                var allClasses = await _userService.GetClassesAsync();
 
-                if (SelectedClass == null)
+                if (IsAdmin)
+                {
+                    // Admin có toàn quyền: xem toàn bộ danh mục lớp
+                    AvailableClasses = allClasses;
+                }
+                else if (isLecturer)
+                {
+                    // 1 Giảng viên có thể phụ trách nhiều lớp: lọc các lớp giảng viên này quản lý
+                    var managed = allClasses.Where(c =>
+                        (currentUser != null && currentUser.IsInChargeOfClass(c.ClassName)) ||
+                        string.Equals(c.AdvisorUsername, currentUser?.Username, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(c.AdvisorName, currentUser?.FullName, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+
+                    AvailableClasses = managed.Count > 0 ? managed : allClasses;
+                }
+                else
+                {
+                    // Sinh viên / Bí thư: hiển thị lớp của mình
+                    string userClass = currentUser?.ClassName ?? "D20CNTT1";
+                    var myClass = allClasses.Where(c => string.Equals(c.ClassName, userClass, StringComparison.OrdinalIgnoreCase)).ToList();
+                    AvailableClasses = myClass.Count > 0 ? myClass : allClasses;
+                }
+
+                if (SelectedClass == null || !AvailableClasses.Any(c => c.ClassName == SelectedClass.ClassName))
                 {
                     string targetClassName = currentUser?.AssignedClass ?? currentUser?.ClassName ?? "D20CNTT1";
                     SelectedClass = AvailableClasses.FirstOrDefault(c => c.ClassName.Equals(targetClassName, StringComparison.OrdinalIgnoreCase))
@@ -267,6 +291,120 @@ namespace CampusActivitiesManager.PageModels
             if (Shell.Current != null)
             {
                 Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
+            }
+        }
+
+        [RelayCommand]
+        public async Task CreateClassAsync()
+        {
+            if (!IsAdmin)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Chỉ Quản trị viên (Admin) mới có quyền tạo lớp học mới trên hệ thống.", "Đóng");
+                }
+                return;
+            }
+
+            string className = await Shell.Current.DisplayPromptAsync(
+                "Tạo Lớp Mới 🏛️",
+                "Nhập mã tên lớp mới (Ví dụ: D23CNTT1, D22QTKD2):",
+                "Tiếp tục", "Hủy",
+                placeholder: "D23CNTT1");
+
+            if (string.IsNullOrWhiteSpace(className)) return;
+
+            string dept = await Shell.Current.DisplayPromptAsync(
+                "Khoa / Bộ Môn",
+                "Nhập tên Khoa / Bộ môn phụ trách lớp:",
+                "Tiếp tục", "Hủy",
+                initialValue: "Khoa Công nghệ Thông tin");
+
+            if (string.IsNullOrWhiteSpace(dept)) dept = "Khoa Công nghệ Thông tin";
+
+            // Chọn Giảng viên phụ trách từ danh sách Giảng viên trong hệ thống
+            var lecturers = await _userService.GetLecturersAsync();
+            string selectedAdvisorUsername = "giangvien";
+            string selectedAdvisorName = "TS. Trần Văn Minh";
+
+            if (lecturers.Count > 0)
+            {
+                var options = lecturers.Select(l => $"{l.FullName} (@{l.Username})").ToArray();
+                string chosen = await Shell.Current.DisplayActionSheet("Chọn Giảng viên phụ trách lớp:", "Hủy", null, options);
+                if (chosen == null || chosen == "Hủy") return;
+
+                var match = lecturers.FirstOrDefault(l => $"{l.FullName} (@{l.Username})" == chosen);
+                if (match != null)
+                {
+                    selectedAdvisorUsername = match.Username;
+                    selectedAdvisorName = match.FullName;
+                }
+            }
+
+            var newClass = new ClassRoom
+            {
+                ClassName = className.Trim().ToUpper(),
+                Department = dept.Trim(),
+                AdvisorUsername = selectedAdvisorUsername,
+                AdvisorName = selectedAdvisorName,
+                SecretaryName = "Chưa chỉ định",
+                SecretaryUsername = string.Empty,
+                AcademicYear = $"K{className.Trim()[1..3]}",
+                StudentCount = 0,
+                Description = $"Lớp đào tạo {dept.Trim()}"
+            };
+
+            bool ok = await _userService.AddClassAsync(newClass);
+            if (ok)
+            {
+                AvailableClasses = await _userService.GetClassesAsync();
+                SelectedClass = AvailableClasses.FirstOrDefault(c => c.ClassName == newClass.ClassName);
+                await LoadClassDetailsAsync();
+                await Shell.Current.DisplayAlert("Thành công 🎉", $"Đã tạo lớp {newClass.ClassName} và phân công giảng viên {selectedAdvisorName} (@{selectedAdvisorUsername}) quản lý thành công!", "OK");
+            }
+        }
+
+        [RelayCommand]
+        public async Task AssignLecturerAsync()
+        {
+            if (!IsAdmin)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Chỉ Quản trị viên (Admin) mới có quyền phân công giảng viên quản lý lớp.", "Đóng");
+                }
+                return;
+            }
+
+            if (SelectedClass == null) return;
+
+            var lecturers = await _userService.GetLecturersAsync();
+            if (lecturers.Count == 0)
+            {
+                await Shell.Current.DisplayAlert("Thông báo", "Chưa có tài khoản Giảng viên nào trên hệ thống.", "Đóng");
+                return;
+            }
+
+            var options = lecturers.Select(l => $"{l.FullName} (@{l.Username})").ToArray();
+            string chosen = await Shell.Current.DisplayActionSheet($"Phân công Giảng viên cho lớp {SelectedClass.ClassName}:", "Hủy", null, options);
+            if (chosen == null || chosen == "Hủy") return;
+
+            var selectedLecturer = lecturers.FirstOrDefault(l => $"{l.FullName} (@{l.Username})" == chosen);
+            if (selectedLecturer == null) return;
+
+            bool ok = await _userService.AssignLecturerToClassAsync(SelectedClass.ClassName, selectedLecturer.Username, selectedLecturer.FullName);
+            if (ok)
+            {
+                SelectedClass.AdvisorUsername = selectedLecturer.Username;
+                SelectedClass.AdvisorName = selectedLecturer.FullName;
+
+                AvailableClasses = await _userService.GetClassesAsync();
+                SelectedClass = AvailableClasses.FirstOrDefault(c => c.ClassName == SelectedClass.ClassName);
+                await LoadClassDetailsAsync();
+
+                await Shell.Current.DisplayAlert("Thành công 🎉",
+                    $"Đã phân công giảng viên {selectedLecturer.FullName} (@{selectedLecturer.Username}) phụ trách lớp {SelectedClass.ClassName}!\n\n(1 giảng viên có thể phụ trách nhiều lớp)",
+                    "OK");
             }
         }
 

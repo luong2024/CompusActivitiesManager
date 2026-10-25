@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:models="clr-namespace:CampusActivitiesManager.Models"
              xmlns:pm="clr-namespace:CampusActivitiesManager.PageModels"
              x:Class="CampusActivitiesManager.Pages.EventDetailPage"
@@ -8,6 +9,12 @@
              Title="Chi tiết Hoạt động"
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource DarkPageBackground}}"
              Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*">
         <!-- Modern Header -->
@@ -33,7 +40,7 @@
                            Color="{StaticResource Primary}" HorizontalOptions="Center" VerticalOptions="Center" />
 
         <!-- Main Content -->
-        <ScrollView Grid.Row="1" IsVisible="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}" Padding="16,16,16,100">
+        <ScrollView Grid.Row="1" IsVisible="{Binding IsNotLoading}" Padding="16,16,16,100">
             <VerticalStackLayout Spacing="16">
 
                 <!-- Unapproved Event Warning Banner -->
@@ -53,7 +60,7 @@
                 <!-- Event Image Banner -->
                 <Border StrokeShape="RoundRectangle 16" StrokeThickness="0" HeightRequest="200" BackgroundColor="#E2E8F0">
                     <Grid>
-                        <Image Source="{Binding EventItem.ImageUrl}" Aspect="AspectFill" />
+                        <Image Source="{Binding EventItem.PrimaryImageUrl}" Aspect="AspectFill" />
                         <!-- Gradient Overlay -->
                         <BoxView BackgroundColor="#40000000" VerticalOptions="Fill" HorizontalOptions="Fill" />
                         

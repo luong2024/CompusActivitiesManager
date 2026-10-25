@@ -16,6 +16,10 @@ namespace CampusActivitiesManager.Services
         Task<bool> ToggleUserStatusAsync(string id);
         Task<bool> AdjustTrainingPointsAsync(string studentCodeOrId, int pointsDelta);
         Task<List<ClassRoom>> GetClassesAsync();
+        Task<bool> AddClassAsync(ClassRoom classRoom);
+        Task<bool> AssignLecturerToClassAsync(string className, string lecturerUsername, string lecturerName);
+        Task<bool> DeleteClassAsync(string className);
+        Task<List<User>> GetLecturersAsync();
         Task SeedDefaultUsersAsync();
     }
 

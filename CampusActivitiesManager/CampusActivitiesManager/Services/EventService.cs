@@ -369,14 +369,13 @@ namespace CampusActivitiesManager.Services
                 ).ToList();
             }
 
-            // Giảng viên: xem sự kiện do mình tạo + sự kiện lớp phụ trách ĐÃ DUYỆT + sự kiện công khai ĐÃ DUYỆT
+            // Giảng viên: xem sự kiện do mình tạo + sự kiện các lớp phụ trách ĐÃ DUYỆT + sự kiện công khai ĐÃ DUYỆT (1 giảng viên quản lý nhiều lớp)
             if (user.Role == Role.Lecturer)
             {
-                var myAssignedClass = user.AssignedClass ?? user.ClassName;
                 return _localEvents.Where(e =>
                     string.Equals(e.CreatedByUsername, user.Username, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(e.CreatedByName, user.FullName, StringComparison.OrdinalIgnoreCase) ||
-                    (e.IsApproved && e.ApprovalStatus == "Approved" && (e.Scope == "Public" || e.TargetClass == myAssignedClass))
+                    (e.IsApproved && e.ApprovalStatus == "Approved" && (e.Scope == "Public" || user.IsInChargeOfClass(e.TargetClass)))
                 ).ToList();
             }
 

@@ -27,6 +27,18 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private string _roleDescription = string.Empty;
 
+        [ObservableProperty]
+        private List<ClassRoom> _availableClasses = [];
+
+        [ObservableProperty]
+        private ClassRoom? _selectedClass;
+
+        [ObservableProperty]
+        private string _className = string.Empty;
+
+        [ObservableProperty]
+        private string _managedClasses = string.Empty;
+
         public EditUserRoleViewModel(
             IUserService<User> userService,
             IAuthenticationService authService,
@@ -58,10 +70,15 @@ namespace CampusActivitiesManager.PageModels
             {
                 IsBusy = true;
                 User = await _userService.GetUserByIdAsync(id);
+                AvailableClasses = await _userService.GetClassesAsync();
                 if (User != null)
                 {
                     SelectedRole = User.Role;
                     RoleDescription = SelectedRole.GetDescription();
+                    ClassName = User.ClassName;
+                    ManagedClasses = string.IsNullOrWhiteSpace(User.ManagedClasses) ? User.AssignedClass : User.ManagedClasses;
+                    SelectedClass = AvailableClasses.FirstOrDefault(c => string.Equals(c.ClassName, User.ClassName, StringComparison.OrdinalIgnoreCase))
+                                    ?? AvailableClasses.FirstOrDefault();
                 }
             }
             catch (Exception ex)
@@ -102,6 +119,13 @@ namespace CampusActivitiesManager.PageModels
             {
                 IsBusy = true;
                 User.Role = SelectedRole;
+                User.ClassName = SelectedClass?.ClassName ?? ClassName;
+                if (SelectedRole == Role.Lecturer || SelectedRole == Role.Manager)
+                {
+                    User.AssignedClass = SelectedClass?.ClassName ?? ClassName;
+                    User.ManagedClasses = !string.IsNullOrWhiteSpace(ManagedClasses) ? ManagedClasses : User.AssignedClass;
+                }
+                User.IsSecretary = (SelectedRole == Role.Secretary);
                 var success = await _userService.UpdateUserAsync(User);
                 if (success)
                 {

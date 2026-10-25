@@ -91,6 +91,35 @@
                         </Border>
                     </VerticalStackLayout>
 
+                    <!-- Lớp sinh hoạt / Lớp phụ trách -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Lớp học / Đơn vị phụ trách" FontAttributes="Bold" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
+                                StrokeThickness="1"
+                                Padding="12,2"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}">
+                            <Picker ItemsSource="{Binding AvailableClasses}"
+                                    ItemDisplayBinding="{Binding ClassName, x:DataType='models:ClassRoom'}"
+                                    SelectedItem="{Binding SelectedClass, Mode=TwoWay}"
+                                    Title="-- Chọn lớp học --"
+                                    FontSize="14"
+                                    HeightRequest="42" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Đối với Giảng viên: Danh sách nhiều lớp phụ trách -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Các lớp phụ trách (cho Giảng viên - phân cách bằng dấu phẩy)" FontAttributes="Bold" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
+                                StrokeThickness="1"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+                                Padding="12,2">
+                            <Entry Text="{Binding ManagedClasses}" Placeholder="Ví dụ: D20CNTT1, D21CNTT1, D22QTKD1" FontSize="13" HeightRequest="40" />
+                        </Border>
+                    </VerticalStackLayout>
+
                     <!-- Mô tả vai trò -->
                     <Border StrokeShape="RoundRectangle 12"
                             Stroke="{AppThemeBinding Light={StaticResource InfoBorderLight}, Dark={StaticResource InfoBorderDark}}"
