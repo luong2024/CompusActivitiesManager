@@ -155,7 +155,12 @@ namespace CampusActivitiesManager.PageModels
         [RelayCommand]
         private async Task Appearing()
         {
-            // Bắt buộc đăng nhập nếu chưa có phiên người dùng
+            if (_authService?.CurrentUser == null)
+            {
+                await _authService.TryRestoreSessionAsync();
+            }
+
+            // Bắt buộc đăng nhập nếu thực sự không có phiên người dùng
             if (_authService?.CurrentUser == null)
             {
                 if (Shell.Current != null)

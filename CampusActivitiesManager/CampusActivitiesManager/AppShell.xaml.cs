@@ -37,14 +37,36 @@ namespace CampusActivitiesManager
                         MainThread.BeginInvokeOnMainThread(() => UpdateMenuVisibility());
                     };
 
-                    // Khi ứng dụng mở lên, nếu chưa đăng nhập thì bắt buộc chuyển về trang đăng nhập
-                    if (authService.CurrentUser == null)
+                    MainThread.BeginInvokeOnMainThread(async () =>
                     {
-                        MainThread.BeginInvokeOnMainThread(async () =>
+                        // 1. Thử khôi phục phiên nếu app vừa được mở lại từ trạng thái nền (Background)
+                        if (authService.CurrentUser == null)
                         {
-                            await GoToAsync("//login");
-                        });
-                    }
+                            await authService.TryRestoreSessionAsync();
+                            if (authService.CurrentUser != null)
+                            {
+                                UpdateMenuVisibility();
+                            }
+                        }
+
+                        // 2. Nếu đã đăng nhập thành công mà đang ở màn hình login thì chuyển vào trang chủ
+                        if (authService.CurrentUser != null)
+                        {
+                            if (CurrentState?.Location?.OriginalString?.Contains("login") == true)
+                            {
+                                await GoToAsync("//homeTab/main");
+                            }
+                        }
+                        else
+                        {
+                            // 3. Nếu thực sự chưa đăng nhập thì mới chuyển về login
+                            if (CurrentState?.Location?.OriginalString?.Contains("login") != true &&
+                                CurrentState?.Location?.OriginalString?.Contains("register") != true)
+                            {
+                                await GoToAsync("//login");
+                            }
+                        }
+                    });
                 }
             }
         }
@@ -56,6 +78,21 @@ namespace CampusActivitiesManager
             var authService = Handler?.MauiContext?.Services.GetService<IAuthenticationService>();
             if (authService != null && authService.CurrentUser == null)
             {
+                // Thử khôi phục session nhanh nếu tồn tại session đã lưu
+                var savedUser = Preferences.Default.Get("auth_active_user", string.Empty);
+                if (!string.IsNullOrWhiteSpace(savedUser))
+                {
+                    try
+                    {
+                        if (authService.TryRestoreSessionAsync().GetAwaiter().GetResult() && authService.CurrentUser != null)
+                        {
+                            UpdateMenuVisibility();
+                            return;
+                        }
+                    }
+                    catch { }
+                }
+
                 var target = args.Target.Location.OriginalString;
                 // Cho phép di chuyển đến trang login và register khi chưa xác thực
                 if (!target.Contains("login", StringComparison.OrdinalIgnoreCase) && 

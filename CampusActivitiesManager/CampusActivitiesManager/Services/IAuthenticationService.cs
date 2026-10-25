@@ -18,6 +18,7 @@ namespace CampusActivitiesManager.Services
         event EventHandler? CurrentUserChanged;
 
         Task<bool> LoginAsync(string username, string password);
+        Task<bool> TryRestoreSessionAsync();
         Task<bool> SwitchUserAsync(string username);
         void Logout();
         bool CheckPermission(Role requiredRole);

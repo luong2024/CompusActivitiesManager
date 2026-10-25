@@ -6,6 +6,7 @@ namespace CampusActivitiesManager.Services
 {
     public class AuthenticationService : IAuthenticationService
     {
+        private const string ActiveUserPrefKey = "auth_active_user";
         private readonly IUserService<User> _userService;
         private readonly ILogger<AuthenticationService> _logger;
 
@@ -45,18 +46,14 @@ namespace CampusActivitiesManager.Services
             if (localUser != null && localUser.IsActive)
             {
                 _currentUser = localUser;
-                try
-                {
-                    await SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_token_" + Guid.NewGuid().ToString("N"));
-                }
-                catch { }
+                PersistSession(_currentUser.Username);
 
                 _logger.LogInformation("Authenticated session started for {Username} ({Role})", localUser.Username, localUser.Role);
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
 
-            // Fallback nếu người dùng gõ tên viết tắt
+            // Fallback nếu người dùng gõ tên viết tắt demo
             if (cleanUser == "admin" || cleanUser == "admin@campus.edu.vn" || cleanUser == "admin@campus.edu")
             {
                 _currentUser = (await _userService.GetUserByIdAsync("admin-sys-01")) ?? new User
@@ -69,6 +66,7 @@ namespace CampusActivitiesManager.Services
                     ClassName = "Ban Quản Trị",
                     IsActive = true
                 };
+                PersistSession(_currentUser.Username);
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
@@ -85,6 +83,7 @@ namespace CampusActivitiesManager.Services
                     AssignedClass = "D20CNTT1",
                     IsActive = true
                 };
+                PersistSession(_currentUser.Username);
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
@@ -101,6 +100,7 @@ namespace CampusActivitiesManager.Services
                     AssignedClass = "D21CNTT1",
                     IsActive = true
                 };
+                PersistSession(_currentUser.Username);
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
@@ -117,6 +117,7 @@ namespace CampusActivitiesManager.Services
                     ClassName = "D20CNTT1",
                     IsActive = true
                 };
+                PersistSession(_currentUser.Username);
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
@@ -133,8 +134,132 @@ namespace CampusActivitiesManager.Services
                     IsActive = true,
                     TrainingPoints = 0
                 };
+                PersistSession(_currentUser.Username);
                 CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                 return true;
+            }
+
+            return false;
+        }
+
+        private void PersistSession(string username)
+        {
+            try
+            {
+                Preferences.Default.Set(ActiveUserPrefKey, username);
+                SecureStorage.Default.SetAsync(Constants.AuthTokenKey, "local_token_" + Guid.NewGuid().ToString("N"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to persist auth session to storage");
+            }
+        }
+
+        public async Task<bool> TryRestoreSessionAsync()
+        {
+            if (_currentUser != null && _currentUser.IsActive)
+                return true;
+
+            try
+            {
+                var savedUsername = Preferences.Default.Get(ActiveUserPrefKey, string.Empty);
+                if (string.IsNullOrWhiteSpace(savedUsername))
+                    return false;
+
+                // 1. Tìm trong store người dùng
+                var user = await _userService.GetUserByUsernameAsync(savedUsername);
+                if (user != null && user.IsActive)
+                {
+                    _currentUser = user;
+                    CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                    _logger.LogInformation("Restored active user session for {Username}", user.Username);
+                    return true;
+                }
+
+                // 2. Fallback nếu là tài khoản hệ thống
+                string cleanUser = savedUsername.Trim().ToLower();
+                if (cleanUser == "admin" || cleanUser == "admin@campus.edu.vn")
+                {
+                    _currentUser = (await _userService.GetUserByIdAsync("admin-sys-01")) ?? new User
+                    {
+                        Id = "admin-sys-01",
+                        Username = "admin",
+                        FullName = "Quản Trị Viên Hệ Thống",
+                        Email = "admin@campus.edu.vn",
+                        Role = Role.Admin,
+                        ClassName = "Ban Quản Trị",
+                        IsActive = true
+                    };
+                    CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                    return true;
+                }
+                else if (cleanUser == "manager" || cleanUser == "manager@campus.edu.vn")
+                {
+                    _currentUser = (await _userService.GetUserByIdAsync("manager-sys-02")) ?? new User
+                    {
+                        Id = "manager-sys-02",
+                        Username = "manager",
+                        FullName = "ThS. Nguyễn Văn Quản",
+                        Email = "manager@campus.edu.vn",
+                        Role = Role.Manager,
+                        ClassName = "Khoa CNTT",
+                        AssignedClass = "D20CNTT1",
+                        IsActive = true
+                    };
+                    CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                    return true;
+                }
+                else if (cleanUser == "giangvien" || cleanUser == "teacher" || cleanUser == "gv" || cleanUser == "giangvien@campus.edu.vn")
+                {
+                    _currentUser = (await _userService.GetUserByIdAsync("lecturer-sys-05")) ?? new User
+                    {
+                        Id = "lecturer-sys-05",
+                        Username = "giangvien",
+                        FullName = "TS. Trần Văn Minh",
+                        Email = "giangvien@campus.edu.vn",
+                        Role = Role.Lecturer,
+                        ClassName = "Khoa CNTT",
+                        AssignedClass = "D21CNTT1",
+                        IsActive = true
+                    };
+                    CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                    return true;
+                }
+                else if (cleanUser == "bithu" || cleanUser == "bithu@campus.edu.vn")
+                {
+                    _currentUser = (await _userService.GetUserByIdAsync("secretary-sys-03")) ?? new User
+                    {
+                        Id = "secretary-sys-03",
+                        Username = "bithu",
+                        FullName = "Lê Hoàng Bí Thư",
+                        Email = "bithu@campus.edu.vn",
+                        Role = Role.Secretary,
+                        IsSecretary = true,
+                        ClassName = "D20CNTT1",
+                        IsActive = true
+                    };
+                    CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                    return true;
+                }
+                else if (cleanUser == "cuong.na@campus.edu.vn" || cleanUser == "b20dccn001" || cleanUser == "student")
+                {
+                    _currentUser = (await _userService.GetUserByIdAsync("student-sys-04")) ?? new User
+                    {
+                        Id = "student-sys-04",
+                        Username = "B20DCCN001",
+                        FullName = "Nguyễn An Cương",
+                        Email = "cuong.na@campus.edu.vn",
+                        Role = Role.User,
+                        ClassName = "D20CNTT1",
+                        IsActive = true
+                    };
+                    CurrentUserChanged?.Invoke(this, EventArgs.Empty);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error restoring user session");
             }
 
             return false;
@@ -148,6 +273,7 @@ namespace CampusActivitiesManager.Services
                 if (user != null)
                 {
                     _currentUser = user;
+                    PersistSession(_currentUser.Username);
                     CurrentUserChanged?.Invoke(this, EventArgs.Empty);
                     return true;
                 }
@@ -165,6 +291,7 @@ namespace CampusActivitiesManager.Services
             _currentUser = null;
             try
             {
+                Preferences.Default.Remove(ActiveUserPrefKey);
                 SecureStorage.Default.Remove(Constants.AuthTokenKey);
             }
             catch { }
