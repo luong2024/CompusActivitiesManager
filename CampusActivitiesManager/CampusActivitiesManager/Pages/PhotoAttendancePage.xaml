@@ -9,7 +9,7 @@
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="16">
+        <VerticalStackLayout Padding="20,20,20,100" Spacing="16">
 
             <!-- Banner Header -->
             <Border StrokeShape="RoundRectangle 20"

@@ -53,7 +53,7 @@
         </Border>
 
         <!-- Main Body -->
-        <ScrollView Grid.Row="1" Padding="16,16,16,60">
+        <ScrollView Grid.Row="1" Padding="16,16,16,100">
             <VerticalStackLayout Spacing="16">
 
                 <!-- Class Summary Card -->
@@ -120,12 +120,12 @@
                                     Command="{Binding CreateClassEventCommand}" />
                         </Grid>
 
-                        <CollectionView ItemsSource="{Binding ClassEventsList}">
-                            <CollectionView.EmptyView>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding ClassEventsList}">
+                            <BindableLayout.EmptyView>
                                 <Label Text="Chưa có hoạt động nội bộ nào được tạo cho lớp này."
                                        FontSize="12" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" Margin="0,12" />
-                            </CollectionView.EmptyView>
-                            <CollectionView.ItemTemplate>
+                            </BindableLayout.EmptyView>
+                            <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:CampusEvent">
                                     <Border Margin="0,4" Padding="12" StrokeShape="RoundRectangle 10" BackgroundColor="#F8FAFC" Stroke="#E2E8F0">
                                         <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
@@ -145,8 +145,8 @@
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Border>
 
@@ -157,12 +157,12 @@
                                TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
                         <Label Text="{Binding StudentDrlSectionSubtitle}" FontSize="11" TextColor="{StaticResource Gray500}" />
 
-                        <CollectionView ItemsSource="{Binding StudentsList}">
-                            <CollectionView.EmptyView>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding StudentsList}">
+                            <BindableLayout.EmptyView>
                                 <Label Text="Không có thông tin sinh viên hiển thị."
                                        FontSize="13" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" Margin="0,12" />
-                            </CollectionView.EmptyView>
-                            <CollectionView.ItemTemplate>
+                            </BindableLayout.EmptyView>
+                            <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:User">
                                     <Border Margin="0,6" Padding="12" StrokeShape="RoundRectangle 10" BackgroundColor="#FFFFFF" Stroke="#E2E8F0">
                                         <VerticalStackLayout Spacing="8">
@@ -204,8 +204,8 @@
                                         </VerticalStackLayout>
                                     </Border>
                                 </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Border>
 

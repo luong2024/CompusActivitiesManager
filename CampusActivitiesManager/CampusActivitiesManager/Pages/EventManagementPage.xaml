@@ -26,7 +26,7 @@
         <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
             <CollectionView ItemsSource="{Binding FilteredEvents}"
                             SelectionMode="None"
-                            ItemSizingStrategy="MeasureFirstItem">
+                            >
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
                 </CollectionView.ItemsLayout>
@@ -451,6 +451,11 @@
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
+
+                <!-- Bottom Clearance Footer for TabBar -->
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="100" Color="Transparent" />
+                </CollectionView.Footer>
 
             </CollectionView>
         </RefreshView>

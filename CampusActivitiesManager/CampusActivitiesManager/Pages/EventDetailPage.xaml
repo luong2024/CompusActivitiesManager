@@ -33,7 +33,7 @@
                            Color="{StaticResource Primary}" HorizontalOptions="Center" VerticalOptions="Center" />
 
         <!-- Main Content -->
-        <ScrollView Grid.Row="1" IsVisible="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}" Padding="16,16,16,60">
+        <ScrollView Grid.Row="1" IsVisible="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}" Padding="16,16,16,100">
             <VerticalStackLayout Spacing="16">
 
                 <!-- Unapproved Event Warning Banner -->
@@ -257,12 +257,12 @@
                         <Label Text="{Binding TotalRegistrations, StringFormat='Tổng số sinh viên đăng ký: {0}'}" FontSize="13" TextColor="{StaticResource Gray500}" />
 
                         <!-- List of registered students -->
-                        <CollectionView ItemsSource="{Binding RegistrationsList}">
-                            <CollectionView.EmptyView>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding RegistrationsList}">
+                            <BindableLayout.EmptyView>
                                 <Label Text="Chưa có sinh viên nào đăng ký hoạt động này."
                                        FontSize="13" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" Margin="0,10" />
-                            </CollectionView.EmptyView>
-                            <CollectionView.ItemTemplate>
+                            </BindableLayout.EmptyView>
+                            <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:EventRegistration">
                                     <Border Margin="0,4" Padding="12" StrokeShape="RoundRectangle 8" BackgroundColor="#F8FAFC" Stroke="#E2E8F0">
                                         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
@@ -288,8 +288,8 @@
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Border>
 

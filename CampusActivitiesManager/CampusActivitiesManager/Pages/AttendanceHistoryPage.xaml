@@ -10,7 +10,7 @@
 
     <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
         <ScrollView>
-            <VerticalStackLayout Padding="20" Spacing="16">
+            <VerticalStackLayout Padding="20,20,20,100" Spacing="16">
 
                 <!-- 1. Training Points Summary Card -->
                 <Border StrokeShape="RoundRectangle 22"
@@ -121,8 +121,8 @@
                            FontAttributes="Bold"
                            TextColor="{StaticResource Primary}" />
 
-                    <CollectionView ItemsSource="{Binding Records}" SelectionMode="None">
-                        <CollectionView.EmptyView>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Records}">
+                        <BindableLayout.EmptyView>
                             <Border StrokeShape="RoundRectangle 16"
                                     Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
                                     Padding="32"
@@ -135,9 +135,9 @@
                                            HorizontalOptions="Center" />
                                 </VerticalStackLayout>
                             </Border>
-                        </CollectionView.EmptyView>
+                        </BindableLayout.EmptyView>
 
-                        <CollectionView.ItemTemplate>
+                        <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:AttendanceRecord">
                                 <Border StrokeShape="RoundRectangle 16"
                                         Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
@@ -201,8 +201,8 @@
                                     </VerticalStackLayout>
                                 </Border>
                             </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
 
             </VerticalStackLayout>

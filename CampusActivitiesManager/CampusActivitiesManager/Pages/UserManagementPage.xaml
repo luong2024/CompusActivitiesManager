@@ -25,7 +25,7 @@
         <!-- Main Content: CollectionView with Header (Eliminates ScrollView-CollectionView nesting to prevent Android ANR) -->
         <CollectionView ItemsSource="{Binding FilteredUsers}"
                         SelectionMode="None"
-                        ItemSizingStrategy="MeasureFirstItem">
+                        >
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
             </CollectionView.ItemsLayout>
@@ -311,7 +311,7 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
             <CollectionView.Footer>
-                <BoxView HeightRequest="20" Color="Transparent" />
+                <BoxView HeightRequest="100" Color="Transparent" />
             </CollectionView.Footer>
         </CollectionView>
 

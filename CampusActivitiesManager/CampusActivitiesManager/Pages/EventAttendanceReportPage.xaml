@@ -158,8 +158,8 @@
                                FontAttributes="Bold"
                                TextColor="{StaticResource Primary}" />
 
-                        <CollectionView ItemsSource="{Binding Records}" SelectionMode="None">
-                            <CollectionView.EmptyView>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Records}">
+                            <BindableLayout.EmptyView>
                                 <Border StrokeShape="RoundRectangle 16"
                                         Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
                                         Padding="28"
@@ -169,9 +169,9 @@
                                            TextColor="{StaticResource Gray500}"
                                            HorizontalOptions="Center" />
                                 </Border>
-                            </CollectionView.EmptyView>
+                            </BindableLayout.EmptyView>
 
-                            <CollectionView.ItemTemplate>
+                            <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:AttendanceRecord">
                                     <Border StrokeShape="RoundRectangle 14"
                                             Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
@@ -254,8 +254,8 @@
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
 
                 </VerticalStackLayout>

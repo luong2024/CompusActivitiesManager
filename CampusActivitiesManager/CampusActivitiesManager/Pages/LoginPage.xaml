@@ -34,29 +34,7 @@
                         <Label Text="Vui lòng nhập thông tin tài khoản của bạn để tiếp tục" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
                     </VerticalStackLayout>
 
-                    <!-- Quick Role Demo Selector Chips -->
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="💡 Chọn nhanh vai trò demo để trải nghiệm:" FontSize="11.5" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
-                        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
-                            <HorizontalStackLayout Spacing="6">
-                                <Button Text="🛡️ Admin" FontSize="11" FontAttributes="Bold" HeightRequest="32" CornerRadius="16" Padding="10,0"
-                                        BackgroundColor="#FEE2E2" TextColor="#DC2626"
-                                        Command="{Binding QuickSelectRoleCommand}" CommandParameter="admin" />
-                                <Button Text="🎪 Quản lý Sự kiện" FontSize="11" FontAttributes="Bold" HeightRequest="32" CornerRadius="16" Padding="10,0"
-                                        BackgroundColor="#EFF6FF" TextColor="#2563EB"
-                                        Command="{Binding QuickSelectRoleCommand}" CommandParameter="manager" />
-                                <Button Text="👨‍🏫 Giảng viên" FontSize="11" FontAttributes="Bold" HeightRequest="32" CornerRadius="16" Padding="10,0"
-                                        BackgroundColor="#FEF3C7" TextColor="#B45309"
-                                        Command="{Binding QuickSelectRoleCommand}" CommandParameter="giangvien" />
-                                <Button Text="🎓 Bí thư" FontSize="11" FontAttributes="Bold" HeightRequest="32" CornerRadius="16" Padding="10,0"
-                                        BackgroundColor="#F3E8FF" TextColor="#7C3AED"
-                                        Command="{Binding QuickSelectRoleCommand}" CommandParameter="bithu" />
-                                <Button Text="👤 Sinh viên" FontSize="11" FontAttributes="Bold" HeightRequest="32" CornerRadius="16" Padding="10,0"
-                                        BackgroundColor="#ECFDF5" TextColor="#059669"
-                                        Command="{Binding QuickSelectRoleCommand}" CommandParameter="student" />
-                            </HorizontalStackLayout>
-                        </ScrollView>
-                    </VerticalStackLayout>
+
 
                     <!-- Error Alert -->
                     <Border StrokeShape="RoundRectangle 10"
