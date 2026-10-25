@@ -9,7 +9,7 @@
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="16">
+        <VerticalStackLayout Padding="20,20,20,100" Spacing="16">
 
             <!-- Banner Header -->
             <Border StrokeShape="RoundRectangle 20"
@@ -25,20 +25,20 @@
                                TextColor="{StaticResource White}"
                                VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                    <Label Text="Chụp ảnh minh chứng có mặt tại sự kiện hoặc check-in cùng ban tổ chức để nhận điểm rèn luyện."
+                    <Label Text="Chụp ảnh minh chứng có mặt tại sự kiện đúng khung giờ để nhận điểm rèn luyện. Hệ thống tự động khóa điểm danh sau khi sự kiện kết thúc."
                            FontSize="12.5"
                            TextColor="#E0E7FF"
                            LineBreakMode="WordWrap" />
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Event Selector -->
+            <!-- Event Selector & Time Status Display -->
             <Border StrokeShape="RoundRectangle 16"
                     Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
                     Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
-                    Padding="16,12">
-                <VerticalStackLayout Spacing="6">
+                    Padding="16,14">
+                <VerticalStackLayout Spacing="10">
                     <Label Text="SỰ KIỆN THAM GIA"
                            FontSize="11"
                            FontAttributes="Bold"
@@ -49,6 +49,36 @@
                             SelectedItem="{Binding SelectedEvent}"
                             TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
                             FontSize="13.5" />
+
+                    <!-- Selected Event Time & Status Details -->
+                    <Border StrokeShape="RoundRectangle 12"
+                            BackgroundColor="{Binding SelectedEvent.AttendanceStatusBg}"
+                            StrokeThickness="0"
+                            Padding="12,10"
+                            Margin="0,4,0,0">
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="{Binding SelectedEvent.AttendanceTimeWindowDisplay}"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{Binding SelectedEvent.AttendanceStatusTextColor}" />
+                                <Label Text="{Binding SelectedEvent.Location, StringFormat='📍 {0}'}"
+                                       FontSize="11.5"
+                                       TextColor="{Binding SelectedEvent.AttendanceStatusTextColor}" />
+                            </VerticalStackLayout>
+                            <Border Grid.Column="1"
+                                    StrokeShape="RoundRectangle 8"
+                                    BackgroundColor="{StaticResource White}"
+                                    Padding="8,4"
+                                    StrokeThickness="0"
+                                    VerticalOptions="Center">
+                                <Label Text="{Binding SelectedEvent.AttendanceStatusBadge}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="{Binding SelectedEvent.AttendanceStatusTextColor}" />
+                            </Border>
+                        </Grid>
+                    </Border>
                 </VerticalStackLayout>
             </Border>
 
@@ -162,7 +192,7 @@
             </Border>
 
             <!-- Submit Button -->
-            <Button Text="GỬI ĐIỂM DANH HÌNH ẢNH (+5 ĐRL)"
+            <Button Text="GỬI ĐIỂM DANH HÌNH ẢNH (+ ĐRL)"
                     Command="{Binding SubmitPhotoAttendanceCommand}"
                     Background="{StaticResource PrimaryGradientBrush}"
                     TextColor="{StaticResource White}"

@@ -62,6 +62,9 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private int _pendingCount;
 
+        [ObservableProperty]
+        private int _approvedCount;
+
         // Modal Tạo / Chỉnh sửa
         [ObservableProperty]
         private bool _isModalVisible;
@@ -91,6 +94,12 @@ namespace CampusActivitiesManager.PageModels
         private string _formEndDate = DateTime.Now.AddDays(7).ToString("dd/MM/yyyy");
 
         [ObservableProperty]
+        private string _formStartTime = "08:00";
+
+        [ObservableProperty]
+        private string _formEndTime = "11:30";
+
+        [ObservableProperty]
         private int _formMaxParticipants = 150;
 
         [ObservableProperty]
@@ -111,6 +120,9 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private bool _isSaving;
 
+        [ObservableProperty]
+        private bool _canCreateEvent;
+
         public EventManagementPageModel(
             IEventService eventService,
             IAuthenticationService authService,
@@ -127,21 +139,25 @@ namespace CampusActivitiesManager.PageModels
         {
             if (_authService?.CurrentUser != null)
             {
-                var role = _authService.CurrentUser.Role;
-                IsAdmin = role == Role.Admin;
-                IsManagerOrAdmin = role == Role.Admin || role == Role.Manager;
-                CurrentUserRoleName = role switch
+                var user = _authService.CurrentUser;
+                IsAdmin = user.Role == Role.Admin;
+                IsManagerOrAdmin = user.Role == Role.Admin || user.Role == Role.Manager;
+                CanCreateEvent = IsAdmin || user.Role == Role.Manager || user.Role == Role.Secretary || user.IsSecretary;
+                CurrentUserRoleName = user.Role switch
                 {
                     Role.Admin => "Quản trị viên (Admin)",
                     Role.Manager => "Ban tổ chức (Manager)",
-                    _ => "Sinh viên (User)"
+                    Role.Lecturer => "Giảng viên (Lecturer)",
+                    Role.Secretary => "Bí thư chi đoàn",
+                    _ => "Sinh viên (Student)"
                 };
             }
             else
             {
-                IsAdmin = true;
-                IsManagerOrAdmin = true;
-                CurrentUserRoleName = "Quản trị viên (Admin)";
+                IsAdmin = false;
+                IsManagerOrAdmin = false;
+                CanCreateEvent = false;
+                CurrentUserRoleName = "Khách (Chưa đăng nhập)";
             }
         }
 
@@ -176,8 +192,41 @@ namespace CampusActivitiesManager.PageModels
                 Categories = await _eventService.GetCategoriesAsync();
                 CategoryNames = Categories.Select(c => c.Title).ToList();
 
-                // Load events (including pending ones for management)
-                Events = await _eventService.GetEventsAsync(includePending: true);
+                var currentUser = _authService?.CurrentUser;
+                bool isAdmin = currentUser?.Role == Role.Admin;
+                bool isManager = currentUser?.Role == Role.Manager;
+
+                if (isAdmin)
+                {
+                    Events = await _eventService.GetEventsAsync(includePending: true);
+                }
+                else if (isManager)
+                {
+                    // Quản lý sự kiện: xem các sự kiện đã duyệt + sự kiện do chính mình tạo (kể cả pending của mình)
+                    var all = await _eventService.GetEventsAsync(includePending: true);
+                    Events = all.Where(e =>
+                        (e.IsApproved && e.ApprovalStatus == "Approved") ||
+                        string.Equals(e.CreatedByUsername, currentUser?.Username, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(e.CreatedByName, currentUser?.FullName, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+                else
+                {
+                    // Học sinh / Sinh viên thường: CHỈ XEM CÁC HOẠT ĐỘNG ĐÃ ĐƯỢC DUYỆT!
+                    Events = await _eventService.GetEventsForUserAsync(currentUser);
+                }
+
+                // Cập nhật quyền quản lý và duyệt cho từng sự kiện
+                if (Events != null)
+                {
+                    foreach (var evt in Events)
+                    {
+                        evt.CanAdminApprove = isAdmin && evt.IsPendingApproval;
+                        evt.CanUserManage = isAdmin ||
+                            (!string.IsNullOrEmpty(currentUser?.Username) && string.Equals(evt.CreatedByUsername, currentUser.Username, StringComparison.OrdinalIgnoreCase)) ||
+                            (!string.IsNullOrEmpty(currentUser?.FullName) && string.Equals(evt.CreatedByName, currentUser.FullName, StringComparison.OrdinalIgnoreCase));
+                    }
+                }
 
                 UpdateMetrics();
                 ApplyFilter();
@@ -199,6 +248,7 @@ namespace CampusActivitiesManager.PageModels
             SportsCount = Events.Count(e => e.CategoryTitle == "Thể thao");
             VolunteerCount = Events.Count(e => e.CategoryTitle == "Tình nguyện");
             PendingCount = Events.Count(e => !e.IsApproved || e.ApprovalStatus == "Pending");
+            ApprovedCount = Events.Count(e => e.IsApproved && e.ApprovalStatus == "Approved");
         }
 
         [RelayCommand]
@@ -222,11 +272,30 @@ namespace CampusActivitiesManager.PageModels
 
         private void ApplyFilter()
         {
+            var currentUser = _authService?.CurrentUser;
+            bool isAdmin = currentUser?.Role == Role.Admin;
+
+            // Thiết lập quyền duyệt và quản lý cho từng sự kiện
+            if (Events != null)
+            {
+                foreach (var evt in Events)
+                {
+                    evt.CanAdminApprove = isAdmin && evt.IsPendingApproval;
+                    evt.CanUserManage = isAdmin ||
+                        (!string.IsNullOrEmpty(currentUser?.Username) && string.Equals(evt.CreatedByUsername, currentUser.Username, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(currentUser?.FullName) && string.Equals(evt.CreatedByName, currentUser.FullName, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+
             IEnumerable<CampusEvent> query = Events ?? [];
 
             if (SelectedCategoryFilter == "Chờ duyệt")
             {
                 query = query.Where(e => !e.IsApproved || e.ApprovalStatus == "Pending");
+            }
+            else if (SelectedCategoryFilter == "Đã duyệt")
+            {
+                query = query.Where(e => e.IsApproved && e.ApprovalStatus == "Approved");
             }
             else if (!string.IsNullOrWhiteSpace(SelectedCategoryFilter) && SelectedCategoryFilter != "Tất cả")
             {
@@ -248,6 +317,12 @@ namespace CampusActivitiesManager.PageModels
         [RelayCommand]
         private void OpenCreateModal()
         {
+            if (!CanCreateEvent)
+            {
+                Shell.Current?.DisplayAlert("Phân quyền ⚠️", "Chỉ Ban tổ chức sự kiện hoặc Quản trị viên mới có thể tạo sự kiện mới.", "Đã hiểu");
+                return;
+            }
+
             IsEditing = false;
             ModalTitle = "Tạo Sự Kiện Mới";
             EditingId = 0;
@@ -256,6 +331,8 @@ namespace CampusActivitiesManager.PageModels
             FormLocation = "Hội trường A2";
             FormStartDate = DateTime.Now.AddDays(7).ToString("dd/MM/yyyy");
             FormEndDate = DateTime.Now.AddDays(7).ToString("dd/MM/yyyy");
+            FormStartTime = "08:00";
+            FormEndTime = "11:30";
             FormMaxParticipants = 150;
             FormStatus = "Sắp diễn ra";
             FormIcon = "📅";
@@ -267,9 +344,15 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
-        private void OpenEditModal(CampusEvent evt)
+        private async Task OpenEditModal(CampusEvent evt)
         {
             if (evt == null) return;
+
+            if (!IsAdmin && !evt.CanUserManage)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Bạn chỉ có quyền chỉnh sửa hoạt động do chính bạn tạo ra!", "Đã hiểu");
+                return;
+            }
 
             IsEditing = true;
             ModalTitle = "Chỉnh Sửa Sự Kiện";
@@ -279,6 +362,8 @@ namespace CampusActivitiesManager.PageModels
             FormLocation = evt.Location;
             FormStartDate = evt.StartDate;
             FormEndDate = evt.EndDate;
+            FormStartTime = string.IsNullOrWhiteSpace(evt.StartTime) ? "08:00" : evt.StartTime;
+            FormEndTime = string.IsNullOrWhiteSpace(evt.EndTime) ? "11:30" : evt.EndTime;
             FormMaxParticipants = evt.MaxParticipants;
             FormStatus = evt.Status;
             FormIcon = string.IsNullOrWhiteSpace(evt.Icon) ? "📅" : evt.Icon;
@@ -372,8 +457,9 @@ namespace CampusActivitiesManager.PageModels
                 bool isUserAdmin = _authService?.CurrentUser?.Role == Role.Admin;
                 bool isApproved = isUserAdmin;
                 string approvalStatus = isUserAdmin ? "Approved" : "Pending";
-                string createdRole = isUserAdmin ? "Admin" : "Manager";
+                string createdRole = isUserAdmin ? "Admin" : (_authService?.CurrentUser?.Role.ToString() ?? "Manager");
                 string createdName = _authService?.CurrentUser?.FullName ?? (isUserAdmin ? "Admin" : "Ban tổ chức");
+                string createdUsername = _authService?.CurrentUser?.Username ?? (isUserAdmin ? "admin" : "manager");
 
                 var evtModel = new CampusEvent
                 {
@@ -386,6 +472,8 @@ namespace CampusActivitiesManager.PageModels
                     Location = string.IsNullOrWhiteSpace(FormLocation) ? "Hội trường A2" : FormLocation.Trim(),
                     StartDate = FormStartDate,
                     EndDate = FormEndDate,
+                    StartTime = string.IsNullOrWhiteSpace(FormStartTime) ? "08:00" : FormStartTime.Trim(),
+                    EndTime = string.IsNullOrWhiteSpace(FormEndTime) ? "11:30" : FormEndTime.Trim(),
                     MaxParticipants = FormMaxParticipants > 0 ? FormMaxParticipants : 100,
                     Status = FormStatus,
                     ImageUrl = FormImageUrl?.Trim() ?? "",
@@ -393,7 +481,8 @@ namespace CampusActivitiesManager.PageModels
                     IsApproved = IsEditing ? (Events.FirstOrDefault(e => e.ID == EditingId)?.IsApproved ?? isApproved) : isApproved,
                     ApprovalStatus = IsEditing ? (Events.FirstOrDefault(e => e.ID == EditingId)?.ApprovalStatus ?? approvalStatus) : approvalStatus,
                     CreatedByRole = createdRole,
-                    CreatedByName = createdName
+                    CreatedByName = createdName,
+                    CreatedByUsername = createdUsername
                 };
 
                 bool success;
@@ -443,6 +532,12 @@ namespace CampusActivitiesManager.PageModels
         {
             if (evt == null) return;
 
+            if (!IsAdmin)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền 🛡️", "Chỉ Quản trị viên (Admin) mới có quyền duyệt hoạt động.", "Đóng");
+                return;
+            }
+
             bool confirm = await Shell.Current.DisplayAlert(
                 "Phê duyệt hoạt động 🛡️",
                 $"Bạn có chắc chắn muốn duyệt hoạt động \"{evt.Name}\" để xuất hiện trên toàn hệ thống?",
@@ -458,6 +553,9 @@ namespace CampusActivitiesManager.PageModels
                 bool ok = await _eventService.ApproveEventAsync(evt.ID, true, adminName);
                 if (ok)
                 {
+                    evt.IsApproved = true;
+                    evt.ApprovalStatus = "Approved";
+                    evt.CanAdminApprove = false;
                     await LoadData();
                     await AppShell.DisplayToastAsync("Đã phê duyệt hoạt động thành công! ✅");
                 }
@@ -477,6 +575,12 @@ namespace CampusActivitiesManager.PageModels
         {
             if (evt == null) return;
 
+            if (!IsAdmin)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền 🛡️", "Chỉ Quản trị viên (Admin) mới có quyền từ chối hoạt động.", "Đóng");
+                return;
+            }
+
             string reason = await Shell.Current.DisplayPromptAsync(
                 "Từ chối hoạt động ❌",
                 "Nhập lý do từ chối (tùy chọn):",
@@ -493,6 +597,9 @@ namespace CampusActivitiesManager.PageModels
                 bool ok = await _eventService.ApproveEventAsync(evt.ID, false, adminName, reason);
                 if (ok)
                 {
+                    evt.IsApproved = false;
+                    evt.ApprovalStatus = "Rejected";
+                    evt.CanAdminApprove = false;
                     await LoadData();
                     await AppShell.DisplayToastAsync("Đã từ chối hoạt động.");
                 }
@@ -511,6 +618,12 @@ namespace CampusActivitiesManager.PageModels
         private async Task DeleteEvent(CampusEvent evt)
         {
             if (evt == null) return;
+
+            if (!IsAdmin && !evt.CanUserManage)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Bạn chỉ có quyền xóa hoạt động do chính bạn tạo ra!", "Đã hiểu");
+                return;
+            }
 
             bool confirm = await Shell.Current.DisplayAlert(
                 "Xác nhận xóa sự kiện",
@@ -548,6 +661,13 @@ namespace CampusActivitiesManager.PageModels
         private async Task ViewAttendanceReport(CampusEvent evt)
         {
             if (evt == null) return;
+
+            if (!IsAdmin && !evt.CanUserManage)
+            {
+                await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Bạn chỉ có quyền xem báo cáo điểm danh của hoạt động do chính bạn quản lý!", "Đã hiểu");
+                return;
+            }
+
             if (Shell.Current != null)
             {
                 await Shell.Current.GoToAsync($"//attendancereport?eventId={evt.ID}");
@@ -578,6 +698,22 @@ namespace CampusActivitiesManager.PageModels
             {
                 _errorHandler.HandleError(ex);
             }
+        }
+
+        [RelayCommand]
+        public void ToggleMenu()
+        {
+            if (Shell.Current != null)
+            {
+                Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
+            }
+        }
+
+        [RelayCommand]
+        private async Task OpenEventDetail(CampusEvent evt)
+        {
+            if (evt == null || Shell.Current == null) return;
+            await Shell.Current.GoToAsync($"eventdetail?eventId={evt.ID}");
         }
     }
 }

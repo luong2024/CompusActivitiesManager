@@ -11,5 +11,8 @@ namespace CampusActivitiesManager.Services
         Task<List<AttendanceRecord>> GetStudentAttendanceHistoryAsync(string studentCode);
         Task<string> ExportAttendanceCsvAsync(int eventId);
         Task<List<CampusNotificationDto>> GetNotificationsAsync(string? studentCode = null);
+        Task<(bool Success, string Message)> ReviewAttendanceAsync(string recordId, bool isApproved, string reviewerName, string? notes = null);
+        Task<List<AttendanceRecord>> GetPendingAttendanceReviewsAsync(int? eventId = null);
+        Task<List<AttendanceRecord>> GetAllAttendanceRecordsAsync();
     }
 }

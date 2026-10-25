@@ -1,4 +1,4 @@
-﻿using CampusActivitiesManager.Models;
+using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -26,13 +26,33 @@ namespace CampusActivitiesManager.PageModels
         private Role _selectedRole = Role.User;
 
         [ObservableProperty]
-        private List<Role> _availableRoles = [Role.Admin, Role.Manager, Role.User, Role.Guest];
+        private List<Role> _availableRoles = [Role.Admin, Role.Manager, Role.Lecturer, Role.Secretary, Role.User, Role.Guest];
+
+        [ObservableProperty]
+        private List<ClassRoom> _availableClasses = [];
+
+        [ObservableProperty]
+        private ClassRoom? _selectedClass;
+
+        [ObservableProperty]
+        private string _customClassName = string.Empty;
 
         public CreateUserViewModel(IUserService<User> userService, ModalErrorHandler errorHandler)
         {
             _userService = userService;
             _errorHandler = errorHandler;
             Title = "Thêm tài khoản";
+            _ = LoadClassesAsync();
+        }
+
+        public async Task LoadClassesAsync()
+        {
+            try
+            {
+                AvailableClasses = await _userService.GetClassesAsync();
+                SelectedClass = AvailableClasses.FirstOrDefault();
+            }
+            catch { }
         }
 
         [RelayCommand]
@@ -50,13 +70,23 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 IsBusy = true;
+                string chosenClass = !string.IsNullOrWhiteSpace(CustomClassName)
+                    ? CustomClassName.Trim()
+                    : (SelectedClass?.ClassName ?? "D20CNTT1");
+
                 var user = new User
                 {
-                    Email = Email,
-                    FullName = FullName,
-                    Username = string.IsNullOrWhiteSpace(Username) ? Email.Split('@')[0] : Username,
-                    PhoneNumber = PhoneNumber,
-                    Role = SelectedRole
+                    Email = Email.Trim(),
+                    FullName = FullName.Trim(),
+                    Username = string.IsNullOrWhiteSpace(Username) ? Email.Split('@')[0].Trim() : Username.Trim(),
+                    PhoneNumber = PhoneNumber?.Trim() ?? string.Empty,
+                    Role = SelectedRole,
+                    ClassName = chosenClass,
+                    AssignedClass = (SelectedRole == Role.Lecturer || SelectedRole == Role.Manager) ? chosenClass : string.Empty,
+                    ManagedClasses = (SelectedRole == Role.Lecturer || SelectedRole == Role.Manager) ? chosenClass : string.Empty,
+                    IsSecretary = (SelectedRole == Role.Secretary),
+                    TrainingPoints = 0,
+                    IsActive = true
                 };
 
                 var result = await _userService.SaveUserAsync(user);

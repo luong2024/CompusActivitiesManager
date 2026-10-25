@@ -25,7 +25,7 @@
         <!-- Main Content: CollectionView with Header (Eliminates ScrollView-CollectionView nesting to prevent Android ANR) -->
         <CollectionView ItemsSource="{Binding FilteredUsers}"
                         SelectionMode="None"
-                        ItemSizingStrategy="MeasureFirstItem">
+                        >
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" ItemSpacing="0" />
             </CollectionView.ItemsLayout>
@@ -219,6 +219,10 @@
                                                    FontSize="12"
                                                    FontAttributes="Italic"
                                                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                                            <Label Text="{Binding ClassName, StringFormat='Lớp: {0}'}"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource Primary}" />
                                         </VerticalStackLayout>
 
                                         <!-- Role Badge Pill -->
@@ -311,7 +315,7 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
             <CollectionView.Footer>
-                <BoxView HeightRequest="20" Color="Transparent" />
+                <BoxView HeightRequest="100" Color="Transparent" />
             </CollectionView.Footer>
         </CollectionView>
 
@@ -386,8 +390,44 @@
                                          CheckedChanged="OnRoleRadioChanged"
                                          Value="Manager" />
                             <VerticalStackLayout Grid.Column="1">
-                                <Label Text="Manager (Quản lý hoạt động)" FontAttributes="Bold" TextColor="{StaticResource Primary}" FontSize="14" />
-                                <Label Text="Quản lý dự án, hoạt động và nhiệm vụ. Chế độ chỉ xem trong module người dùng." FontSize="11" TextColor="{AppThemeBinding Light={StaticResource InfoTextLight}, Dark={StaticResource InfoTextDark}}" />
+                                <Label Text="Manager (Quản lý sự kiện)" FontAttributes="Bold" TextColor="{StaticResource Primary}" FontSize="14" />
+                                <Label Text="Tạo sự kiện, phê duyệt sinh viên tham gia, duyệt minh chứng điểm danh (+/- ĐRL)." FontSize="11" TextColor="{AppThemeBinding Light={StaticResource InfoTextLight}, Dark={StaticResource InfoTextDark}}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+
+                    <!-- Option 2.1: Lecturer -->
+                    <Border StrokeShape="RoundRectangle 8"
+                            Stroke="{AppThemeBinding Light={StaticResource InfoBorderLight}, Dark={StaticResource InfoBorderDark}}"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource InfoBgLight}, Dark={StaticResource InfoBgDark}}"
+                            Padding="12">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                            <RadioButton Grid.Column="0"
+                                         GroupName="RoleGroup"
+                                         IsChecked="{Binding SelectedNewRole, Mode=OneWay, Converter={toolkit:EnumToBoolConverter}, ConverterParameter={x:Static models:Role.Lecturer}}"
+                                         CheckedChanged="OnRoleRadioChanged"
+                                         Value="Lecturer" />
+                            <VerticalStackLayout Grid.Column="1">
+                                <Label Text="Lecturer (Giảng viên / Cố vấn học tập)" FontAttributes="Bold" TextColor="{StaticResource PrimaryDark}" FontSize="14" />
+                                <Label Text="Quản lý sinh viên lớp chủ nhiệm, tạo hoạt động cho lớp, theo dõi điểm rèn luyện của lớp." FontSize="11" TextColor="{AppThemeBinding Light={StaticResource InfoTextLight}, Dark={StaticResource InfoTextDark}}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+
+                    <!-- Option 2.2: Secretary -->
+                    <Border StrokeShape="RoundRectangle 8"
+                            Stroke="#DDD6FE"
+                            BackgroundColor="#F5F3FF"
+                            Padding="12">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                            <RadioButton Grid.Column="0"
+                                         GroupName="RoleGroup"
+                                         IsChecked="{Binding SelectedNewRole, Mode=OneWay, Converter={toolkit:EnumToBoolConverter}, ConverterParameter={x:Static models:Role.Secretary}}"
+                                         CheckedChanged="OnRoleRadioChanged"
+                                         Value="Secretary" />
+                            <VerticalStackLayout Grid.Column="1">
+                                <Label Text="Secretary (Bí thư chi đoàn lớp)" FontAttributes="Bold" TextColor="#7C3AED" FontSize="14" />
+                                <Label Text="Kiểm soát học sinh trong lớp, tạo hoạt động riêng cho lớp, theo dõi điểm rèn luyện các bạn." FontSize="11" TextColor="#6D28D9" />
                             </VerticalStackLayout>
                         </Grid>
                     </Border>

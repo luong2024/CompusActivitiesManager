@@ -1,22 +1,306 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:pm="clr-namespace:CampusActivitiesManager.PageModels"
-             x:Class="CampusActivitiesManager.Pages.ProfilePage"
-             x:DataType="pm:ProfilePageModel"
-             Title="{Binding Title}">
-    
-    <ScrollView>
-        <VerticalStackLayout Spacing="15" Padding="20">
-            <Label Text="Cập nhật thông tin cá nhân" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" />
+<?xml version="1.0" encoding="utf-8" ?>
 
-            <Entry Placeholder="Họ và tên" Text="{Binding FullName}" />
-            <Entry Placeholder="Số điện thoại" Text="{Binding PhoneNumber}" Keyboard="Telephone" />
-            <Entry Placeholder="URL Ảnh đại diện" Text="{Binding AvatarUrl}" />
-            
-            <Button Text="Cập nhật" Command="{Binding UpdateProfileCommand}" IsEnabled="{Binding IsNotBusy}" Margin="0,20,0,0" />
-            
-            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" />
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+
+             xmlns:pm="clr-namespace:CampusActivitiesManager.PageModels"
+
+             x:Class="CampusActivitiesManager.Pages.ProfilePage"
+
+             x:DataType="pm:ProfilePageModel"
+
+             BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
+
+             Title="{Binding Title}">
+
+
+
+    <ScrollView>
+
+        <VerticalStackLayout Spacing="20" Padding="24,32,24,100" MaximumWidthRequest="540" HorizontalOptions="Center" VerticalOptions="Start">
+
+
+
+            <!-- Profile Header Banner -->
+
+            <Border StrokeShape="RoundRectangle 20" StrokeThickness="0" Padding="20" Background="{StaticResource PrimaryGradientBrush}">
+
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+
+                    <Border Grid.Column="0" HeightRequest="40" WidthRequest="40" StrokeShape="RoundRectangle 10" BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0">
+
+                        <Border.GestureRecognizers>
+
+                            <TapGestureRecognizer Command="{Binding ToggleMenuCommand}" />
+
+                        </Border.GestureRecognizers>
+
+                        <Label Text="☰" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource White}" HorizontalOptions="Center" VerticalOptions="Center" />
+
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+
+                        <Label Text="{Binding FullName, TargetNullValue='Hồ sơ cá nhân', FallbackValue='Hồ sơ cá nhân'}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource White}" />
+
+                        <Label Text="Quản lý và cập nhật thông tin tài khoản" FontSize="12" TextColor="{StaticResource HeaderSubtitleColor}" />
+
+                    </VerticalStackLayout>
+
+                    <Border Grid.Column="2" HeightRequest="44" WidthRequest="44" StrokeShape="RoundRectangle 22" BackgroundColor="{StaticResource TranslucentWhite}" Stroke="{StaticResource White}" StrokeThickness="1.5">
+
+                        <Label Text="👤" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center" />
+
+                    </Border>
+
+                </Grid>
+
+            </Border>
+
+
+
+            <!-- Form Card -->
+
+            <Border StrokeShape="RoundRectangle 20"
+
+                    Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
+
+                    StrokeThickness="1"
+
+                    BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
+
+                    Padding="28">
+
+                <VerticalStackLayout Spacing="18">
+
+                    <Label Text="Chi tiết Hồ sơ" Style="{StaticResource Title3}" />
+
+
+
+                    <!-- Full Name -->
+
+                    <VerticalStackLayout Spacing="6">
+
+                        <Label Text="Họ và tên" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
+
+                        <Border StrokeShape="RoundRectangle 10"
+
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
+
+                                StrokeThickness="1"
+
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+
+                                Padding="12,2">
+
+                            <Entry Placeholder="Nhập họ và tên đầy đủ" Text="{Binding FullName}" FontSize="14" HeightRequest="42" />
+
+                        </Border>
+
+                    </VerticalStackLayout>
+
+
+
+                    <!-- Phone Number -->
+
+                    <VerticalStackLayout Spacing="6">
+
+                        <Label Text="Số điện thoại" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
+
+                        <Border StrokeShape="RoundRectangle 10"
+
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
+
+                                StrokeThickness="1"
+
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+
+                                Padding="12,2">
+
+                            <Entry Placeholder="Nhập số điện thoại liên hệ" Text="{Binding PhoneNumber}" Keyboard="Telephone" FontSize="14" HeightRequest="42" />
+
+                        </Border>
+
+                    </VerticalStackLayout>
+
+
+
+                    <!-- Avatar URL -->
+
+                    <VerticalStackLayout Spacing="6">
+
+                        <Label Text="URL Ảnh đại diện" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource LabelTextLight}, Dark={StaticResource LabelTextDark}}" />
+
+                        <Border StrokeShape="RoundRectangle 10"
+
+                                Stroke="{AppThemeBinding Light={StaticResource InputBorderLight}, Dark={StaticResource InputBorderDark}}"
+
+                                StrokeThickness="1"
+
+                                BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
+
+                                Padding="12,2">
+
+                            <Entry Placeholder="https://example.com/avatar.png" Text="{Binding AvatarUrl}" FontSize="14" HeightRequest="42" />
+
+                        </Border>
+
+                    </VerticalStackLayout>
+
+
+
+                    <!-- Save Button -->
+
+                    <Button Text="💾 Lưu thay đổi"
+
+                            Command="{Binding UpdateProfileCommand}"
+
+                            IsEnabled="{Binding IsNotBusy}"
+
+                            Background="{StaticResource PrimaryGradientBrush}"
+
+                            TextColor="{StaticResource White}"
+
+                            FontAttributes="Bold"
+
+                            FontSize="15"
+
+                            HeightRequest="48"
+
+                            CornerRadius="12"
+
+                            Margin="0,8,0,0" />
+
+
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource Primary}" HorizontalOptions="Center" />
+
+                </VerticalStackLayout>
+
+            </Border>
+
+
+
+            <!-- Account Role & Points Summary Card -->
+
+            <Border StrokeShape="RoundRectangle 20"
+
+                    Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
+
+                    StrokeThickness="1"
+
+                    BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}"
+
+                    Padding="20">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Thông tin Hệ thống &amp; Phân quyền" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+
+
+
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
+
+                        <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
+
+                            <Label Text="Tên đăng nhập:" FontSize="11" TextColor="{StaticResource Gray500}" />
+
+                            <Label Text="{Binding Username}" FontSize="13" FontAttributes="Bold" />
+
+                        </VerticalStackLayout>
+
+
+
+                        <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
+
+                            <Label Text="Vai trò hệ thống:" FontSize="11" TextColor="{StaticResource Gray500}" />
+
+                            <Label Text="{Binding RoleDisplay}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+
+                        </VerticalStackLayout>
+
+
+
+                        <VerticalStackLayout Grid.Row="1" Grid.Column="0" Spacing="2">
+
+                            <Label Text="Lớp sinh hoạt:" FontSize="11" TextColor="{StaticResource Gray500}" />
+
+                            <Label Text="{Binding ClassName}" FontSize="13" FontAttributes="Bold" />
+
+                        </VerticalStackLayout>
+
+
+
+                        <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="2">
+
+                            <Label Text="Điểm rèn luyện hiện có:" FontSize="11" TextColor="{StaticResource Gray500}" />
+
+                            <Label Text="{Binding TrainingPoints, StringFormat='{0} ĐRL'}" FontSize="14" FontAttributes="Bold" TextColor="#16A34A" />
+
+                        </VerticalStackLayout>
+
+
+
+                        <VerticalStackLayout Grid.Row="2" Grid.ColumnSpan="2" Spacing="2">
+
+                            <Label Text="Email tài khoản:" FontSize="11" TextColor="{StaticResource Gray500}" />
+
+                            <Label Text="{Binding Email}" FontSize="13" FontAttributes="Bold" />
+
+                        </VerticalStackLayout>
+
+                    </Grid>
+
+                </VerticalStackLayout>
+
+            </Border>
+
+
+
+            <!-- Logout Section -->
+
+            <Border StrokeShape="RoundRectangle 20"
+
+                    Stroke="#FECACA"
+
+                    StrokeThickness="1"
+
+                    BackgroundColor="#FEF2F2"
+
+                    Padding="20">
+
+                <VerticalStackLayout Spacing="10">
+
+                    <Label Text="Phiên Đăng Nhập" FontSize="15" FontAttributes="Bold" TextColor="#991B1B" />
+
+                    <Label Text="Nhấn để kết thúc phiên làm việc hiện tại và quay về màn hình đăng nhập." FontSize="12" TextColor="#B91C1C" />
+
+                    <Button Text="🚪 Đăng xuất khỏi hệ thống"
+
+                            Command="{Binding LogoutCommand}"
+
+                            BackgroundColor="#DC2626"
+
+                            TextColor="{StaticResource White}"
+
+                            FontAttributes="Bold"
+
+                            FontSize="15"
+
+                            HeightRequest="48"
+
+                            CornerRadius="12" />
+
+                </VerticalStackLayout>
+
+            </Border>
+
+
+
         </VerticalStackLayout>
+
     </ScrollView>
+
 </ContentPage>
+

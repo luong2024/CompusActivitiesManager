@@ -11,11 +11,14 @@ namespace CampusActivitiesManager.Services
         Role CurrentRole { get; }
         bool IsAdmin { get; }
         bool IsManager { get; }
+        bool IsLecturer { get; }
+        bool IsSecretary { get; }
         bool IsAuthenticated { get; }
 
         event EventHandler? CurrentUserChanged;
 
         Task<bool> LoginAsync(string username, string password);
+        Task<bool> TryRestoreSessionAsync();
         Task<bool> SwitchUserAsync(string username);
         void Logout();
         bool CheckPermission(Role requiredRole);
