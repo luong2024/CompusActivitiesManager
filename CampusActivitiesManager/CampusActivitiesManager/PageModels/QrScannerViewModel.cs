@@ -1,5 +1,8 @@
-using System.Collections.ObjectModel;using CampusActivitiesManager.BusinessLogic.Services;
+using System.Collections.ObjectModel;
+
 using CampusActivitiesManager.Models;
+
+using CampusActivitiesManager.Services;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 

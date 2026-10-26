@@ -2,7 +2,7 @@ using System.Text.Json;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
-namespace CampusActivitiesManager.BusinessLogic.Services
+namespace CampusActivitiesManager.Services
 {
     public class UserService : IUserService, IDataStore<User>
     {

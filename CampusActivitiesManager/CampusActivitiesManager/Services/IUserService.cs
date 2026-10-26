@@ -1,6 +1,6 @@
 using CampusActivitiesManager.Models;
 
-namespace CampusActivitiesManager.BusinessLogic.Services
+namespace CampusActivitiesManager.Services
 {
     public interface IUserService<T> where T : class
     {

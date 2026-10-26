@@ -7,7 +7,7 @@ using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
 using Microsoft.Maui.Storage;
 
-namespace CampusActivitiesManager.BusinessLogic.Services
+namespace CampusActivitiesManager.Services
 {
     public class AuthService
     {

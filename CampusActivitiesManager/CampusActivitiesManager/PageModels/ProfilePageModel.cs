@@ -1,5 +1,6 @@
-using CampusActivitiesManager.BusinessLogic.Services;
 using CampusActivitiesManager.Models;
+
+using CampusActivitiesManager.Services;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 

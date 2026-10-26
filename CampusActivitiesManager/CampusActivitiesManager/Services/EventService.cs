@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
-namespace CampusActivitiesManager.BusinessLogic.Services
+namespace CampusActivitiesManager.Services
 {
     public class EventService : IEventService
     {

@@ -1,4 +1,4 @@
-using CampusActivitiesManager.BusinessLogic.Services;
+using CampusActivitiesManager.Services;
 
 namespace CampusActivitiesManager.Utilities
 {

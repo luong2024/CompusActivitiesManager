@@ -1,4 +1,4 @@
-namespace CampusActivitiesManager.BusinessLogic.Services
+namespace CampusActivitiesManager.Services
 {
     /// <summary>
     /// Error Handler Service.
