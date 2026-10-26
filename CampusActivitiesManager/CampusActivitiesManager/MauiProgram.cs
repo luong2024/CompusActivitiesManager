@@ -1,3 +1,4 @@
+using CampusActivitiesManager.BusinessLogic.Interfaces;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
@@ -68,6 +69,7 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<UserService>();
             builder.Services.AddSingleton<IUserService<User>, UserService>();
             builder.Services.AddSingleton<IUserService, UserService>();
+            builder.Services.AddSingleton<IFirebaseSyncService, FirebaseSyncService>();
             builder.Services.AddSingleton<IEventService, EventService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<IQrCodeService, QrCodeService>();

@@ -1,3 +1,4 @@
+using CampusActivitiesManager.BusinessLogic.Interfaces;
 using System.Text.Json;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
@@ -146,13 +147,16 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             }
         };
 
-        public UserService(ModalErrorHandler errorHandler, ILogger<UserService> logger)
+        private readonly IFirebaseSyncService? _firebaseSync;
+
+        public UserService(ModalErrorHandler errorHandler, ILogger<UserService> logger, IFirebaseSyncService? firebaseSync = null)
         {
             _errorHandler = errorHandler;
             _logger = logger;
+            _firebaseSync = firebaseSync;
         }
 
-        private static async Task EnsureLoadedAsync()
+        private async Task EnsureLoadedAsync()
         {
             if (_isLoadedFromFile) return;
 
@@ -180,7 +184,28 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 }
                 else
                 {
+                    // Fresh install: Khôi phục từ Firebase Cloud Database
+                    bool cloudRestored = false;
+                    if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                    {
+                        try
+                        {
+                            var cloudUsers = await _firebaseSync.PullUsersAsync();
+                            if (cloudUsers != null && cloudUsers.Count > 0)
+                            {
+                                _localUsers.Clear();
+                                _localUsers.AddRange(cloudUsers);
+                                cloudRestored = true;
+                            }
+                        }
+                        catch { }
+                    }
+
                     await SaveUsersToDiskInternalAsync();
+                    if (!cloudRestored && _firebaseSync != null && _firebaseSync.IsConfigured)
+                    {
+                        _ = Task.Run(async () => await _firebaseSync.PushUsersAsync(_localUsers));
+                    }
                 }
 
                 _isLoadedFromFile = true;
@@ -212,6 +237,22 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             finally
             {
                 _fileLock.Release();
+            }
+
+            // Đồng bộ ngầm lên Firebase Cloud Database
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _firebaseSync.PushUsersAsync(_localUsers);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Lỗi đồng bộ người dùng lên Firebase Cloud");
+                    }
+                });
             }
         }
 

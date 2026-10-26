@@ -1,3 +1,4 @@
+using CampusActivitiesManager.BusinessLogic.Interfaces;
 using System.Text;
 using System.Text.Json;
 using CampusActivitiesManager.Models;
@@ -77,16 +78,20 @@ namespace CampusActivitiesManager.BusinessLogic.Services
         private readonly ModalErrorHandler _errorHandler;
         private readonly ILogger<AttendanceService> _logger;
 
+        private readonly IFirebaseSyncService? _firebaseSync;
+
         public AttendanceService(
             IUserService userService,
             IEventService eventService,
             ModalErrorHandler errorHandler,
-            ILogger<AttendanceService> logger)
+            ILogger<AttendanceService> logger,
+            IFirebaseSyncService? firebaseSync = null)
         {
             _userService = userService;
             _eventService = eventService;
             _errorHandler = errorHandler;
             _logger = logger;
+            _firebaseSync = firebaseSync;
         }
 
         private static async Task EnsureLoadedAsync()

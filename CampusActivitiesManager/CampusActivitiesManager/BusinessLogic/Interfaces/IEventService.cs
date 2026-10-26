@@ -16,6 +16,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
         // Đăng ký tham gia & Hủy đăng ký
         Task<(bool Success, string Message, string Status)> RegisterUserForEventAsync(int eventId, User user);
         Task<(bool Success, string Message)> CancelRegistrationAsync(int eventId, string studentCodeOrId);
-        Task<bool> ApproveRegistrationAsync(int eventId, string registrationId, bool approve);
+        Task<bool> ApproveRegistrationAsync(int eventId, string registrationId, bool approve);
+        Task<bool> SyncWithCloudAsync();
     }
 }
