@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -17,7 +17,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="NUnit.Framework" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.80" />
+    <PackageReference Include="QRCoder" Version="1.8.1" />
   </ItemGroup>
+
+  <!-- Liên kết trực tiếp source cần test. Không dùng ProjectReference tới app MAUI vì Resizetizer
+       sẽ xử lý lại tài nguyên ảnh của app và báo lỗi trùng tên "appicon". -->
+  <ItemGroup>
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\BusinessLogic\Interfaces\IQrCodeService.cs" Link="Linked\IQrCodeService.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\BusinessLogic\Services\QrCodeService.cs" Link="Linked\QrCodeService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="NUnit.Framework" />
+    <Using Include="Microsoft.Maui.Controls" />
+  </ItemGroup>
+
 
 </Project>
