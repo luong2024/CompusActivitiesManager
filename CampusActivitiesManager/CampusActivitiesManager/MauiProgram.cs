@@ -4,7 +4,7 @@ using Syncfusion.Maui.Toolkit.Hosting;
 using CampusActivitiesManager.Data;
 using CampusActivitiesManager.PageModels;
 using CampusActivitiesManager.Pages;
-using CampusActivitiesManager.Services;
+using CampusActivitiesManager.BusinessLogic.Services;
 
 namespace CampusActivitiesManager
 {
