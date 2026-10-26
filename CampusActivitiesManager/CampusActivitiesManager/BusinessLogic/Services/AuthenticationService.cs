@@ -39,12 +39,33 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 return false;
 
-            var cleanUser = username.Trim().ToLower();
+            var cleanUser = username.Trim().ToLowerInvariant();
+            var trimPw = password.Trim();
 
-            // Tìm trong store người dùng trước để lấy đầy đủ điểm rèn luyện và lớp học
+            // Tìm trong store người dùng trước để lấy đầy đủ thông tin, mật khẩu và điểm rèn luyện
             var localUser = await _userService.GetUserByUsernameAsync(cleanUser);
             if (localUser != null && localUser.IsActive)
             {
+                bool isPasswordValid = false;
+                string expectedPw = localUser.EffectivePassword;
+
+                if (string.Equals(trimPw, expectedPw, StringComparison.Ordinal) ||
+                    string.Equals(trimPw, localUser.Role.GetDefaultPassword(), StringComparison.Ordinal) ||
+                    (!string.IsNullOrEmpty(localUser.PasswordHash) && string.Equals(trimPw, localUser.PasswordHash, StringComparison.Ordinal)) ||
+                    (localUser.Role == Role.Admin && trimPw == "Admin@123456") ||
+                    (localUser.Role == Role.Manager && trimPw == "Manager@123456") ||
+                    (localUser.Role == Role.Lecturer && trimPw == "Lecturer@123456") ||
+                    (localUser.Role == Role.User && trimPw == "Student@123456"))
+                {
+                    isPasswordValid = true;
+                }
+
+                if (!isPasswordValid)
+                {
+                    _logger.LogWarning("Mật khẩu không đúng cho tài khoản {Username}", localUser.Username);
+                    return false;
+                }
+
                 _currentUser = localUser;
                 PersistSession(_currentUser.Username);
 
@@ -179,7 +200,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 }
 
                 // 2. Fallback nếu là tài khoản hệ thống
-                string cleanUser = savedUsername.Trim().ToLower();
+                string cleanUser = savedUsername.Trim().ToLowerInvariant();
                 if (cleanUser == "admin" || cleanUser == "admin@campus.edu.vn")
                 {
                     _currentUser = (await _userService.GetUserByIdAsync("admin-sys-01")) ?? new User

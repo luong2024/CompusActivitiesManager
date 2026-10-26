@@ -19,6 +19,15 @@ namespace CampusActivitiesManager.BusinessLogic.Interfaces
         Task<List<AttendanceRecord>?> PullAttendanceAsync();
         Task<bool> PushAttendanceAsync(List<AttendanceRecord> records);
 
+        Task<List<PasswordResetRequest>?> PullPasswordResetRequestsAsync();
+        Task<bool> PushPasswordResetRequestsAsync(List<PasswordResetRequest> requests);
+
+        Task<List<CampusNotificationDto>?> PullNotificationsAsync();
+        Task<bool> PushNotificationsAsync(List<CampusNotificationDto> notifications);
+
+        Task<List<PointAuditRecord>?> PullPointAuditsAsync();
+        Task<bool> PushPointAuditsAsync(List<PointAuditRecord> audits);
+
         Task<bool> TestConnectionAsync();
     }
 }

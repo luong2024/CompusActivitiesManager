@@ -236,6 +236,123 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             }
         }
 
+        // ==================== PASSWORD RESET REQUESTS SYNC ====================
+
+        public async Task<List<PasswordResetRequest>?> PullPasswordResetRequestsAsync()
+        {
+            try
+            {
+                var url = GetCollectionUrl("password_reset_requests");
+                var response = await _httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode) return null;
+
+                var json = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(json) || json == "null") return null;
+
+                return DeserializeList<PasswordResetRequest>(json);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to pull password reset requests from Firebase");
+                return null;
+            }
+        }
+
+        public async Task<bool> PushPasswordResetRequestsAsync(List<PasswordResetRequest> requests)
+        {
+            try
+            {
+                var url = GetCollectionUrl("password_reset_requests");
+                var json = JsonSerializer.Serialize(requests, _jsonOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync(url, content);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to push password reset requests to Firebase");
+                return false;
+            }
+        }
+
+        // ==================== NOTIFICATIONS SYNC ====================
+
+        public async Task<List<CampusNotificationDto>?> PullNotificationsAsync()
+        {
+            try
+            {
+                var url = GetCollectionUrl("notifications");
+                var response = await _httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode) return null;
+
+                var json = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(json) || json == "null") return null;
+
+                return DeserializeList<CampusNotificationDto>(json);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to pull notifications from Firebase");
+                return null;
+            }
+        }
+
+        public async Task<bool> PushNotificationsAsync(List<CampusNotificationDto> notifications)
+        {
+            try
+            {
+                var url = GetCollectionUrl("notifications");
+                var json = JsonSerializer.Serialize(notifications, _jsonOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync(url, content);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to push notifications to Firebase");
+                return false;
+            }
+        }
+
+        // ==================== POINT AUDITS SYNC ====================
+
+        public async Task<List<PointAuditRecord>?> PullPointAuditsAsync()
+        {
+            try
+            {
+                var url = GetCollectionUrl("point_audits");
+                var response = await _httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode) return null;
+
+                var json = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(json) || json == "null") return null;
+
+                return DeserializeList<PointAuditRecord>(json);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to pull point audits from Firebase");
+                return null;
+            }
+        }
+
+        public async Task<bool> PushPointAuditsAsync(List<PointAuditRecord> audits)
+        {
+            try
+            {
+                var url = GetCollectionUrl("point_audits");
+                var json = JsonSerializer.Serialize(audits, _jsonOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync(url, content);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to push point audits to Firebase");
+                return false;
+            }
+        }
+
         /// <summary>
         /// Xử lý đặc thù của Firebase Realtime Database:
         /// Có thể trả về mảng [...] hoặc Dictionary object {"0": {...}, "1": {...}}

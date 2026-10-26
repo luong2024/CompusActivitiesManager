@@ -54,6 +54,24 @@ namespace CampusActivitiesManager.Models
             _ => "#6B7280"
         };
 
+        /// <summary>
+        /// Mật khẩu mặc định theo từng vai trò khi Quản trị viên (Admin) thực hiện Reset mật khẩu:
+        /// - Admin: Admin@123
+        /// - Manager: Manager@123
+        /// - Lecturer: Gv@123
+        /// - Secretary: Bithu@123
+        /// - Student / User: Student@123
+        /// </summary>
+        public static string GetDefaultPassword(this Role role) => role switch
+        {
+            Role.Admin => "Admin@123",
+            Role.Manager => "Manager@123",
+            Role.Lecturer => "Gv@123",
+            Role.Secretary => "Bithu@123",
+            Role.User => "Student@123",
+            _ => "Student@123"
+        };
+
         public static string GetDescription(this Role role) => role switch
         {
             Role.Admin => "Toàn quyền quản trị hệ thống: duyệt tất cả bài đăng hoạt động, duyệt điểm danh, quản lý tài khoản và lớp học.",

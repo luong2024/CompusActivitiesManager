@@ -60,5 +60,55 @@ namespace CampusActivitiesManagerTest
             Assert.That(req.PhotoBase64, Is.Not.Null.And.Not.Empty);
             Assert.That(req.Notes, Does.Contain("trực tiếp"));
         }
+
+        [Test]
+        public void CampusNotificationDto_PropertiesAndUnread_AreAccurate()
+        {
+            var notif = new CampusNotificationDto
+            {
+                Id = "NOTIF-001",
+                Title = "Cộng Điểm Rèn Luyện",
+                Message = "Bạn vừa được cộng +10 ĐRL",
+                Type = "Points",
+                TargetUsername = "B20DCCN001",
+                IsRead = false
+            };
+
+            Assert.That(notif.IsRead, Is.False);
+            Assert.That(notif.IsUnread, Is.True);
+            Assert.That(notif.TypeIcon, Is.EqualTo("🏆"));
+            Assert.That(notif.FormattedTime, Is.Not.Null.And.Not.Empty);
+
+            notif.IsRead = true;
+            Assert.That(notif.IsUnread, Is.False);
+
+            notif.Type = "Reminder";
+            Assert.That(notif.TypeIcon, Is.EqualTo("⏰"));
+
+            notif.Type = "Success";
+            Assert.That(notif.TypeIcon, Is.EqualTo("🎫"));
+
+            notif.Type = "Urgent";
+            Assert.That(notif.TypeIcon, Is.EqualTo("⚠️"));
+        }
+
+        [Test]
+        public void AttendanceRecord_PenaltyAndPoints_DisplayCorrectly()
+        {
+            var record = new AttendanceRecord
+            {
+                Id = "ATT-123",
+                EventId = 10,
+                StudentCode = "B20DCCN001",
+                Status = "Rejected",
+                PointsDeducted = 15,
+                ReviewNotes = "Minh chứng ảnh không đúng địa điểm"
+            };
+
+            Assert.That(record.Status, Is.EqualTo("Rejected"));
+            Assert.That(record.PointsDeducted, Is.EqualTo(15));
+            Assert.That(record.PointsDisplay, Is.EqualTo("-15 ĐRL"));
+            Assert.That(record.StatusDisplay, Does.Contain("Bị từ chối"));
+        }
     }
 }

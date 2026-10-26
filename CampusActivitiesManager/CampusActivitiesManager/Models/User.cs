@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -26,6 +26,14 @@ namespace CampusActivitiesManager.Models
         [ObservableProperty]
 
         private string _passwordHash = string.Empty;
+
+        [ObservableProperty]
+        private string _password = string.Empty;
+
+        [JsonIgnore]
+        public string EffectivePassword => !string.IsNullOrWhiteSpace(Password)
+            ? Password
+            : (!string.IsNullOrWhiteSpace(PasswordHash) ? PasswordHash : Role.GetDefaultPassword());
 
 
 

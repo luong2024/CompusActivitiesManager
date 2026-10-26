@@ -203,11 +203,17 @@ namespace CampusActivitiesManager.Models
         [JsonPropertyName("type")]
         public string Type { get; set; } = "Info";
 
+        [JsonPropertyName("targetUsername")]
+        public string TargetUsername { get; set; } = string.Empty;
+
         [JsonPropertyName("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [JsonPropertyName("isRead")]
-        public bool IsRead { get; set; }
+        public bool IsRead { get; set; }
+
+        [JsonIgnore]
+        public bool IsUnread => !IsRead;
 
         [JsonIgnore]
         public string FormattedTime => CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm");

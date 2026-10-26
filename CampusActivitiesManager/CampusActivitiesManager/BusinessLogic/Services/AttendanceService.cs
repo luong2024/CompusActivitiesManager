@@ -1,4 +1,4 @@
-using CampusActivitiesManager.BusinessLogic.Interfaces;
+using CampusActivitiesManager.BusinessLogic.Interfaces;
 using System.Text;
 using System.Text.Json;
 using CampusActivitiesManager.Models;
@@ -9,6 +9,8 @@ namespace CampusActivitiesManager.BusinessLogic.Services
     public class AttendanceService : IAttendanceService
     {
         private static readonly string AttendanceFilePath = Path.Combine(FileSystem.AppDataDirectory, "campus_attendance.json");
+        private static readonly string NotificationsFilePath = Path.Combine(FileSystem.AppDataDirectory, "campus_notifications.json");
+
         private static readonly SemaphoreSlim _fileLock = new(1, 1);
         private static bool _isLoadedFromFile = false;
 
@@ -50,6 +52,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 Title = "Điểm danh thành công 🎉",
                 Message = "Bạn đã hoàn tất điểm danh QR cho Hội thảo AI 2026 và được cộng +5 điểm rèn luyện.",
                 Type = "Points",
+                TargetUsername = "B20DCCN001",
                 CreatedAt = DateTime.UtcNow.AddHours(-2),
                 IsRead = false
             },
@@ -59,6 +62,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 Title = "Nhắc nhở sự kiện sắp bắt đầu ⏰",
                 Message = "Sự kiện 'Giải Bóng đá Sinh viên' sẽ bắt đầu lúc 08:00 sáng mai tại Sân vận động trường.",
                 Type = "Reminder",
+                TargetUsername = "ALL",
                 CreatedAt = DateTime.UtcNow.AddHours(-6),
                 IsRead = false
             },
@@ -68,6 +72,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 Title = "Vé điện tử QR đã sẵn sàng 🎫",
                 Message = "Mã QR tham dự đã được cấp sẵn trong mục Vé QR của sự kiện.",
                 Type = "Success",
+                TargetUsername = "B20DCCN001",
                 CreatedAt = DateTime.UtcNow.AddDays(-1),
                 IsRead = true
             }
@@ -77,7 +82,6 @@ namespace CampusActivitiesManager.BusinessLogic.Services
         private readonly IEventService _eventService;
         private readonly ModalErrorHandler _errorHandler;
         private readonly ILogger<AttendanceService> _logger;
-
         private readonly IFirebaseSyncService? _firebaseSync;
 
         public AttendanceService(
@@ -94,7 +98,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             _firebaseSync = firebaseSync;
         }
 
-        private static async Task EnsureLoadedAsync()
+        private async Task EnsureLoadedAsync()
         {
             if (_isLoadedFromFile) return;
 
@@ -103,6 +107,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             {
                 if (_isLoadedFromFile) return;
 
+                // 1. Tải điểm danh
                 if (File.Exists(AttendanceFilePath))
                 {
                     try
@@ -122,7 +127,52 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 }
                 else
                 {
+                    if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                    {
+                        try
+                        {
+                            var cloud = await _firebaseSync.PullAttendanceAsync();
+                            if (cloud != null && cloud.Count > 0)
+                            {
+                                _localRecords.Clear();
+                                _localRecords.AddRange(cloud);
+                            }
+                        }
+                        catch { }
+                    }
                     await SaveRecordsToDiskInternalAsync();
+                }
+
+                // 2. Tải thông báo
+                if (File.Exists(NotificationsFilePath))
+                {
+                    try
+                    {
+                        var json = await File.ReadAllTextAsync(NotificationsFilePath);
+                        if (!string.IsNullOrWhiteSpace(json))
+                        {
+                            var list = JsonSerializer.Deserialize<List<CampusNotificationDto>>(json);
+                            if (list != null && list.Count > 0)
+                            {
+                                _localNotifications.Clear();
+                                _localNotifications.AddRange(list);
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                else if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                {
+                    try
+                    {
+                        var cloudNotifs = await _firebaseSync.PullNotificationsAsync();
+                        if (cloudNotifs != null && cloudNotifs.Count > 0)
+                        {
+                            _localNotifications.Clear();
+                            _localNotifications.AddRange(cloudNotifs);
+                        }
+                    }
+                    catch { }
                 }
 
                 _isLoadedFromFile = true;
@@ -140,6 +190,9 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 var json = JsonSerializer.Serialize(_localRecords, options);
                 await File.WriteAllTextAsync(AttendanceFilePath, json);
+
+                var jsonNotifs = JsonSerializer.Serialize(_localNotifications, options);
+                await File.WriteAllTextAsync(NotificationsFilePath, jsonNotifs);
             }
             catch { }
         }
@@ -154,6 +207,19 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             finally
             {
                 _fileLock.Release();
+            }
+
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _firebaseSync.PushAttendanceAsync(_localRecords);
+                        await _firebaseSync.PushNotificationsAsync(_localNotifications);
+                    }
+                    catch { }
+                });
             }
         }
 
@@ -222,12 +288,13 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             // Cộng điểm rèn luyện trực tiếp cho sinh viên
             await _userService.AdjustTrainingPointsAsync(cleanStudent, reward);
 
-            _localNotifications.Insert(0, new CampusNotificationDto
+            await AddNotificationAsync(new CampusNotificationDto
             {
-                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..4],
+                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
                 Title = "Điểm danh QR thành công 🎉",
                 Message = $"Bạn đã điểm danh thành công cho sự kiện '{evtTitle}' và được cộng +{reward} ĐRL.",
                 Type = "Points",
+                TargetUsername = cleanStudent,
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
             });
@@ -265,14 +332,15 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             string evtTitle = evt.Title ?? ("Sự kiện hoạt động #" + eventId);
             int reward = evt.PointsReward;
             int penalty = evt.PointsPenalty;
+            string cleanStudent = string.IsNullOrWhiteSpace(studentCode) ? "B20DCCN001" : studentCode.Trim().ToUpperInvariant();
 
             var record = new AttendanceRecord
             {
                 Id = "ATT-IMG-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
                 EventId = eventId,
                 EventName = evtTitle,
-                StudentCode = string.IsNullOrWhiteSpace(studentCode) ? "B20DCCN001" : studentCode,
-                StudentName = "Sinh viên " + studentCode,
+                StudentCode = cleanStudent,
+                StudentName = "Sinh viên " + cleanStudent,
                 CheckInTime = DateTime.UtcNow,
                 Method = "Photo",
                 TrainingPointsAwarded = reward,
@@ -284,22 +352,23 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
             _localRecords.Insert(0, record);
 
-            _localNotifications.Insert(0, new CampusNotificationDto
+            await AddNotificationAsync(new CampusNotificationDto
             {
-                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..4],
+                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
                 Title = "Gửi minh chứng ảnh thành công 📸",
                 Message = $"Minh chứng ảnh cho '{evtTitle}' đang chờ Ban tổ chức hoặc Admin phê duyệt.",
                 Type = "Pending",
+                TargetUsername = cleanStudent,
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
             });
 
             await SaveRecordsToDiskAsync();
-            _logger.LogInformation("Photo Check-in submitted for event {EventId}, student {StudentCode}. Status: PendingReview", eventId, studentCode);
+            _logger.LogInformation("Photo Check-in submitted for event {EventId}, student {StudentCode}. Status: PendingReview", eventId, cleanStudent);
             return (true, "Gửi minh chứng ảnh thành công! Đang chờ duyệt điểm danh (+ " + reward + " ĐRL nếu duyệt, - " + penalty + " ĐRL nếu từ chối).", record);
         }
 
-        public async Task<(bool Success, string Message)> ReviewAttendanceAsync(string recordId, bool isApproved, string reviewerName, string? notes = null)
+        public async Task<(bool Success, string Message)> ReviewAttendanceAsync(string recordId, bool isApproved, string reviewerName, string? notes = null, int? customPointsDelta = null)
         {
             await EnsureLoadedAsync();
 
@@ -310,8 +379,15 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             }
 
             var evt = await _eventService.GetEventByIdAsync(record.EventId);
-            int reward = evt?.PointsReward ?? (record.TrainingPointsAwarded > 0 ? record.TrainingPointsAwarded : 10);
-            int penalty = evt?.PointsPenalty ?? (record.PointsDeducted > 0 ? record.PointsDeducted : 5);
+
+            // Cho phép người duyệt cấu hình hoặc override điểm thưởng / điểm trừ thủ công
+            int reward = customPointsDelta.HasValue && customPointsDelta.Value > 0
+                ? customPointsDelta.Value
+                : (evt?.PointsReward ?? (record.TrainingPointsAwarded > 0 ? record.TrainingPointsAwarded : 10));
+
+            int penalty = customPointsDelta.HasValue
+                ? Math.Abs(customPointsDelta.Value)
+                : (evt?.PointsPenalty ?? (record.PointsDeducted > 0 ? record.PointsDeducted : 5));
 
             record.ReviewerName = reviewerName;
             record.ReviewNotes = notes;
@@ -325,12 +401,13 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 // Cộng điểm rèn luyện cho sinh viên
                 await _userService.AdjustTrainingPointsAsync(record.StudentCode, reward);
 
-                _localNotifications.Insert(0, new CampusNotificationDto
+                await AddNotificationAsync(new CampusNotificationDto
                 {
-                    Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..4],
+                    Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
                     Title = "Điểm danh đã được duyệt! 🎉",
                     Message = $"Minh chứng cho '{record.EventName}' đã được duyệt bởi {reviewerName}. Bạn được cộng +{reward} ĐRL.",
                     Type = "Points",
+                    TargetUsername = record.StudentCode,
                     CreatedAt = DateTime.UtcNow,
                     IsRead = false
                 });
@@ -348,12 +425,13 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 // Trừ điểm rèn luyện nếu từ chối
                 await _userService.AdjustTrainingPointsAsync(record.StudentCode, -penalty);
 
-                _localNotifications.Insert(0, new CampusNotificationDto
+                await AddNotificationAsync(new CampusNotificationDto
                 {
-                    Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..4],
+                    Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
                     Title = "Điểm danh bị từ chối ⚠️",
                     Message = $"Minh chứng cho '{record.EventName}' không hợp lệ (Duyệt bởi {reviewerName}). Bạn bị trừ -{penalty} ĐRL.",
                     Type = "Warning",
+                    TargetUsername = record.StudentCode,
                     CreatedAt = DateTime.UtcNow,
                     IsRead = false
                 });
@@ -439,10 +517,61 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             return sb.ToString();
         }
 
+        // ==================== THÔNG BÁO (NOTIFICATIONS) ====================
+
         public async Task<List<CampusNotificationDto>> GetNotificationsAsync(string? studentCode = null)
         {
-            await Task.CompletedTask;
-            return _localNotifications.ToList();
+            await EnsureLoadedAsync();
+            if (string.IsNullOrWhiteSpace(studentCode) || studentCode == "ALL")
+                return _localNotifications.OrderByDescending(n => n.CreatedAt).ToList();
+
+            return _localNotifications.Where(n =>
+                string.IsNullOrWhiteSpace(n.TargetUsername) ||
+                n.TargetUsername == "ALL" ||
+                string.Equals(n.TargetUsername, studentCode, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(n => n.CreatedAt)
+                .ToList();
+        }
+
+        public async Task AddNotificationAsync(CampusNotificationDto notification)
+        {
+            await EnsureLoadedAsync();
+            if (notification == null) return;
+
+            if (string.IsNullOrWhiteSpace(notification.Id))
+            {
+                notification.Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper();
+            }
+
+            _localNotifications.Insert(0, notification);
+            await SaveRecordsToDiskAsync();
+        }
+
+        public async Task MarkNotificationAsReadAsync(string notificationId)
+        {
+            await EnsureLoadedAsync();
+            var notif = _localNotifications.FirstOrDefault(n => n.Id.Equals(notificationId, StringComparison.OrdinalIgnoreCase));
+            if (notif != null)
+            {
+                notif.IsRead = true;
+                await SaveRecordsToDiskAsync();
+            }
+        }
+
+        public async Task MarkAllNotificationsAsReadAsync(string? studentCode = null)
+        {
+            await EnsureLoadedAsync();
+            foreach (var n in _localNotifications)
+            {
+                if (string.IsNullOrWhiteSpace(studentCode) ||
+                    string.IsNullOrWhiteSpace(n.TargetUsername) ||
+                    n.TargetUsername == "ALL" ||
+                    string.Equals(n.TargetUsername, studentCode, StringComparison.OrdinalIgnoreCase))
+                {
+                    n.IsRead = true;
+                }
+            }
+            await SaveRecordsToDiskAsync();
         }
     }
 }

@@ -1,4 +1,4 @@
-using CampusActivitiesManager.BusinessLogic.Interfaces;
+using CampusActivitiesManager.BusinessLogic.Interfaces;
 using System.Text.Json;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
@@ -12,6 +12,9 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
         private static readonly string UsersFilePath = Path.Combine(FileSystem.AppDataDirectory, "campus_users.json");
         private static readonly string ClassesFilePath = Path.Combine(FileSystem.AppDataDirectory, "campus_classes.json");
+        private static readonly string PasswordResetsFilePath = Path.Combine(FileSystem.AppDataDirectory, "campus_password_resets.json");
+        private static readonly string PointAuditsFilePath = Path.Combine(FileSystem.AppDataDirectory, "campus_point_audits.json");
+
         private static readonly SemaphoreSlim _fileLock = new(1, 1);
         private static bool _isLoadedFromFile = false;
         private static bool _isClassesLoaded = false;
@@ -66,6 +69,8 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 Email = "admin@campus.edu.vn",
                 PhoneNumber = "0901234567",
                 Role = Role.Admin,
+                Password = "Admin@123",
+                PasswordHash = "Admin@123",
                 ClassName = "Ban Quản Trị",
                 IsActive = true,
                 TrainingPoints = 0
@@ -78,8 +83,11 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 Email = "manager@campus.edu.vn",
                 PhoneNumber = "0902345678",
                 Role = Role.Manager,
+                Password = "Manager@123",
+                PasswordHash = "Manager@123",
                 ClassName = "Khoa CNTT",
                 AssignedClass = "D20CNTT1",
+                ManagedClasses = "D20CNTT1",
                 IsActive = true,
                 TrainingPoints = 0
             },
@@ -91,8 +99,11 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 Email = "giangvien@campus.edu.vn",
                 PhoneNumber = "0906789012",
                 Role = Role.Lecturer,
+                Password = "Gv@123",
+                PasswordHash = "Gv@123",
                 ClassName = "Khoa CNTT",
                 AssignedClass = "D21CNTT1",
+                ManagedClasses = "D21CNTT1, D22QTKD1",
                 IsActive = true,
                 TrainingPoints = 0
             },
@@ -104,6 +115,8 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 Email = "bithu@campus.edu.vn",
                 PhoneNumber = "0903456789",
                 Role = Role.Secretary,
+                Password = "Bithu@123",
+                PasswordHash = "Bithu@123",
                 IsSecretary = true,
                 ClassName = "D20CNTT1",
                 IsActive = true,
@@ -117,6 +130,8 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 Email = "cuong.na@campus.edu.vn",
                 PhoneNumber = "0904567890",
                 Role = Role.User,
+                Password = "Student@123",
+                PasswordHash = "Student@123",
                 ClassName = "D20CNTT1",
                 IsActive = true,
                 TrainingPoints = 0
@@ -129,6 +144,8 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 Email = "hoang.pm@campus.edu.vn",
                 PhoneNumber = "0905678901",
                 Role = Role.User,
+                Password = "Student@123",
+                PasswordHash = "Student@123",
                 ClassName = "D20CNTT1",
                 IsActive = true,
                 TrainingPoints = 0
@@ -141,11 +158,16 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 Email = "student2@campus.edu",
                 PhoneNumber = "0905678902",
                 Role = Role.User,
+                Password = "Student@123",
+                PasswordHash = "Student@123",
                 ClassName = "D21CNTT1",
                 IsActive = true,
                 TrainingPoints = 0
             }
         };
+
+        private static readonly List<PasswordResetRequest> _localResetRequests = new();
+        private static readonly List<PointAuditRecord> _localPointAudits = new();
 
         private readonly IFirebaseSyncService? _firebaseSync;
 
@@ -165,6 +187,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             {
                 if (_isLoadedFromFile) return;
 
+                // 1. Tải danh sách người dùng
                 if (File.Exists(UsersFilePath))
                 {
                     try
@@ -208,6 +231,80 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                     }
                 }
 
+                // Đảm bảo mật khẩu không bị trống
+                foreach (var u in _localUsers)
+                {
+                    if (string.IsNullOrWhiteSpace(u.Password))
+                    {
+                        u.Password = !string.IsNullOrWhiteSpace(u.PasswordHash) ? u.PasswordHash : u.Role.GetDefaultPassword();
+                        u.PasswordHash = u.Password;
+                    }
+                }
+
+                // 2. Tải danh sách yêu cầu reset mật khẩu
+                if (File.Exists(PasswordResetsFilePath))
+                {
+                    try
+                    {
+                        var json = await File.ReadAllTextAsync(PasswordResetsFilePath);
+                        if (!string.IsNullOrWhiteSpace(json))
+                        {
+                            var list = JsonSerializer.Deserialize<List<PasswordResetRequest>>(json);
+                            if (list != null)
+                            {
+                                _localResetRequests.Clear();
+                                _localResetRequests.AddRange(list);
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                else if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                {
+                    try
+                    {
+                        var cloudResets = await _firebaseSync.PullPasswordResetRequestsAsync();
+                        if (cloudResets != null && cloudResets.Count > 0)
+                        {
+                            _localResetRequests.Clear();
+                            _localResetRequests.AddRange(cloudResets);
+                        }
+                    }
+                    catch { }
+                }
+
+                // 3. Tải nhật ký cộng/trừ điểm rèn luyện
+                if (File.Exists(PointAuditsFilePath))
+                {
+                    try
+                    {
+                        var json = await File.ReadAllTextAsync(PointAuditsFilePath);
+                        if (!string.IsNullOrWhiteSpace(json))
+                        {
+                            var list = JsonSerializer.Deserialize<List<PointAuditRecord>>(json);
+                            if (list != null)
+                            {
+                                _localPointAudits.Clear();
+                                _localPointAudits.AddRange(list);
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                else if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                {
+                    try
+                    {
+                        var cloudAudits = await _firebaseSync.PullPointAuditsAsync();
+                        if (cloudAudits != null && cloudAudits.Count > 0)
+                        {
+                            _localPointAudits.Clear();
+                            _localPointAudits.AddRange(cloudAudits);
+                        }
+                    }
+                    catch { }
+                }
+
                 _isLoadedFromFile = true;
             }
             finally
@@ -239,7 +336,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 _fileLock.Release();
             }
 
-            // Đồng bộ ngầm lên Firebase Cloud Database
+            // Tự động đồng bộ ngầm lên Firebase Cloud Database mà không bắt người dùng bấm
             if (_firebaseSync != null && _firebaseSync.IsConfigured)
             {
                 _ = Task.Run(async () =>
@@ -250,8 +347,64 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Lỗi đồng bộ người dùng lên Firebase Cloud");
+                        _logger.LogWarning(ex, "Lỗi tự động đồng bộ người dùng lên Firebase Cloud");
                     }
+                });
+            }
+        }
+
+        private async Task SavePasswordResetsToDiskAsync()
+        {
+            await _fileLock.WaitAsync();
+            try
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(_localResetRequests, options);
+                await File.WriteAllTextAsync(PasswordResetsFilePath, json);
+            }
+            catch { }
+            finally
+            {
+                _fileLock.Release();
+            }
+
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _firebaseSync.PushPasswordResetRequestsAsync(_localResetRequests);
+                    }
+                    catch { }
+                });
+            }
+        }
+
+        private async Task SavePointAuditsToDiskAsync()
+        {
+            await _fileLock.WaitAsync();
+            try
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(_localPointAudits, options);
+                await File.WriteAllTextAsync(PointAuditsFilePath, json);
+            }
+            catch { }
+            finally
+            {
+                _fileLock.Release();
+            }
+
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _firebaseSync.PushPointAuditsAsync(_localPointAudits);
+                    }
+                    catch { }
                 });
             }
         }
@@ -275,11 +428,11 @@ namespace CampusActivitiesManager.BusinessLogic.Services
         public async Task<User?> GetUserByUsernameAsync(string username)
         {
             await EnsureLoadedAsync();
-            var clean = username.Trim().ToLower();
+            var clean = username.Trim().ToLowerInvariant();
             return _localUsers.FirstOrDefault(u =>
-                u.Email.ToLower() == clean ||
-                u.Username.ToLower() == clean ||
-                (clean.Contains('@') && clean.StartsWith(u.Username.ToLower() + "@")));
+                u.Email.ToLowerInvariant() == clean ||
+                u.Username.ToLowerInvariant() == clean ||
+                (clean.Contains('@') && clean.StartsWith(u.Username.ToLowerInvariant() + "@")));
         }
 
         public async Task<List<User>> GetStudentsByClassAsync(string className)
@@ -311,6 +464,178 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             }
             return false;
         }
+
+        public async Task<(bool Success, string Message)> AdjustTrainingPointsWithAuditAsync(string studentCode, int delta, string reason, string operatorUsername, string operatorName)
+        {
+            await EnsureLoadedAsync();
+            var user = _localUsers.FirstOrDefault(u =>
+                u.Username.Equals(studentCode, StringComparison.OrdinalIgnoreCase) ||
+                u.Id.Equals(studentCode, StringComparison.OrdinalIgnoreCase));
+
+            if (user == null)
+                return (false, "Không tìm thấy thông tin sinh viên trong hệ thống.");
+
+            int oldPts = user.TrainingPoints;
+            user.TrainingPoints = Math.Max(0, user.TrainingPoints + delta);
+
+            var audit = new PointAuditRecord
+            {
+                Id = "AUD-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                StudentCode = user.Username,
+                StudentName = user.FullName,
+                Delta = delta,
+                Reason = string.IsNullOrWhiteSpace(reason) ? (delta >= 0 ? "Cộng điểm rèn luyện" : "Trừ điểm vi phạm") : reason.Trim(),
+                OperatorUsername = operatorUsername,
+                OperatorName = operatorName,
+                Timestamp = DateTime.UtcNow
+            };
+
+            _localPointAudits.Insert(0, audit);
+            await SaveUsersToDiskAsync();
+            await SavePointAuditsToDiskAsync();
+
+            string action = delta >= 0 ? "cộng" : "trừ";
+            _logger.LogInformation("Adjusted training points for {Username} by {Delta}. Old: {Old}, New: {New}. Reason: {Reason}", user.Username, delta, oldPts, user.TrainingPoints, reason);
+            return (true, $"Đã {action} {Math.Abs(delta)} ĐRL cho {user.FullName}. ĐRL hiện tại: {user.TrainingPoints} ĐRL.");
+        }
+
+        public async Task<List<PointAuditRecord>> GetPointAuditsForStudentAsync(string studentCode)
+        {
+            await EnsureLoadedAsync();
+            if (string.IsNullOrWhiteSpace(studentCode) || studentCode == "ALL")
+                return _localPointAudits.ToList();
+
+            return _localPointAudits.Where(a => string.Equals(a.StudentCode, studentCode, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        // ==================== ĐỔI MẬT KHẨU & QUÊN MẬT KHẨU ====================
+
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(string username, string currentPassword, string newPassword)
+        {
+            await EnsureLoadedAsync();
+            var user = await GetUserByUsernameAsync(username);
+            if (user == null)
+                return (false, "Không tìm thấy thông tin người dùng.");
+
+            string currentEffective = user.EffectivePassword;
+            if (!string.Equals(currentEffective, currentPassword?.Trim()))
+            {
+                return (false, "Mật khẩu hiện tại không chính xác. Vui lòng thử lại!");
+            }
+
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Trim().Length < 6)
+            {
+                return (false, "Mật khẩu mới phải có tối thiểu 6 ký tự.");
+            }
+
+            user.Password = newPassword.Trim();
+            user.PasswordHash = newPassword.Trim();
+            await SaveUsersToDiskAsync();
+
+            _logger.LogInformation("Password changed successfully for {Username}", user.Username);
+            return (true, "Đổi mật khẩu tài khoản thành công!");
+        }
+
+        public async Task<(bool Success, string Message, string AssignedDefaultPassword)> RequestPasswordResetAsync(string usernameOrEmail, string note)
+        {
+            await EnsureLoadedAsync();
+            if (string.IsNullOrWhiteSpace(usernameOrEmail))
+                return (false, "Vui lòng nhập tên đăng nhập, email hoặc mã sinh viên.", string.Empty);
+
+            var user = await GetUserByUsernameAsync(usernameOrEmail.Trim());
+            if (user == null)
+            {
+                return (false, "Không tìm thấy tài khoản với thông tin đã nhập.", string.Empty);
+            }
+
+            string defaultPassword = user.Role.GetDefaultPassword();
+
+            // Kiểm tra xem đã có yêu cầu Pending chưa
+            var existing = _localResetRequests.FirstOrDefault(r =>
+                r.IsPending && string.Equals(r.Username, user.Username, StringComparison.OrdinalIgnoreCase));
+
+            if (existing != null)
+            {
+                return (true, $"Yêu cầu đặt lại mật khẩu của bạn đã được gửi trước đó và đang chờ Admin xử lý. Mật khẩu sau khi reset sẽ là: {defaultPassword}", defaultPassword);
+            }
+
+            var req = new PasswordResetRequest
+            {
+                Id = "RST-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                Username = user.Username,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = user.Role,
+                RequestedAt = DateTime.UtcNow,
+                Status = "Pending",
+                DefaultPasswordAssigned = defaultPassword,
+                Notes = string.IsNullOrWhiteSpace(note) ? "Báo quên mật khẩu từ màn hình đăng nhập" : note
+            };
+
+            _localResetRequests.Insert(0, req);
+            await SavePasswordResetsToDiskAsync();
+            _logger.LogInformation("Password reset request submitted for {Username} ({Role})", user.Username, user.Role);
+            return (true, $"Đã gửi yêu cầu đặt lại mật khẩu tới Ban Quản Trị (Admin). Mật khẩu mặc định sau khi được duyệt là: {defaultPassword}", defaultPassword);
+        }
+
+        public async Task<List<PasswordResetRequest>> GetPendingPasswordResetRequestsAsync()
+        {
+            await EnsureLoadedAsync();
+            return _localResetRequests.Where(r => r.IsPending).OrderByDescending(r => r.RequestedAt).ToList();
+        }
+
+        public async Task<(bool Success, string Message, string ResetPassword)> ResolvePasswordResetAsync(string requestId, string adminUsername)
+        {
+            await EnsureLoadedAsync();
+            var req = _localResetRequests.FirstOrDefault(r => r.Id.Equals(requestId, StringComparison.OrdinalIgnoreCase));
+            if (req == null)
+                return (false, "Không tìm thấy yêu cầu đặt lại mật khẩu này.", string.Empty);
+
+            var user = await GetUserByUsernameAsync(req.Username);
+            if (user == null)
+                return (false, "Không tìm thấy tài khoản người dùng tương ứng.", string.Empty);
+
+            string defaultPassword = user.Role.GetDefaultPassword();
+            user.Password = defaultPassword;
+            user.PasswordHash = defaultPassword;
+
+            req.Status = "Resolved";
+            req.ResolvedAt = DateTime.UtcNow;
+            req.ResolvedBy = adminUsername;
+            req.DefaultPasswordAssigned = defaultPassword;
+
+            await SaveUsersToDiskAsync();
+            await SavePasswordResetsToDiskAsync();
+            _logger.LogInformation("Reset request {RequestId} resolved by {Admin}. User {Username} reset to {DefaultPw}", requestId, adminUsername, user.Username, defaultPassword);
+            return (true, $"Đã đặt lại mật khẩu cho {user.FullName} về mặc định ({defaultPassword}) thành công!", defaultPassword);
+        }
+
+        public async Task<(bool Success, string Message, string ResetPassword)> ResetUserPasswordToDefaultAsync(string username, string adminUsername)
+        {
+            await EnsureLoadedAsync();
+            var user = await GetUserByUsernameAsync(username);
+            if (user == null)
+                return (false, "Không tìm thấy tài khoản người dùng.", string.Empty);
+
+            string defaultPassword = user.Role.GetDefaultPassword();
+            user.Password = defaultPassword;
+            user.PasswordHash = defaultPassword;
+
+            foreach (var r in _localResetRequests.Where(r => r.IsPending && string.Equals(r.Username, user.Username, StringComparison.OrdinalIgnoreCase)))
+            {
+                r.Status = "Resolved";
+                r.ResolvedAt = DateTime.UtcNow;
+                r.ResolvedBy = adminUsername;
+                r.DefaultPasswordAssigned = defaultPassword;
+            }
+
+            await SaveUsersToDiskAsync();
+            await SavePasswordResetsToDiskAsync();
+            _logger.LogInformation("Password for {Username} directly reset to {DefaultPassword} by Admin {Admin}", user.Username, defaultPassword, adminUsername);
+            return (true, $"Đã đặt lại mật khẩu cho {user.FullName} về mặc định ({defaultPassword}) thành công!", defaultPassword);
+        }
+
+        // ==================== LỚP HỌC & GIẢNG VIÊN ====================
 
         private static async Task EnsureClassesLoadedAsync()
         {
@@ -387,6 +712,12 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             }
 
             await SaveClassesToDiskInternalAsync();
+
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () => await _firebaseSync.PushClassesAsync(_classes));
+            }
+
             return true;
         }
 
@@ -407,6 +738,12 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             }
 
             await SaveClassesToDiskInternalAsync();
+
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () => await _firebaseSync.PushClassesAsync(_classes));
+            }
+
             return true;
         }
 
@@ -418,6 +755,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             {
                 _classes.Remove(target);
                 await SaveClassesToDiskInternalAsync();
+                if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                {
+                    _ = Task.Run(async () => await _firebaseSync.PushClassesAsync(_classes));
+                }
                 return true;
             }
             return false;
@@ -479,9 +820,19 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 existing.IsSecretary = user.IsSecretary;
                 existing.IsActive = user.IsActive;
                 existing.TrainingPoints = user.TrainingPoints;
+                if (!string.IsNullOrWhiteSpace(user.Password))
+                {
+                    existing.Password = user.Password;
+                    existing.PasswordHash = user.Password;
+                }
             }
             else
             {
+                if (string.IsNullOrWhiteSpace(user.Password))
+                {
+                    user.Password = user.Role.GetDefaultPassword();
+                    user.PasswordHash = user.Password;
+                }
                 _localUsers.Add(user);
             }
             _logger.LogInformation("Saved user {Username} ({Id})", user.Username, user.Id);
@@ -519,6 +870,11 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 local.IsSecretary = user.IsSecretary;
                 local.IsActive = user.IsActive;
                 local.TrainingPoints = user.TrainingPoints;
+                if (!string.IsNullOrWhiteSpace(user.Password))
+                {
+                    local.Password = user.Password;
+                    local.PasswordHash = user.Password;
+                }
                 await SaveUsersToDiskAsync();
                 return true;
             }
