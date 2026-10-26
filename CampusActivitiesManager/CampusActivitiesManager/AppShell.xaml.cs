@@ -159,6 +159,8 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute(nameof(EventDetailPage), typeof(EventDetailPage));
             Routing.RegisterRoute(nameof(ClassHubPage), typeof(ClassHubPage));
             Routing.RegisterRoute(nameof(RegisterPage), typeof(RegisterPage));
+            Routing.RegisterRoute(nameof(AccountListPage), typeof(AccountListPage));
+            Routing.RegisterRoute(nameof(ManageCategoriesPage), typeof(ManageCategoriesPage));
 
             // URL alias routes for GoToAsync calls
             Routing.RegisterRoute("createuser", typeof(CreateUserPage));
@@ -176,6 +178,8 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute("eventdetail", typeof(EventDetailPage));
             Routing.RegisterRoute("classhub", typeof(ClassHubPage));
             Routing.RegisterRoute("register", typeof(RegisterPage));
+            Routing.RegisterRoute("accountlist", typeof(AccountListPage));
+            Routing.RegisterRoute("managecategories", typeof(ManageCategoriesPage));
         }
 
         private async void OnNavigateHomeClicked(object sender, EventArgs e)

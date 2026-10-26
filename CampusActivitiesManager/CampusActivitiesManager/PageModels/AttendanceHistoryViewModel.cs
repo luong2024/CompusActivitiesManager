@@ -94,18 +94,17 @@ namespace CampusActivitiesManager.PageModels
                 _allRecords = list;
 
                 // Calculate total points and rank
-                int points = 80; // Baseline points
-                foreach (var r in list)
-                {
-                    if (r.Status == "Present")
-                    {
-                        points += r.TrainingPointsAwarded;
-                    }
-                }
+                var currentUser = _authService?.CurrentUser;
+                int baseUserPoints = currentUser?.TrainingPoints ?? 0;
+                int approvedPointsSum = list
+                    .Where(r => r.Status == "Approved" || r.Status == "Present")
+                    .Sum(r => r.TrainingPointsAwarded);
+
+                int points = Math.Max(baseUserPoints, approvedPointsSum > 0 ? approvedPointsSum : 75);
 
                 TotalTrainingPoints = Math.Min(points, 100);
                 ProgressValue = TotalTrainingPoints / 100.0;
-                TotalAttendedEvents = list.Count(r => r.Status == "Present");
+                TotalAttendedEvents = list.Count(r => r.Status == "Approved" || r.Status == "Present");
 
                 PointRank = TotalTrainingPoints switch
                 {

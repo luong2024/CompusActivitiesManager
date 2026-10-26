@@ -63,6 +63,8 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<CategoryRepository>();
             builder.Services.AddSingleton<TagRepository>();
             builder.Services.AddSingleton<UserRepository>();
+            builder.Services.AddSingleton<AccountRepository>();
+            builder.Services.AddSingleton<AuthService>();
             builder.Services.AddSingleton<UserService>();
             builder.Services.AddSingleton<IUserService<User>, UserService>();
             builder.Services.AddSingleton<IUserService, UserService>();
@@ -95,6 +97,9 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<EventListPageModel>();
             builder.Services.AddTransient<EventDetailPageModel>();
             builder.Services.AddTransient<ClassHubPageModel>();
+            builder.Services.AddTransient<AccountListPageModel>();
+            builder.Services.AddTransient<RegisterPageModel>();
+            builder.Services.AddTransient<ManageCategoriesPageModel>();
 
             // Pages
             builder.Services.AddTransient<MainPage>();
@@ -111,6 +116,8 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<EventListPage>();
             builder.Services.AddTransient<EventDetailPage>();
             builder.Services.AddTransient<ClassHubPage>();
+            builder.Services.AddTransient<AccountListPage>();
+            builder.Services.AddTransient<ManageCategoriesPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
             builder.Services.AddTransientWithShellRoute<CreateUserPage, CreateUserViewModel>("createuser");
@@ -127,6 +134,8 @@ namespace CampusActivitiesManager
             builder.Services.AddTransientWithShellRoute<EventDetailPage, EventDetailPageModel>("eventdetail");
             builder.Services.AddTransientWithShellRoute<EventDetailPage, EventDetailPageModel>("eventdetails");
             builder.Services.AddTransientWithShellRoute<ClassHubPage, ClassHubPageModel>("classhub");
+            builder.Services.AddTransientWithShellRoute<AccountListPage, AccountListPageModel>("accountlist");
+            builder.Services.AddTransientWithShellRoute<ManageCategoriesPage, ManageCategoriesPageModel>("managecategories");
             return builder.Build();
         }
     }

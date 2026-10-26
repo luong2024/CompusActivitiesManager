@@ -162,37 +162,74 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             }
 
             var evt = await _eventService.GetEventByIdAsync(eventId);
-            int reward = evt?.PointsReward ?? 10;
+            if (evt == null)
+            {
+                return (false, "Không tìm thấy thông tin sự kiện để điểm danh.", null);
+            }
+
+            if (!evt.IsApproved || evt.ApprovalStatus != "Approved")
+            {
+                return (false, "Hoạt động này đang chờ Quản trị viên duyệt, chưa mở chức năng điểm danh.", null);
+            }
+
+            if (evt.IsEventEnded)
+            {
+                return (false, $"Sự kiện đã kết thúc vào lúc {evt.EndTime} ngày {evt.EndDate}. Hệ thống đã khóa điểm danh sau thời gian kết thúc!", null);
+            }
+
+            if (evt.IsEventNotStarted)
+            {
+                return (false, $"Sự kiện chưa bắt đầu (diễn ra từ {evt.StartTime} đến {evt.EndTime} ngày {evt.StartDate}). Vui lòng quay lại trong khung giờ tổ chức!", null);
+            }
+
+            var cleanStudent = string.IsNullOrWhiteSpace(studentCode) ? "B20DCCN001" : studentCode.Trim().ToUpperInvariant();
+
+            // Kiểm tra trùng lặp điểm danh
+            var existing = _localRecords.FirstOrDefault(r =>
+                r.EventId == eventId &&
+                string.Equals(r.StudentCode, cleanStudent, StringComparison.OrdinalIgnoreCase) &&
+                (r.Status == "Approved" || r.Status == "Present" || r.Status == "PendingReview"));
+
+            if (existing != null)
+            {
+                return (false, "Sinh viên đã được điểm danh sự kiện này trước đó!", existing);
+            }
+
+            int reward = evt.PointsReward > 0 ? evt.PointsReward : 10;
+            string evtTitle = evt.Title ?? ("Sự kiện hoạt động #" + eventId);
 
             var record = new AttendanceRecord
             {
                 Id = "ATT-QR-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
                 EventId = eventId,
-                EventName = evt?.Title ?? ("Sự kiện hoạt động #" + eventId),
-                StudentCode = string.IsNullOrWhiteSpace(studentCode) ? "B20DCCN001" : studentCode,
-                StudentName = "Sinh viên " + studentCode,
+                EventName = evtTitle,
+                StudentCode = cleanStudent,
+                StudentName = "Sinh viên " + cleanStudent,
                 CheckInTime = DateTime.UtcNow,
                 Method = "QR",
                 TrainingPointsAwarded = reward,
                 Status = "Approved",
-                Notes = "Mở liên kết sự kiện qua QR"
+                Notes = "Điểm danh qua mã QR sự kiện"
             };
 
             _localRecords.Insert(0, record);
 
+            // Cộng điểm rèn luyện trực tiếp cho sinh viên
+            await _userService.AdjustTrainingPointsAsync(cleanStudent, reward);
+
             _localNotifications.Insert(0, new CampusNotificationDto
             {
                 Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..4],
-                Title = "Mở thông tin sự kiện qua QR 🔗",
-                Message = $"Bạn đã quét mã liên kết cho sự kiện: {record.EventName}.",
-                Type = "Info",
+                Title = "Điểm danh QR thành công 🎉",
+                Message = $"Bạn đã điểm danh thành công cho sự kiện '{evtTitle}' và được cộng +{reward} ĐRL.",
+                Type = "Points",
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
             });
 
             await SaveRecordsToDiskAsync();
-            _logger.LogInformation("QR event link opened for event {EventId}, student {StudentCode}", eventId, studentCode);
-            return (true, "Đã mở thông tin sự kiện từ mã QR!", record);
+            _logger.LogInformation("QR check-in completed for event {EventId}, student {StudentCode}. Awarded +{Points} points", eventId, cleanStudent, reward);
+            return (true, $"Điểm danh thành công! Bạn nhận được +{reward} điểm rèn luyện.", record);
         }
 
         public async Task<(bool Success, string Message, AttendanceRecord? Record)> CheckInWithPhotoAsync(int eventId, string studentCode, string photoBase64, string? notes)
