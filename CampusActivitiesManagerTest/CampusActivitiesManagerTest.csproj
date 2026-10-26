@@ -27,6 +27,7 @@
     <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Models\AttendanceModels.cs" Link="Linked\AttendanceModels.cs" />
     <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Models\AuthModels.cs" Link="Linked\AuthModels.cs" />
     <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Models\CampusEvent.cs" Link="Linked\CampusEvent.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Data\FirebaseConfig.cs" Link="Linked\FirebaseConfig.cs" />
     <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\BusinessLogic\Interfaces\IQrCodeService.cs" Link="Linked\IQrCodeService.cs" />
     <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\BusinessLogic\Services\QrCodeService.cs" Link="Linked\QrCodeService.cs" />
   </ItemGroup>

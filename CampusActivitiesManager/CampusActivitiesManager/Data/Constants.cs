@@ -8,8 +8,8 @@ namespace CampusActivitiesManager.Data
         public static string DatabasePath =>
             $"Data Source={Path.Combine(FileSystem.AppDataDirectory, DatabaseFilename)}";
 
-        // Firebase Cloud Realtime Database Configuration
-        public const string DefaultFirebaseDbUrl = "https://campusacmanage-default-rtdb.firebaseio.com/";
+        // Firebase Cloud Firestore Configuration
+        public const string DefaultFirebaseDbUrl = FirebaseConfig.FirestoreBaseUrl;
         public const string FirebaseDbUrlPrefKey = "firebase_database_url";
     }
 }

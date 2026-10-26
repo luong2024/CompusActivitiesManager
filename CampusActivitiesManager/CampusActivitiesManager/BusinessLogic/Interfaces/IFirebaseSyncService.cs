@@ -9,6 +9,7 @@ namespace CampusActivitiesManager.BusinessLogic.Interfaces
 
         Task<List<CampusEvent>?> PullEventsAsync();
         Task<bool> PushEventsAsync(List<CampusEvent> events);
+        Task<bool> DeleteEventAsync(int eventId);
 
         Task<List<User>?> PullUsersAsync();
         Task<bool> PushUsersAsync(List<User> users);

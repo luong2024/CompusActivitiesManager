@@ -552,6 +552,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                     // USER REQUIREMENT: Hoạt động nào bị từ chối phải xóa đi khỏi hệ thống
                     _localEvents.Remove(local);
                     await SaveEventsToDiskAsync();
+                    if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                    {
+                        _ = Task.Run(async () => await _firebaseSync.DeleteEventAsync(id));
+                    }
                     _logger.LogInformation("Event {Id} was rejected by {Approver} and permanently deleted", id, approvedBy);
                     return true;
                 }
@@ -576,6 +580,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             {
                 _localEvents.Remove(local);
                 await SaveEventsToDiskAsync();
+                if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                {
+                    _ = Task.Run(async () => await _firebaseSync.DeleteEventAsync(id));
+                }
                 _logger.LogInformation("Event {Id} deleted", id);
                 return true;
             }

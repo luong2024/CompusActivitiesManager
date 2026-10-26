@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using CampusActivitiesManager.BusinessLogic.Interfaces;
@@ -17,382 +18,651 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             WriteIndented = false
         };
 
+        private string? _cachedAccessToken;
+        private DateTime _tokenExpiryUtc = DateTime.MinValue;
+        private readonly SemaphoreSlim _authLock = new(1, 1);
+
         public string DatabaseUrl
         {
-            get => Preferences.Default.Get(Constants.FirebaseDbUrlPrefKey, Constants.DefaultFirebaseDbUrl);
-            set
-            {
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    string clean = value.Trim();
-                    if (!clean.EndsWith("/")) clean += "/";
-                    Preferences.Default.Set(Constants.FirebaseDbUrlPrefKey, clean);
-                }
-            }
+            get => FirebaseConfig.FirestoreBaseUrl;
+            set { /* Fixed to Cloud Firestore */ }
         }
 
-        public bool IsConfigured => !string.IsNullOrWhiteSpace(DatabaseUrl);
+        public bool IsConfigured => !string.IsNullOrWhiteSpace(FirebaseConfig.ProjectId) &&
+                                    !string.IsNullOrWhiteSpace(FirebaseConfig.PrivateKey);
 
         public FirebaseSyncService(ILogger<FirebaseSyncService> logger)
         {
             _logger = logger;
             _httpClient = new HttpClient
             {
-                Timeout = TimeSpan.FromSeconds(8)
+                Timeout = TimeSpan.FromSeconds(15)
             };
         }
 
-        private string GetCollectionUrl(string collectionName)
+        #region Google OAuth2 Authentication (RS256 JWT Exchange)
+
+        private async Task<string?> GetAccessTokenAsync()
         {
-            var baseUri = DatabaseUrl;
-            if (!baseUri.EndsWith("/")) baseUri += "/";
-            return $"{baseUri}{collectionName}.json";
+            if (!string.IsNullOrEmpty(_cachedAccessToken) && DateTime.UtcNow < _tokenExpiryUtc)
+            {
+                return _cachedAccessToken;
+            }
+
+            await _authLock.WaitAsync();
+            try
+            {
+                if (!string.IsNullOrEmpty(_cachedAccessToken) && DateTime.UtcNow < _tokenExpiryUtc)
+                {
+                    return _cachedAccessToken;
+                }
+
+                long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                string headerJson = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
+                string claimJson = JsonSerializer.Serialize(new Dictionary<string, object>
+                {
+                    ["iss"] = FirebaseConfig.ClientEmail,
+                    ["scope"] = "https://www.googleapis.com/auth/datastore",
+                    ["aud"] = FirebaseConfig.TokenUri,
+                    ["exp"] = now + 3600,
+                    ["iat"] = now
+                });
+
+                string b64Header = Base64UrlEncode(Encoding.UTF8.GetBytes(headerJson));
+                string b64Claim = Base64UrlEncode(Encoding.UTF8.GetBytes(claimJson));
+                string unsignedJwt = $"{b64Header}.{b64Claim}";
+
+                using var rsa = RSA.Create();
+                rsa.ImportFromPem(FirebaseConfig.PrivateKey);
+                byte[] signature = rsa.SignData(Encoding.UTF8.GetBytes(unsignedJwt), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                string b64Signature = Base64UrlEncode(signature);
+                string assertion = $"{unsignedJwt}.{b64Signature}";
+
+                using var tokenRequest = new HttpRequestMessage(HttpMethod.Post, FirebaseConfig.TokenUri)
+                {
+                    Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                    {
+                        ["grant_type"] = "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                        ["assertion"] = assertion
+                    })
+                };
+
+                var response = await _httpClient.SendAsync(tokenRequest);
+                if (!response.IsSuccessStatusCode)
+                {
+                    string err = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Google OAuth2 token request failed with {Status}: {Error}", response.StatusCode, err);
+                    return null;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("access_token", out var tokenProp))
+                {
+                    _cachedAccessToken = tokenProp.GetString();
+                    _tokenExpiryUtc = DateTime.UtcNow.AddMinutes(50);
+                    return _cachedAccessToken;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to exchange service account JWT for Google access token");
+                return null;
+            }
+            finally
+            {
+                _authLock.Release();
+            }
         }
+
+        private static string Base64UrlEncode(byte[] bytes)
+        {
+            return Convert.ToBase64String(bytes)
+                .TrimEnd('=')
+                .Replace('+', '-')
+                .Replace('/', '_');
+        }
+
+        private async Task<HttpRequestMessage> CreateAuthorizedRequestAsync(HttpMethod method, string url)
+        {
+            var req = new HttpRequestMessage(method, url);
+            string? token = await GetAccessTokenAsync();
+            if (!string.IsNullOrEmpty(token))
+            {
+                req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+            return req;
+        }
+
+        #endregion
+
+        #region Firestore Low-Level REST Engine
+
+        private async Task<List<(string DocId, string? Payload, Dictionary<string, string> Fields)>> ReadFirestoreCollectionAsync(string collectionName)
+        {
+            var results = new List<(string, string?, Dictionary<string, string>)>();
+            try
+            {
+                string url = $"{FirebaseConfig.FirestoreBaseUrl}/{collectionName}?pageSize=300";
+                using var req = await CreateAuthorizedRequestAsync(HttpMethod.Get, url);
+                using var res = await _httpClient.SendAsync(req);
+                if (!res.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Firestore Read Collection '{Collection}' returned {Status}", collectionName, res.StatusCode);
+                    return results;
+                }
+
+                var json = await res.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(json)) return results;
+
+                using var doc = JsonDocument.Parse(json);
+                if (!doc.RootElement.TryGetProperty("documents", out var docsArray))
+                    return results;
+
+                foreach (var docEl in docsArray.EnumerateArray())
+                {
+                    string docName = docEl.GetProperty("name").GetString() ?? "";
+                    string docId = docName.Split('/').Last();
+                    string? payload = null;
+                    var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+                    if (docEl.TryGetProperty("fields", out var fieldsEl))
+                    {
+                        foreach (var prop in fieldsEl.EnumerateObject())
+                        {
+                            var fval = prop.Value;
+                            if (fval.TryGetProperty("stringValue", out var sval))
+                            {
+                                string str = sval.GetString() ?? "";
+                                if (prop.Name.Equals("payload", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    payload = str;
+                                }
+                                fields[prop.Name] = str;
+                            }
+                            else if (fval.TryGetProperty("integerValue", out var ival))
+                            {
+                                fields[prop.Name] = ival.GetString() ?? "";
+                            }
+                            else if (fval.TryGetProperty("booleanValue", out var bval))
+                            {
+                                fields[prop.Name] = bval.GetBoolean().ToString().ToLowerInvariant();
+                            }
+                        }
+                    }
+
+                    results.Add((docId, payload, fields));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error reading Firestore collection '{Collection}'", collectionName);
+            }
+            return results;
+        }
+
+        private async Task<bool> WriteFirestoreDocumentAsync(string collectionName, string docId, string payloadJson, Dictionary<string, string>? stringFields = null)
+        {
+            try
+            {
+                string safeDocId = Uri.EscapeDataString(docId.Replace("/", "_"));
+                string url = $"{FirebaseConfig.FirestoreBaseUrl}/{collectionName}/{safeDocId}";
+
+                var fieldsDict = new Dictionary<string, object>
+                {
+                    ["payload"] = new Dictionary<string, string> { ["stringValue"] = payloadJson },
+                    ["updatedAt"] = new Dictionary<string, string> { ["stringValue"] = DateTime.UtcNow.ToString("O") }
+                };
+
+                if (stringFields != null)
+                {
+                    foreach (var kvp in stringFields)
+                    {
+                        if (!string.IsNullOrEmpty(kvp.Key))
+                        {
+                            fieldsDict[kvp.Key] = new Dictionary<string, string> { ["stringValue"] = kvp.Value ?? "" };
+                        }
+                    }
+                }
+
+                var bodyObj = new Dictionary<string, object> { ["fields"] = fieldsDict };
+                string bodyJson = JsonSerializer.Serialize(bodyObj, _jsonOptions);
+
+                using var req = await CreateAuthorizedRequestAsync(HttpMethod.Patch, url);
+                req.Content = new StringContent(bodyJson, Encoding.UTF8, "application/json");
+
+                using var res = await _httpClient.SendAsync(req);
+                if (res.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+
+                string err = await res.Content.ReadAsStringAsync();
+                _logger.LogWarning("Firestore Write Document '{Collection}/{DocId}' failed with {Status}: {Error}", collectionName, docId, res.StatusCode, err);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Exception writing Firestore document '{Collection}/{DocId}'", collectionName, docId);
+                return false;
+            }
+        }
+
+        private async Task<bool> DeleteFirestoreDocumentAsync(string collectionName, string docId)
+        {
+            try
+            {
+                string safeDocId = Uri.EscapeDataString(docId.Replace("/", "_"));
+                string url = $"{FirebaseConfig.FirestoreBaseUrl}/{collectionName}/{safeDocId}";
+                using var req = await CreateAuthorizedRequestAsync(HttpMethod.Delete, url);
+                using var res = await _httpClient.SendAsync(req);
+                return res.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Exception deleting Firestore document '{Collection}/{DocId}'", collectionName, docId);
+                return false;
+            }
+        }
+
+        #endregion
 
         public async Task<bool> TestConnectionAsync()
         {
             try
             {
-                var url = GetCollectionUrl("ping");
-                var response = await _httpClient.GetAsync(url);
-                return response.IsSuccessStatusCode;
+                string? token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token)) return false;
+
+                string url = $"{FirebaseConfig.FirestoreBaseUrl}/events?pageSize=1";
+                using var req = await CreateAuthorizedRequestAsync(HttpMethod.Get, url);
+                using var res = await _httpClient.SendAsync(req);
+                return res.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Firebase connection test failed for {Url}", DatabaseUrl);
+                _logger.LogWarning(ex, "Firebase Cloud Firestore connection test failed");
                 return false;
             }
         }
 
-        // ==================== EVENTS SYNC ====================
+        #region Events Sync
 
         public async Task<List<CampusEvent>?> PullEventsAsync()
         {
-            try
+            var rawDocs = await ReadFirestoreCollectionAsync("events");
+            if (rawDocs.Count == 0) return null;
+
+            var list = new List<CampusEvent>();
+            foreach (var item in rawDocs)
             {
-                var url = GetCollectionUrl("events");
-                var response = await _httpClient.GetAsync(url);
-                if (!response.IsSuccessStatusCode)
+                CampusEvent? evt = null;
+                if (!string.IsNullOrWhiteSpace(item.Payload))
                 {
-                    _logger.LogWarning("Firebase PullEvents returned status {StatusCode}", response.StatusCode);
-                    return null;
+                    try { evt = JsonSerializer.Deserialize<CampusEvent>(item.Payload, _jsonOptions); } catch { }
                 }
 
-                var json = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(json) || json == "null")
-                    return null;
+                if (evt == null && item.Fields.Count > 0)
+                {
+                    int.TryParse(item.DocId, out int id);
+                    if (id == 0 && item.Fields.TryGetValue("id", out var idStr))
+                        int.TryParse(idStr, out id);
 
-                return DeserializeList<CampusEvent>(json);
+                    evt = new CampusEvent
+                    {
+                        ID = id > 0 ? id : 1,
+                        Name = item.Fields.GetValueOrDefault("name", "Hoạt động"),
+                        Description = item.Fields.GetValueOrDefault("description", ""),
+                        Icon = item.Fields.GetValueOrDefault("icon", "💻"),
+                        Status = item.Fields.GetValueOrDefault("status", "Sắp diễn ra"),
+                        ApprovalStatus = item.Fields.GetValueOrDefault("approvalStatus", "Approved"),
+                        IsApproved = item.Fields.GetValueOrDefault("isApproved", "true").Equals("true", StringComparison.OrdinalIgnoreCase),
+                        ApprovedBy = item.Fields.GetValueOrDefault("approvedBy", "Admin"),
+                        Location = item.Fields.GetValueOrDefault("location", "Hội trường A2"),
+                        StartDate = item.Fields.GetValueOrDefault("startDate", DateTime.Now.AddDays(2).ToString("dd/MM/yyyy")),
+                        EndDate = item.Fields.GetValueOrDefault("endDate", DateTime.Now.AddDays(2).ToString("dd/MM/yyyy")),
+                        StartTime = item.Fields.GetValueOrDefault("startTime", "08:00"),
+                        EndTime = item.Fields.GetValueOrDefault("endTime", "11:30")
+                    };
+                }
+
+                if (evt != null && evt.ApprovalStatus != "Rejected" && evt.Status != "Đã từ chối")
+                {
+                    list.Add(evt);
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to pull events from Firebase");
-                return null;
-            }
+            return list.OrderBy(e => e.ID).ToList();
         }
 
         public async Task<bool> PushEventsAsync(List<CampusEvent> events)
         {
-            try
+            bool allOk = true;
+            foreach (var evt in events)
             {
-                var url = GetCollectionUrl("events");
-                var json = JsonSerializer.Serialize(events, _jsonOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync(url, content);
-                if (response.IsSuccessStatusCode)
+                if (evt.ApprovalStatus == "Rejected" || evt.Status == "Đã từ chối")
                 {
-                    _logger.LogInformation("Successfully pushed {Count} events to Firebase Cloud", events.Count);
-                    return true;
+                    await DeleteEventAsync(evt.ID);
+                    continue;
                 }
-                _logger.LogWarning("Firebase PushEvents failed with status {StatusCode}", response.StatusCode);
-                return false;
+
+                var stringFields = new Dictionary<string, string>
+                {
+                    ["id"] = evt.ID.ToString(),
+                    ["name"] = evt.Name ?? "",
+                    ["status"] = evt.Status ?? "",
+                    ["approvalStatus"] = evt.ApprovalStatus ?? "",
+                    ["location"] = evt.Location ?? "",
+                    ["startDate"] = evt.StartDate ?? "",
+                    ["createdByRole"] = evt.CreatedByRole ?? "",
+                    ["createdByName"] = evt.CreatedByName ?? ""
+                };
+
+                string payload = JsonSerializer.Serialize(evt, _jsonOptions);
+                bool ok = await WriteFirestoreDocumentAsync("events", evt.ID.ToString(), payload, stringFields);
+                if (!ok) allOk = false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to push events to Firebase");
-                return false;
-            }
+            return allOk;
         }
 
-        // ==================== USERS SYNC ====================
+        public async Task<bool> DeleteEventAsync(int eventId)
+        {
+            return await DeleteFirestoreDocumentAsync("events", eventId.ToString());
+        }
+
+        #endregion
+
+        #region Users Sync
 
         public async Task<List<User>?> PullUsersAsync()
         {
-            try
-            {
-                var url = GetCollectionUrl("users");
-                var response = await _httpClient.GetAsync(url);
-                if (!response.IsSuccessStatusCode) return null;
+            var rawDocs = await ReadFirestoreCollectionAsync("users");
+            if (rawDocs.Count == 0) return null;
 
-                var json = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(json) || json == "null") return null;
-
-                return DeserializeList<User>(json);
-            }
-            catch (Exception ex)
+            var list = new List<User>();
+            foreach (var item in rawDocs)
             {
-                _logger.LogWarning(ex, "Failed to pull users from Firebase");
-                return null;
+                User? u = null;
+                if (!string.IsNullOrWhiteSpace(item.Payload))
+                {
+                    try { u = JsonSerializer.Deserialize<User>(item.Payload, _jsonOptions); } catch { }
+                }
+
+                if (u == null && item.Fields.Count > 0)
+                {
+                    Enum.TryParse<Role>(item.Fields.GetValueOrDefault("role", "User"), true, out var role);
+                    string email = item.Fields.GetValueOrDefault("email", "");
+                    string username = item.Fields.GetValueOrDefault("studentCode", "");
+                    if (string.IsNullOrEmpty(username)) username = email.Split('@').First();
+
+                    u = new User
+                    {
+                        Id = item.DocId,
+                        Username = username,
+                        Email = email,
+                        FullName = item.Fields.GetValueOrDefault("fullName", username),
+                        Role = role,
+                        PhoneNumber = item.Fields.GetValueOrDefault("phoneNumber", ""),
+                        ClassName = item.Fields.GetValueOrDefault("className", ""),
+                        IsActive = item.Fields.GetValueOrDefault("isActive", "true").Equals("true", StringComparison.OrdinalIgnoreCase),
+                        TrainingPoints = 80
+                    };
+                }
+
+                if (u != null)
+                {
+                    list.Add(u);
+                }
             }
+            return list;
         }
 
         public async Task<bool> PushUsersAsync(List<User> users)
         {
-            try
+            bool allOk = true;
+            foreach (var user in users)
             {
-                var url = GetCollectionUrl("users");
-                var json = JsonSerializer.Serialize(users, _jsonOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync(url, content);
-                if (response.IsSuccessStatusCode)
+                string docId = !string.IsNullOrWhiteSpace(user.Id) ? user.Id : (!string.IsNullOrWhiteSpace(user.Username) ? user.Username : Guid.NewGuid().ToString("N")[..8]);
+                var stringFields = new Dictionary<string, string>
                 {
-                    _logger.LogInformation("Successfully pushed {Count} users to Firebase Cloud", users.Count);
-                    return true;
-                }
-                return false;
+                    ["email"] = user.Email ?? "",
+                    ["fullName"] = user.FullName ?? "",
+                    ["role"] = user.Role.ToString(),
+                    ["studentCode"] = user.Username ?? "",
+                    ["phoneNumber"] = user.PhoneNumber ?? "",
+                    ["className"] = user.ClassName ?? "",
+                    ["isActive"] = user.IsActive.ToString().ToLowerInvariant()
+                };
+
+                string payload = JsonSerializer.Serialize(user, _jsonOptions);
+                bool ok = await WriteFirestoreDocumentAsync("users", docId, payload, stringFields);
+                if (!ok) allOk = false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to push users to Firebase");
-                return false;
-            }
+            return allOk;
         }
 
-        // ==================== CLASSES SYNC ====================
+        #endregion
+
+        #region Classes Sync
 
         public async Task<List<ClassRoom>?> PullClassesAsync()
         {
-            try
-            {
-                var url = GetCollectionUrl("classes");
-                var response = await _httpClient.GetAsync(url);
-                if (!response.IsSuccessStatusCode) return null;
+            var rawDocs = await ReadFirestoreCollectionAsync("classes");
+            if (rawDocs.Count == 0) return null;
 
-                var json = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(json) || json == "null") return null;
-
-                return DeserializeList<ClassRoom>(json);
-            }
-            catch (Exception ex)
+            var list = new List<ClassRoom>();
+            foreach (var item in rawDocs)
             {
-                _logger.LogWarning(ex, "Failed to pull classes from Firebase");
-                return null;
+                if (!string.IsNullOrWhiteSpace(item.Payload))
+                {
+                    try
+                    {
+                        var cls = JsonSerializer.Deserialize<ClassRoom>(item.Payload, _jsonOptions);
+                        if (cls != null) list.Add(cls);
+                    }
+                    catch { }
+                }
             }
+            return list;
         }
 
         public async Task<bool> PushClassesAsync(List<ClassRoom> classes)
         {
-            try
+            bool allOk = true;
+            foreach (var cls in classes)
             {
-                var url = GetCollectionUrl("classes");
-                var json = JsonSerializer.Serialize(classes, _jsonOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync(url, content);
-                return response.IsSuccessStatusCode;
+                string payload = JsonSerializer.Serialize(cls, _jsonOptions);
+                var stringFields = new Dictionary<string, string>
+                {
+                    ["className"] = cls.ClassName ?? "",
+                    ["advisorName"] = cls.AdvisorName ?? "",
+                    ["department"] = cls.Department ?? ""
+                };
+                string clsDocId = !string.IsNullOrWhiteSpace(cls.ClassName) ? cls.ClassName : Guid.NewGuid().ToString("N")[..8];
+                bool ok = await WriteFirestoreDocumentAsync("classes", clsDocId, payload, stringFields);
+                if (!ok) allOk = false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to push classes to Firebase");
-                return false;
-            }
+            return allOk;
         }
 
-        // ==================== ATTENDANCE SYNC ====================
+        #endregion
+
+        #region Attendance Sync
 
         public async Task<List<AttendanceRecord>?> PullAttendanceAsync()
         {
-            try
-            {
-                var url = GetCollectionUrl("attendance");
-                var response = await _httpClient.GetAsync(url);
-                if (!response.IsSuccessStatusCode) return null;
+            var rawDocs = await ReadFirestoreCollectionAsync("attendance");
+            if (rawDocs.Count == 0) return null;
 
-                var json = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(json) || json == "null") return null;
-
-                return DeserializeList<AttendanceRecord>(json);
-            }
-            catch (Exception ex)
+            var list = new List<AttendanceRecord>();
+            foreach (var item in rawDocs)
             {
-                _logger.LogWarning(ex, "Failed to pull attendance from Firebase");
-                return null;
+                if (!string.IsNullOrWhiteSpace(item.Payload))
+                {
+                    try
+                    {
+                        var rec = JsonSerializer.Deserialize<AttendanceRecord>(item.Payload, _jsonOptions);
+                        if (rec != null) list.Add(rec);
+                    }
+                    catch { }
+                }
             }
+            return list;
         }
 
         public async Task<bool> PushAttendanceAsync(List<AttendanceRecord> records)
         {
-            try
+            bool allOk = true;
+            foreach (var rec in records)
             {
-                var url = GetCollectionUrl("attendance");
-                var json = JsonSerializer.Serialize(records, _jsonOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync(url, content);
-                return response.IsSuccessStatusCode;
+                string payload = JsonSerializer.Serialize(rec, _jsonOptions);
+                var stringFields = new Dictionary<string, string>
+                {
+                    ["id"] = rec.Id ?? "",
+                    ["eventId"] = rec.EventId.ToString(),
+                    ["studentCode"] = rec.StudentCode ?? "",
+                    ["status"] = rec.Status ?? ""
+                };
+                string recDocId = !string.IsNullOrWhiteSpace(rec.Id) ? rec.Id : Guid.NewGuid().ToString("N")[..8];
+                bool ok = await WriteFirestoreDocumentAsync("attendance", recDocId, payload, stringFields);
+                if (!ok) allOk = false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to push attendance to Firebase");
-                return false;
-            }
+            return allOk;
         }
 
-        // ==================== PASSWORD RESET REQUESTS SYNC ====================
+        #endregion
+
+        #region Password Resets Sync
 
         public async Task<List<PasswordResetRequest>?> PullPasswordResetRequestsAsync()
         {
-            try
-            {
-                var url = GetCollectionUrl("password_reset_requests");
-                var response = await _httpClient.GetAsync(url);
-                if (!response.IsSuccessStatusCode) return null;
+            var rawDocs = await ReadFirestoreCollectionAsync("password_resets");
+            if (rawDocs.Count == 0) return null;
 
-                var json = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(json) || json == "null") return null;
-
-                return DeserializeList<PasswordResetRequest>(json);
-            }
-            catch (Exception ex)
+            var list = new List<PasswordResetRequest>();
+            foreach (var item in rawDocs)
             {
-                _logger.LogWarning(ex, "Failed to pull password reset requests from Firebase");
-                return null;
+                if (!string.IsNullOrWhiteSpace(item.Payload))
+                {
+                    try
+                    {
+                        var req = JsonSerializer.Deserialize<PasswordResetRequest>(item.Payload, _jsonOptions);
+                        if (req != null) list.Add(req);
+                    }
+                    catch { }
+                }
             }
+            return list;
         }
 
         public async Task<bool> PushPasswordResetRequestsAsync(List<PasswordResetRequest> requests)
         {
-            try
+            bool allOk = true;
+            foreach (var req in requests)
             {
-                var url = GetCollectionUrl("password_reset_requests");
-                var json = JsonSerializer.Serialize(requests, _jsonOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync(url, content);
-                return response.IsSuccessStatusCode;
+                string payload = JsonSerializer.Serialize(req, _jsonOptions);
+                var stringFields = new Dictionary<string, string>
+                {
+                    ["id"] = req.Id ?? "",
+                    ["username"] = req.Username ?? "",
+                    ["status"] = req.Status ?? ""
+                };
+                string reqDocId = !string.IsNullOrWhiteSpace(req.Id) ? req.Id : Guid.NewGuid().ToString("N")[..8];
+                bool ok = await WriteFirestoreDocumentAsync("password_resets", reqDocId, payload, stringFields);
+                if (!ok) allOk = false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to push password reset requests to Firebase");
-                return false;
-            }
+            return allOk;
         }
 
-        // ==================== NOTIFICATIONS SYNC ====================
+        #endregion
+
+        #region Notifications Sync
 
         public async Task<List<CampusNotificationDto>?> PullNotificationsAsync()
         {
-            try
-            {
-                var url = GetCollectionUrl("notifications");
-                var response = await _httpClient.GetAsync(url);
-                if (!response.IsSuccessStatusCode) return null;
+            var rawDocs = await ReadFirestoreCollectionAsync("notifications");
+            if (rawDocs.Count == 0) return null;
 
-                var json = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(json) || json == "null") return null;
-
-                return DeserializeList<CampusNotificationDto>(json);
-            }
-            catch (Exception ex)
+            var list = new List<CampusNotificationDto>();
+            foreach (var item in rawDocs)
             {
-                _logger.LogWarning(ex, "Failed to pull notifications from Firebase");
-                return null;
+                if (!string.IsNullOrWhiteSpace(item.Payload))
+                {
+                    try
+                    {
+                        var notif = JsonSerializer.Deserialize<CampusNotificationDto>(item.Payload, _jsonOptions);
+                        if (notif != null) list.Add(notif);
+                    }
+                    catch { }
+                }
             }
+            return list;
         }
 
         public async Task<bool> PushNotificationsAsync(List<CampusNotificationDto> notifications)
         {
-            try
+            bool allOk = true;
+            foreach (var n in notifications)
             {
-                var url = GetCollectionUrl("notifications");
-                var json = JsonSerializer.Serialize(notifications, _jsonOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync(url, content);
-                return response.IsSuccessStatusCode;
+                string payload = JsonSerializer.Serialize(n, _jsonOptions);
+                var stringFields = new Dictionary<string, string>
+                {
+                    ["id"] = n.Id ?? "",
+                    ["title"] = n.Title ?? "",
+                    ["targetUsername"] = n.TargetUsername ?? ""
+                };
+                string nDocId = !string.IsNullOrWhiteSpace(n.Id) ? n.Id : Guid.NewGuid().ToString("N")[..8];
+                bool ok = await WriteFirestoreDocumentAsync("notifications", nDocId, payload, stringFields);
+                if (!ok) allOk = false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to push notifications to Firebase");
-                return false;
-            }
+            return allOk;
         }
 
-        // ==================== POINT AUDITS SYNC ====================
+        #endregion
+
+        #region Point Audits Sync
 
         public async Task<List<PointAuditRecord>?> PullPointAuditsAsync()
         {
-            try
-            {
-                var url = GetCollectionUrl("point_audits");
-                var response = await _httpClient.GetAsync(url);
-                if (!response.IsSuccessStatusCode) return null;
+            var rawDocs = await ReadFirestoreCollectionAsync("point_audits");
+            if (rawDocs.Count == 0) return null;
 
-                var json = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(json) || json == "null") return null;
-
-                return DeserializeList<PointAuditRecord>(json);
-            }
-            catch (Exception ex)
+            var list = new List<PointAuditRecord>();
+            foreach (var item in rawDocs)
             {
-                _logger.LogWarning(ex, "Failed to pull point audits from Firebase");
-                return null;
+                if (!string.IsNullOrWhiteSpace(item.Payload))
+                {
+                    try
+                    {
+                        var audit = JsonSerializer.Deserialize<PointAuditRecord>(item.Payload, _jsonOptions);
+                        if (audit != null) list.Add(audit);
+                    }
+                    catch { }
+                }
             }
+            return list;
         }
 
         public async Task<bool> PushPointAuditsAsync(List<PointAuditRecord> audits)
         {
-            try
+            bool allOk = true;
+            foreach (var a in audits)
             {
-                var url = GetCollectionUrl("point_audits");
-                var json = JsonSerializer.Serialize(audits, _jsonOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync(url, content);
-                return response.IsSuccessStatusCode;
+                string payload = JsonSerializer.Serialize(a, _jsonOptions);
+                var stringFields = new Dictionary<string, string>
+                {
+                    ["id"] = a.Id ?? "",
+                    ["studentCode"] = a.StudentCode ?? "",
+                    ["delta"] = a.Delta.ToString()
+                };
+                string aDocId = !string.IsNullOrWhiteSpace(a.Id) ? a.Id : Guid.NewGuid().ToString("N")[..8];
+                bool ok = await WriteFirestoreDocumentAsync("point_audits", aDocId, payload, stringFields);
+                if (!ok) allOk = false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to push point audits to Firebase");
-                return false;
-            }
+            return allOk;
         }
 
-        /// <summary>
-        /// Xử lý đặc thù của Firebase Realtime Database:
-        /// Có thể trả về mảng [...] hoặc Dictionary object {"0": {...}, "1": {...}}
-        /// </summary>
-        private static List<T> DeserializeList<T>(string json)
-        {
-            var result = new List<T>();
-            try
-            {
-                using var doc = JsonDocument.Parse(json);
-                if (doc.RootElement.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var elem in doc.RootElement.EnumerateArray())
-                    {
-                        if (elem.ValueKind != JsonValueKind.Null)
-                        {
-                            var item = JsonSerializer.Deserialize<T>(elem.GetRawText(), _jsonOptions);
-                            if (item != null) result.Add(item);
-                        }
-                    }
-                }
-                else if (doc.RootElement.ValueKind == JsonValueKind.Object)
-                {
-                    foreach (var prop in doc.RootElement.EnumerateObject())
-                    {
-                        if (prop.Value.ValueKind != JsonValueKind.Null)
-                        {
-                            var item = JsonSerializer.Deserialize<T>(prop.Value.GetRawText(), _jsonOptions);
-                            if (item != null) result.Add(item);
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // Fallback direct list deserialize
-                var fallback = JsonSerializer.Deserialize<List<T>>(json, _jsonOptions);
-                if (fallback != null) result.AddRange(fallback);
-            }
-            return result;
-        }
+        #endregion
     }
 }

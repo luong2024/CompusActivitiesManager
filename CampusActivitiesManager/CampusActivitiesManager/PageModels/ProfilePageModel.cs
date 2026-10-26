@@ -12,6 +12,7 @@ namespace CampusActivitiesManager.PageModels
         private readonly IAuthenticationService _authService;
         private readonly ModalErrorHandler _errorHandler;
         private readonly IFirebaseSyncService? _firebaseSync;
+        private readonly IEventService? _eventService;
 
         [ObservableProperty]
         private string _fullName = string.Empty;
@@ -30,6 +31,9 @@ namespace CampusActivitiesManager.PageModels
 
         [ObservableProperty]
         private string _roleDisplay = "Sinh viên";
+
+        [ObservableProperty]
+        private bool _isAdmin;
 
         [ObservableProperty]
         private string _className = "D20CNTT1";
@@ -67,12 +71,14 @@ namespace CampusActivitiesManager.PageModels
             IUserService userService,
             IAuthenticationService authService,
             ModalErrorHandler errorHandler,
-            IFirebaseSyncService? firebaseSync = null)
+            IFirebaseSyncService? firebaseSync = null,
+            IEventService? eventService = null)
         {
             _userService = userService;
             _authService = authService;
             _errorHandler = errorHandler;
             _firebaseSync = firebaseSync;
+            _eventService = eventService;
             Title = "Thông tin cá nhân";
         }
 
@@ -157,39 +163,29 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 IsBusy = true;
-                string currentUrl = _firebaseSync.DatabaseUrl;
+                var users = await _userService.GetUsersListAsync();
+                var classes = await _userService.GetClassesAsync();
+                var resets = await _userService.GetPendingPasswordResetRequestsAsync();
 
-                string action = await Shell.Current.DisplayActionSheet(
-                    "Đồng bộ Firebase Cloud ☁️",
-                    "Đóng",
-                    null,
-                    "⚡ Kích hoạt Đồng bộ Ngay lập tức",
-                    "⚙️ Cấu hình URL Firebase Realtime DB");
+                bool okUsers = await _firebaseSync.PushUsersAsync(users);
+                bool okClasses = await _firebaseSync.PushClassesAsync(classes);
+                bool okResets = await _firebaseSync.PushPasswordResetRequestsAsync(resets);
 
-                if (action == "⚡ Kích hoạt Đồng bộ Ngay lập tức")
+                bool okEvents = true;
+                if (_eventService != null)
                 {
-                    var users = await _userService.GetUsersListAsync();
-                    var classes = await _userService.GetClassesAsync();
-                    await _firebaseSync.PushUsersAsync(users);
-                    await _firebaseSync.PushClassesAsync(classes);
-                    CloudSyncLastTime = DateTime.Now.ToString("HH:mm:ss dd/MM");
-                    await Shell.Current.DisplayAlert("Thành công 🎉", "Dữ liệu người dùng và lớp học đã được đồng bộ với Firebase Cloud Database!", "Đóng");
+                    var events = await _eventService.GetEventsAsync();
+                    okEvents = await _firebaseSync.PushEventsAsync(events);
                 }
-                else if (action == "⚙️ Cấu hình URL Firebase Realtime DB")
-                {
-                    string newUrl = await Shell.Current.DisplayPromptAsync(
-                        "Cấu hình Firebase Realtime DB ☁️",
-                        "Nhập URL cơ sở dữ liệu Firebase (ví dụ: https://your-project-default-rtdb.firebaseio.com/):",
-                        "Lưu",
-                        "Hủy",
-                        currentUrl);
 
-                    if (!string.IsNullOrWhiteSpace(newUrl))
-                    {
-                        _firebaseSync.DatabaseUrl = newUrl.Trim();
-                        CloudSyncLastTime = "Vừa cập nhật URL";
-                        await Shell.Current.DisplayAlert("Đã lưu 💾", $"Đã cập nhật URL Firebase: {_firebaseSync.DatabaseUrl}", "OK");
-                    }
+                CloudSyncLastTime = DateTime.Now.ToString("HH:mm:ss dd/MM");
+                if (okUsers && okEvents)
+                {
+                    await Shell.Current.DisplayAlert("Thành công 🎉", "Toàn bộ tài khoản, sự kiện và lớp học đã được đồng bộ an toàn lên Cloud Firestore (campusacmanage)!", "Đóng");
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Thông báo ☁️", "Đã gửi dữ liệu lên Firebase Cloud Firestore. Dữ liệu sẽ tiếp tục tự động đồng bộ ngầm.", "Đóng");
                 }
             }
             catch (Exception ex)
@@ -214,6 +210,7 @@ namespace CampusActivitiesManager.PageModels
                 Email = user.Email;
                 ClassName = user.ClassName ?? "D20CNTT1";
                 TrainingPoints = user.TrainingPoints;
+                IsAdmin = user.Role == Role.Admin;
                 RoleDisplay = user.Role switch
                 {
                     Role.Admin => "Quản trị viên (Admin)",

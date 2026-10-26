@@ -155,24 +155,25 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Firebase Cloud Sync Section (Tự động đồng bộ liên tục) -->
+                <!-- Firebase Cloud Sync Section (Chỉ hiển thị cho Quản trị viên Admin) -->
                 <Border StrokeShape="RoundRectangle 20"
                         Stroke="{AppThemeBinding Light=#BBF7D0, Dark=#16A34A}"
                         StrokeThickness="1"
                         BackgroundColor="{AppThemeBinding Light=#F0FDF4, Dark={StaticResource DarkSecondaryBackground}}"
-                        Padding="20">
+                        Padding="20"
+                        IsVisible="{Binding IsAdmin}">
                     <VerticalStackLayout Spacing="10">
                         <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
                             <Label Text="☁️" FontSize="18" VerticalOptions="Center" />
-                            <Label Text="Đồng Bộ Đám Mây Firebase" FontSize="15" FontAttributes="Bold" TextColor="#16A34A" VerticalOptions="Center" />
+                            <Label Text="Đồng Bộ Đám Mây Firebase (Cloud Firestore)" FontSize="15" FontAttributes="Bold" TextColor="#16A34A" VerticalOptions="Center" />
                         </HorizontalStackLayout>
                         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                             <BoxView WidthRequest="8" HeightRequest="8" CornerRadius="4" Color="#16A34A" VerticalOptions="Center" />
                             <Label Text="{Binding CloudSyncStatusText}" FontSize="13" FontAttributes="Bold" TextColor="#15803D" VerticalOptions="Center" />
                         </HorizontalStackLayout>
-                        <Label Text="Mọi hoạt động, tài khoản, điểm danh và ĐRL đều được tự động lưu ngầm lên Firebase Cloud. Dữ liệu sẽ tự động khôi phục hoàn toàn khi cài đặt lại app."
+                        <Label Text="Toàn bộ hoạt động, tài khoản, điểm danh và ĐRL được tự động lưu ngầm trên Cloud Firestore (campusacmanage). Dữ liệu tự động khôi phục hoàn toàn khi cài đặt lại app."
                                FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
-                        <Button Text="⚙️ Cấu hình / Kiểm tra kết nối Firebase"
+                        <Button Text="⚡ Đồng bộ toàn bộ dữ liệu lên Firebase Cloud"
                                 Command="{Binding SyncFirebaseDataCommand}"
                                 BackgroundColor="#DCFCE7"
                                 TextColor="#15803D"
