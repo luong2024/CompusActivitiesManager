@@ -2,7 +2,7 @@ using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
-namespace CampusActivitiesManager.Services
+namespace CampusActivitiesManager.BusinessLogic.Services
 {
     public class AuthenticationService : IAuthenticationService
     {
