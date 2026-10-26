@@ -6,6 +6,7 @@
              x:DataType="pageModels:RegisterViewModel"
              x:Class="CampusActivitiesManager.Pages.RegisterPage"
              Shell.TabBarIsVisible="False"
+             Shell.NavBarIsVisible="False"
              Shell.FlyoutBehavior="Disabled"
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
              Title="{Binding Title}">

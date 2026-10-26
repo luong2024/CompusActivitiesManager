@@ -389,5 +389,14 @@ namespace CampusActivitiesManager.PageModels
                 await Shell.Current.DisplayAlert("Lỗi", msg, "Đóng");
             }
         }
+
+        [RelayCommand]
+        public void ToggleMenu()
+        {
+            if (Shell.Current != null)
+            {
+                Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
+            }
+        }
     }
 }

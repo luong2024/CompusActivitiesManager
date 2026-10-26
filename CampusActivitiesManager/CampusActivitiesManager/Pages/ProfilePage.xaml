@@ -5,7 +5,8 @@
              x:Class="CampusActivitiesManager.Pages.ProfilePage"
              x:DataType="pm:ProfilePageModel"
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
-             Title="{Binding Title}">
+             Title="{Binding Title}"
+             Shell.NavBarIsVisible="False">
 
     <Grid>
         <!-- Main Content ScrollView -->

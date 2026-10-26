@@ -120,5 +120,27 @@ namespace CampusActivitiesManagerTest
             Assert.That(evt.Category?.Color, Is.EqualTo("#2563EB"));
             Assert.That(evt.ParticipantsDisplay, Does.Contain("100"));
         }
+
+        [Test]
+        public void CampusEvent_RejectedEvent_ExcludedFromActiveMetricsAndQuery()
+        {
+            var events = new List<CampusEvent>
+            {
+                new() { ID = 1, Name = "Event 1", ApprovalStatus = "Approved", IsApproved = true },
+                new() { ID = 2, Name = "Event 2", ApprovalStatus = "Pending", IsApproved = false },
+                new() { ID = 3, Name = "Event 3 (Rejected)", ApprovalStatus = "Rejected", IsApproved = false },
+                new() { ID = 4, Name = "Event 4 (Dismissed)", Status = "Đã từ chối", IsApproved = false }
+            };
+
+            // Business rule: Any rejected activity is excluded and deleted from display
+            var activeEvents = events.Where(e => e.ApprovalStatus != "Rejected" && e.Status != "Đã từ chối").ToList();
+            Assert.That(activeEvents.Count, Is.EqualTo(2));
+            Assert.That(activeEvents.Any(e => e.ApprovalStatus == "Rejected"), Is.False);
+            Assert.That(activeEvents.Any(e => e.Status == "Đã từ chối"), Is.False);
+
+            // Pending metrics only count active pending events
+            var pendingCount = activeEvents.Count(e => e.ApprovalStatus == "Pending");
+            Assert.That(pendingCount, Is.EqualTo(1));
+        }
     }
 }

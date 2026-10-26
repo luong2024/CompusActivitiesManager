@@ -242,7 +242,7 @@
                             <Button Grid.Column="0" Text="✅ Duyệt bài" FontSize="14" FontAttributes="Bold"
                                     BackgroundColor="#16A34A" TextColor="{StaticResource White}" CornerRadius="10"
                                     Command="{Binding ApproveEventPostCommand}" />
-                            <Button Grid.Column="1" Text="❌ Từ chối" FontSize="14" FontAttributes="Bold"
+                            <Button Grid.Column="1" Text="🗑️ Từ chối &amp; Xóa" FontSize="14" FontAttributes="Bold"
                                     BackgroundColor="#DC2626" TextColor="{StaticResource White}" CornerRadius="10"
                                     Command="{Binding RejectEventPostCommand}" />
                         </Grid>

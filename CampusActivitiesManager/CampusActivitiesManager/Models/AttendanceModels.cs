@@ -210,9 +210,9 @@ namespace CampusActivitiesManager.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [JsonPropertyName("isRead")]
-        public bool IsRead { get; set; }
-
-        [JsonIgnore]
+        public bool IsRead { get; set; }
+
+        [JsonIgnore]
         public bool IsUnread => !IsRead;
 
         [JsonIgnore]

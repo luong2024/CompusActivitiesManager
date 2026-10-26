@@ -6,6 +6,7 @@
              x:Class="CampusActivitiesManager.Pages.EventAttendanceReportPage"
              x:DataType="pagemodels:EventAttendanceReportViewModel"
              Title="Báo Cáo Điểm Danh"
+             Shell.NavBarIsVisible="False"
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
 
     <Grid>
@@ -19,20 +20,34 @@
                             Background="{StaticResource PrimaryGradientBrush}"
                             Padding="20"
                             StrokeThickness="0">
-                        <VerticalStackLayout Spacing="6">
-                            <HorizontalStackLayout Spacing="8">
-                                <Label Text="📊" FontSize="22" VerticalOptions="Center" />
-                                <Label Text="Báo Cáo Điểm Danh Thời Gian Thực"
-                                       FontSize="18"
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource White}"
-                                       VerticalOptions="Center" />
-                            </HorizontalStackLayout>
-                            <Label Text="Theo dõi tỷ lệ tham dự, duyệt minh chứng ảnh check-in và xuất báo cáo CSV."
-                                   FontSize="12"
-                                   TextColor="#E0E7FF"
-                                   LineBreakMode="WordWrap" />
-                        </VerticalStackLayout>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Center">
+                            <Border Grid.Column="0"
+                                    WidthRequest="40" HeightRequest="40"
+                                    StrokeShape="RoundRectangle 10"
+                                    BackgroundColor="{StaticResource TranslucentWhite}"
+                                    StrokeThickness="0"
+                                    VerticalOptions="Center">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ToggleMenuCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="☰" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource White}" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <HorizontalStackLayout Spacing="8">
+                                    <Label Text="📊" FontSize="20" VerticalOptions="Center" />
+                                    <Label Text="Báo Cáo Điểm Danh Thời Gian Thực"
+                                           FontSize="17"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource White}"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Label Text="Theo dõi tỷ lệ tham dự, duyệt minh chứng ảnh check-in và xuất báo cáo CSV."
+                                       FontSize="11.5"
+                                       TextColor="#E0E7FF"
+                                       LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+                        </Grid>
                     </Border>
 
                     <!-- Event Picker -->

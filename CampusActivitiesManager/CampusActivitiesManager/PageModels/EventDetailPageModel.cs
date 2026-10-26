@@ -331,9 +331,9 @@ namespace CampusActivitiesManager.PageModels
             if (EventItem == null) return;
 
             string reason = await Shell.Current.DisplayPromptAsync(
-                "Từ chối bài đăng",
-                "Nhập lý do từ chối đăng hoạt động:",
-                "Xác nhận", "Hủy",
+                "Từ chối & Xóa hoạt động 🗑️",
+                "Nhập lý do từ chối (hoạt động này sẽ bị XÓA vĩnh viễn):",
+                "Từ chối & Xóa", "Hủy",
                 placeholder: "Chưa đạt tiêu chuẩn tổ chức");
 
             if (reason == null) return;
@@ -345,8 +345,8 @@ namespace CampusActivitiesManager.PageModels
                 bool ok = await _eventService.ApproveEventAsync(EventItem.ID, false, adminName, reason);
                 if (ok)
                 {
-                    await Shell.Current.DisplayAlert("Thông báo", "Đã từ chối đăng hoạt động.", "OK");
-                    await LoadEventAsync(EventItem.ID);
+                    await Shell.Current.DisplayAlert("Đã xóa hoạt động 🗑️", "Hoạt động đã bị từ chối và xóa vĩnh viễn khỏi hệ thống.", "OK");
+                    await Shell.Current.GoToAsync("..");
                 }
             }
             finally

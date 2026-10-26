@@ -6,6 +6,7 @@
              x:DataType="pageModels:LoginPageModel"
              x:Class="CampusActivitiesManager.Pages.LoginPage"
              Shell.TabBarIsVisible="False"
+             Shell.NavBarIsVisible="False"
              Shell.FlyoutBehavior="Disabled"
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
              Title="Đăng nhập">

@@ -8,7 +8,8 @@
              x:DataType="pageModels:UserManagementPageModel"
              x:Class="CampusActivitiesManager.Pages.UserManagementPage"
              x:Name="ThisPage"
-             Title="Quản lý &amp; Phân quyền">
+             Title="Quản lý &amp; Phân quyền"
+             Shell.NavBarIsVisible="False">
 
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior
@@ -17,9 +18,7 @@
             Command="{Binding AppearingCommand}" />
     </ContentPage.Behaviors>
 
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Làm mới" Command="{Binding LoadUsersCommand}" />
-    </ContentPage.ToolbarItems>
+
 
     <Grid>
         <!-- Main Content: CollectionView with Header -->
@@ -33,13 +32,27 @@
                 <VerticalStackLayout Spacing="16" Padding="{StaticResource LayoutPadding}">
 
                     <!-- Header Profile Info & Quick Status -->
-                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                        <VerticalStackLayout Grid.Column="0">
-                            <Label Text="Hệ thống Phân quyền Truy cập (RBAC)" Style="{StaticResource Title2}" />
-                            <Label Text="Quản lý tài khoản, mật khẩu và điểm rèn luyện người dùng" Style="{StaticResource Caption1}" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                        <Border Grid.Column="0"
+                                WidthRequest="40" HeightRequest="40"
+                                StrokeShape="RoundRectangle 10"
+                                Background="{AppThemeBinding Light=#EFF6FF, Dark={StaticResource DarkSecondaryBackground}}"
+                                Stroke="{AppThemeBinding Light=#BFDBFE, Dark={StaticResource Gray700}}"
+                                StrokeThickness="1"
+                                VerticalOptions="Center"
+                                Padding="0">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ToggleMenuCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="☰" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource Primary}" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Hệ thống Phân quyền (RBAC)" Style="{StaticResource Title2}" />
+                            <Label Text="Quản lý tài khoản, mật khẩu và điểm rèn luyện" Style="{StaticResource Caption1}" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
                         </VerticalStackLayout>
 
-                        <Border Grid.Column="1" StrokeShape="RoundRectangle 12" Stroke="Transparent" BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkSecondaryBackground}}" Padding="10,6">
+                        <Border Grid.Column="2" StrokeShape="RoundRectangle 12" Stroke="Transparent" BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkSecondaryBackground}}" Padding="10,6">
                             <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                                 <Label Text="👤" FontSize="14" VerticalOptions="Center" />
                                 <Label Text="{Binding CurrentUserRoleName}" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" VerticalOptions="Center" />

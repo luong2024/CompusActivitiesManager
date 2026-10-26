@@ -652,6 +652,15 @@ namespace CampusActivitiesManager.PageModels
 
             await Shell.Current.GoToAsync($"editrole?UserId={user.Id}");
         }
+
+        [RelayCommand]
+        public void ToggleMenu()
+        {
+            if (Shell.Current != null)
+            {
+                Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
+            }
+        }
     }
 
     public class UserManagementViewModel : UserManagementPageModel
