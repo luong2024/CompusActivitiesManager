@@ -1,4 +1,4 @@
-namespace CampusActivitiesManager.Services
+namespace CampusActivitiesManager.BusinessLogic.Services
 {
     public interface IQrCodeService
     {

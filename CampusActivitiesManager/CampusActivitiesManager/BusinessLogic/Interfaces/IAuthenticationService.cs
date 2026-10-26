@@ -1,6 +1,6 @@
 using CampusActivitiesManager.Models;
 
-namespace CampusActivitiesManager.Services
+namespace CampusActivitiesManager.BusinessLogic.Services
 {
     /// <summary>
     /// Giao diện quản lý xác thực, phiên làm việc (Session) và kiểm tra quyền truy cập (RBAC Guard).

@@ -3,7 +3,7 @@ using System.Text.Json;
 using CampusActivitiesManager.Models;
 using Microsoft.Extensions.Logging;
 
-namespace CampusActivitiesManager.Services
+namespace CampusActivitiesManager.BusinessLogic.Services
 {
     public class AttendanceService : IAttendanceService
     {

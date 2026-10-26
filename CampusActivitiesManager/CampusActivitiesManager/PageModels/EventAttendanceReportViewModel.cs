@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Text;
+using CampusActivitiesManager.BusinessLogic.Services;
 using CampusActivitiesManager.Models;
-using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 

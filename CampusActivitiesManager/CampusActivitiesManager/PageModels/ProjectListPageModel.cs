@@ -1,7 +1,4 @@
 #nullable disable
-using CampusActivitiesManager.Data;
-using CampusActivitiesManager.Models;
-using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 

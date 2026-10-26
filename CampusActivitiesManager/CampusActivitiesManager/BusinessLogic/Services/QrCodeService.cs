@@ -1,6 +1,6 @@
 using QRCoder;
 
-namespace CampusActivitiesManager.Services
+namespace CampusActivitiesManager.BusinessLogic.Services
 {
     public class QrCodeService : IQrCodeService
     {

@@ -1,6 +1,6 @@
+using CampusActivitiesManager.BusinessLogic.Services;
 using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Pages;
-using CampusActivitiesManager.Services;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
 using Font = Microsoft.Maui.Font;
