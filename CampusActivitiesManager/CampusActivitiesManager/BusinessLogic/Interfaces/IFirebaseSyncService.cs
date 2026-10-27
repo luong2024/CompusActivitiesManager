@@ -30,6 +30,7 @@ namespace CampusActivitiesManager.BusinessLogic.Interfaces
 
         Task<List<CampusNotificationDto>?> PullNotificationsAsync();
         Task<bool> PushNotificationsAsync(List<CampusNotificationDto> notifications);
+        Task<bool> PushNotificationAsync(CampusNotificationDto notification);
 
         Task<List<PointAuditRecord>?> PullPointAuditsAsync();
         Task<bool> PushPointAuditsAsync(List<PointAuditRecord> audits);

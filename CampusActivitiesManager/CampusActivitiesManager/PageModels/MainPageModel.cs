@@ -151,6 +151,24 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private bool _isNotificationsModalVisible;
 
+        [ObservableProperty]
+        private bool _isCreateNotificationModalVisible;
+
+        [ObservableProperty]
+        private string _newNotifTitle = string.Empty;
+
+        [ObservableProperty]
+        private string _newNotifMessage = string.Empty;
+
+        [ObservableProperty]
+        private string _newNotifType = "Info";
+
+        [ObservableProperty]
+        private string _newNotifTarget = "ALL (Toàn trường)";
+
+        [ObservableProperty]
+        private List<string> _availableNotifTargets = new() { "ALL (Toàn trường)" };
+
         public MainPageModel(
             IEventService eventService,
             IAuthenticationService authService,
@@ -586,5 +604,93 @@ namespace CampusActivitiesManager.PageModels
             UnreadNotificationsCount = 0;
             HasUnreadNotifications = false;
         }
-}
+
+        [RelayCommand]
+        public async Task OpenCreateNotificationModalAsync()
+        {
+            if (!IsAdmin)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Chức năng tạo thông báo chung chỉ dành cho Quản trị viên (Admin)!", "Đã hiểu");
+                }
+                return;
+            }
+
+            NewNotifTitle = string.Empty;
+            NewNotifMessage = string.Empty;
+            NewNotifType = "Info";
+            NewNotifTarget = "ALL (Toàn trường)";
+
+            try
+            {
+                var classes = await _userService.GetClassesAsync();
+                var targets = new List<string> { "ALL (Toàn trường)" };
+                if (classes != null && classes.Any())
+                {
+                    targets.AddRange(classes.Select(c => c.ClassName).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct());
+                }
+                AvailableNotifTargets = targets;
+            }
+            catch { }
+
+            IsCreateNotificationModalVisible = true;
+        }
+
+        [RelayCommand]
+        public void CloseCreateNotificationModal()
+        {
+            IsCreateNotificationModalVisible = false;
+        }
+
+        [RelayCommand]
+        public async Task SendNotificationAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NewNotifTitle))
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Thiếu thông tin ⚠️", "Vui lòng nhập tiêu đề thông báo.", "Đóng");
+                }
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(NewNotifMessage))
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Thiếu thông tin ⚠️", "Vui lòng nhập nội dung thông báo.", "Đóng");
+                }
+                return;
+            }
+
+            string target = string.IsNullOrWhiteSpace(NewNotifTarget) || NewNotifTarget.StartsWith("ALL", StringComparison.OrdinalIgnoreCase)
+                ? "ALL"
+                : NewNotifTarget.Trim();
+
+            var notif = new CampusNotificationDto
+            {
+                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                Title = NewNotifTitle.Trim(),
+                Message = NewNotifMessage.Trim(),
+                Type = string.IsNullOrWhiteSpace(NewNotifType) ? "Info" : NewNotifType,
+                TargetUsername = target,
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            await _attendanceService.AddNotificationAsync(notif);
+            IsCreateNotificationModalVisible = false;
+            await LoadNotificationsAsync();
+
+            string targetDisplay = target == "ALL" ? "Toàn trường" : $"Lớp/Mục tiêu: {target}";
+            if (Shell.Current != null)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Đã phát thông báo thành công 📢",
+                    $"Thông báo '{notif.Title}' đã được gửi đến {targetDisplay} và tự động đồng bộ hóa lên Firebase Cloud!",
+                    "OK");
+            }
+        }
+    }
 }

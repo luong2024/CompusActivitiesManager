@@ -743,12 +743,19 @@
                         <!-- 4. THÔNG BÁO QUAN TRỌNG (CAMPUS NOTICES)       -->
                         <!-- ============================================== -->
                         <Border StrokeShape="RoundRectangle 16" Stroke="#DBEAFE" Background="#EFF6FF" Padding="14,12">
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
                                 <Label Text="📢" FontSize="20" Grid.Column="0" VerticalOptions="Center" />
                                 <VerticalStackLayout Grid.Column="1" Spacing="2">
                                     <Label Text="Quy định Điểm Rèn Luyện (ĐRL) &amp; Check-in Điểm Danh" FontSize="13" FontAttributes="Bold" TextColor="#1E40AF" />
                                     <Label Text="Điểm ban đầu: 0 ĐRL. Mỗi kỳ cần tối thiểu 50 ĐRL, cả năm cần 250 ĐRL. Quét mã QR để mở thông tin hoạt động và điểm danh bằng ảnh!" FontSize="11.5" TextColor="#3B82F6" />
                                 </VerticalStackLayout>
+                                <Button Grid.Column="2" Text="➕ Tạo thông báo"
+                                        IsVisible="{Binding IsAdmin}"
+                                        Command="{Binding OpenCreateNotificationModalCommand}"
+                                        BackgroundColor="#2563EB" TextColor="White"
+                                        FontSize="11" FontAttributes="Bold"
+                                        Padding="10,0" HeightRequest="34" CornerRadius="8"
+                                        VerticalOptions="Center" />
                             </Grid>
                         </Border>
 
@@ -1100,7 +1107,7 @@
 
                 <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
                     <!-- Modal Header -->
-                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
                         <HorizontalStackLayout Grid.Column="0" Spacing="6" VerticalOptions="Center">
                             <Label Text="🔔 Thông Báo" FontSize="16" FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
@@ -1111,11 +1118,16 @@
                             </Border>
                         </HorizontalStackLayout>
 
-                        <Button Grid.Column="1" Text="Đã đọc hết" FontSize="11" TextColor="{StaticResource Primary}"
+                        <Button Grid.Column="1" Text="➕ Tạo mới" FontSize="11" TextColor="#16A34A" FontAttributes="Bold"
+                                Background="Transparent" Padding="4,0" HeightRequest="30"
+                                IsVisible="{Binding IsAdmin}"
+                                Command="{Binding OpenCreateNotificationModalCommand}" />
+
+                        <Button Grid.Column="2" Text="Đã đọc hết" FontSize="11" TextColor="{StaticResource Primary}"
                                 Background="Transparent" Padding="4,0" HeightRequest="30"
                                 Command="{Binding MarkAllNotificationsAsReadCommand}" />
 
-                        <Button Grid.Column="2" Text="✕" Background="Transparent" TextColor="{StaticResource Gray500}"
+                        <Button Grid.Column="3" Text="✕" Background="Transparent" TextColor="{StaticResource Gray500}"
                                 WidthRequest="32" HeightRequest="32" Padding="0" Command="{Binding CloseNotificationsModalCommand}" />
                     </Grid>
 
@@ -1183,6 +1195,140 @@
                             CornerRadius="12"
                             Command="{Binding CloseNotificationsModalCommand}" />
                 </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ============================================== -->
+        <!-- 9. ADMIN CREATE NOTIFICATION MODAL             -->
+        <!-- ============================================== -->
+        <Grid Grid.Row="0" Grid.RowSpan="2"
+              BackgroundColor="#90000000"
+              IsVisible="{Binding IsCreateNotificationModalVisible}"
+              Padding="16"
+              HorizontalOptions="FillAndExpand"
+              VerticalOptions="FillAndExpand">
+            
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseCreateNotificationModalCommand}" />
+            </Grid.GestureRecognizers>
+
+            <Border StrokeShape="RoundRectangle 24"
+                    StrokeThickness="0"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    MaximumWidthRequest="480"
+                    WidthRequest="460"
+                    Padding="22">
+                <Border.Shadow>
+                    <Shadow Brush="{StaticResource Black}" Offset="0,10" Radius="30" Opacity="0.35" />
+                </Border.Shadow>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer />
+                </Border.GestureRecognizers>
+
+                <VerticalStackLayout Spacing="16">
+                    <!-- Modal Header -->
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                            <Border WidthRequest="36" HeightRequest="36" StrokeShape="RoundRectangle 10"
+                                    BackgroundColor="#EFF6FF" StrokeThickness="0" VerticalOptions="Center">
+                                <Label Text="📢" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                <Label Text="Tạo Thông Báo Mới" FontSize="16" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                <Label Text="Phát tin tức, thông báo khẩn hoặc nhắc nhở (Admin)" FontSize="11" TextColor="{StaticResource Gray500}" />
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <Button Grid.Column="1" Text="✕" Background="Transparent" TextColor="{StaticResource Gray500}"
+                                WidthRequest="32" HeightRequest="32" Padding="0" Command="{Binding CloseCreateNotificationModalCommand}" />
+                    </Grid>
+
+                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" />
+
+                    <!-- Form Fields -->
+                    <!-- 1. Tiêu đề thông báo -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Tiêu đề thông báo (*)" FontSize="13" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
+                                Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                            <Entry Text="{Binding NewNotifTitle}" Placeholder="Ví dụ: Lịch nộp minh chứng điểm rèn luyện..." FontSize="13" HeightRequest="42" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- 2. Loại thông báo & Đối tượng nhận -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <!-- Loại thông báo -->
+                        <VerticalStackLayout Grid.Column="0" Spacing="6">
+                            <Label Text="Phân loại thông báo" FontSize="13" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                            <Border StrokeShape="RoundRectangle 10"
+                                    Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
+                                    Padding="10,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                <Picker SelectedItem="{Binding NewNotifType}" FontSize="13" HeightRequest="42">
+                                    <Picker.ItemsSource>
+                                        <x:Array Type="{x:Type x:String}">
+                                            <x:String>Info</x:String>
+                                            <x:String>Urgent</x:String>
+                                            <x:String>Reminder</x:String>
+                                            <x:String>Points</x:String>
+                                            <x:String>Success</x:String>
+                                        </x:Array>
+                                    </Picker.ItemsSource>
+                                </Picker>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Đối tượng nhận -->
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="Phạm vi gửi" FontSize="13" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                            <Border StrokeShape="RoundRectangle 10"
+                                    Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
+                                    Padding="10,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                <Picker ItemsSource="{Binding AvailableNotifTargets}" SelectedItem="{Binding NewNotifTarget}" FontSize="13" HeightRequest="42" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- 3. Nội dung thông báo -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Nội dung thông báo (*)" FontSize="13" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}"
+                                Padding="12,8" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                            <Editor Text="{Binding NewNotifMessage}"
+                                    Placeholder="Nhập chi tiết nội dung thông báo gửi đến toàn trường hoặc lớp cụ thể..."
+                                    HeightRequest="90"
+                                    FontSize="13" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Action Buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,4,0,0">
+                        <Button Grid.Column="0" Text="Hủy bỏ"
+                                Command="{Binding CloseCreateNotificationModalCommand}"
+                                HeightRequest="44"
+                                CornerRadius="12"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}"
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                FontAttributes="Bold" FontSize="14" />
+
+                        <Button Grid.Column="1" Text="🚀 Gửi Thông Báo"
+                                Command="{Binding SendNotificationCommand}"
+                                Style="{StaticResource PrimaryButton}"
+                                HeightRequest="44"
+                                CornerRadius="12"
+                                FontAttributes="Bold" FontSize="14" />
+                    </Grid>
+
+                </VerticalStackLayout>
             </Border>
         </Grid>
 

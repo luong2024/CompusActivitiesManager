@@ -110,5 +110,28 @@ namespace CampusActivitiesManagerTest
             Assert.That(record.PointsDisplay, Is.EqualTo("-15 ĐRL"));
             Assert.That(record.StatusDisplay, Does.Contain("Bị từ chối"));
         }
+
+        [Test]
+        public void CampusNotificationDto_AdminCustomNotification_CreatedWithTargetAndType()
+        {
+            var adminNotif = new CampusNotificationDto
+            {
+                Id = "NOTIF-ADMIN-01",
+                Title = "Thông báo khẩn từ Ban Quản Trị",
+                Message = "Tất cả sinh viên hoàn tất điểm danh trước 17:00 hôm nay",
+                Type = "Urgent",
+                TargetUsername = "ALL",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            Assert.That(adminNotif.Id, Is.EqualTo("NOTIF-ADMIN-01"));
+            Assert.That(adminNotif.Title, Does.Contain("Ban Quản Trị"));
+            Assert.That(adminNotif.TargetUsername, Is.EqualTo("ALL"));
+            Assert.That(adminNotif.Type, Is.EqualTo("Urgent"));
+            Assert.That(adminNotif.IsRead, Is.False);
+            Assert.That(adminNotif.IsUnread, Is.True);
+            Assert.That(adminNotif.FormattedTime, Is.Not.Null.And.Not.Empty);
+        }
     }
 }

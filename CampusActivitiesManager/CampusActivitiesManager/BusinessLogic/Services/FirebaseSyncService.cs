@@ -756,6 +756,20 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
         #endregion
 
+        public async Task<bool> PushNotificationAsync(CampusNotificationDto n)
+        {
+            if (n == null) return false;
+            string payload = JsonSerializer.Serialize(n, _jsonOptions);
+            var stringFields = new Dictionary<string, string>
+            {
+                ["id"] = n.Id ?? "",
+                ["title"] = n.Title ?? "",
+                ["targetUsername"] = n.TargetUsername ?? ""
+            };
+            string nDocId = !string.IsNullOrWhiteSpace(n.Id) ? n.Id : Guid.NewGuid().ToString("N")[..8];
+            return await WriteFirestoreDocumentAsync("notifications", nDocId, payload, stringFields);
+        }
+
         #region Point Audits Sync
 
         public async Task<List<PointAuditRecord>?> PullPointAuditsAsync()

@@ -607,6 +607,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
             _localNotifications.Insert(0, notification);
             await SaveRecordsToDiskAsync();
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () => await _firebaseSync.PushNotificationAsync(notification));
+            }
         }
 
         public async Task MarkNotificationAsReadAsync(string notificationId)
