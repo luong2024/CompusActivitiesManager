@@ -642,6 +642,66 @@
                             </VerticalStackLayout>
                         </Grid>
 
+                            <!-- Form Field: Thiết lập Điểm Rèn Luyện (ĐRL) -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                    <Label Text="⭐ Điểm thưởng (+ĐRL) *" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light=#16A34A, Dark=#4ADE80}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light=#86EFAC, Dark=#166534}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormPointsReward}" Keyboard="Numeric" Placeholder="10" FontSize="13" HeightRequest="42" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#16A34A, Dark=#4ADE80}" />
+                                    </Border>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                    <Label Text="⚠️ Điểm phạt nếu vắng (-ĐRL)" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light=#FCA5A5, Dark=#991B1B}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormPointsPenalty}" Keyboard="Numeric" Placeholder="5" FontSize="13" HeightRequest="42" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <!-- Form Field: Phạm vi tham gia & Hình thức đăng ký -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                    <Label Text="Phạm vi tham gia" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Picker SelectedItem="{Binding FormScope}" FontSize="13" HeightRequest="42">
+                                            <Picker.ItemsSource>
+                                                <x:Array Type="{x:Type x:String}">
+                                                    <x:String>Public</x:String>
+                                                    <x:String>ClassOnly</x:String>
+                                                </x:Array>
+                                            </Picker.ItemsSource>
+                                        </Picker>
+                                    </Border>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                    <Label Text="Hình thức duyệt đơn" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Picker SelectedItem="{Binding FormRegistrationType}" FontSize="13" HeightRequest="42">
+                                            <Picker.ItemsSource>
+                                                <x:Array Type="{x:Type x:String}">
+                                                    <x:String>Auto</x:String>
+                                                    <x:String>ApprovalRequired</x:String>
+                                                </x:Array>
+                                            </Picker.ItemsSource>
+                                        </Picker>
+                                    </Border>
+                                </VerticalStackLayout>
+                            </Grid>
+
                         <!-- Form Field: Trạng thái sự kiện -->
                         <VerticalStackLayout Spacing="6">
                             <Label Text="Trạng thái" FontSize="13" FontAttributes="Bold" 

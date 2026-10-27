@@ -142,5 +142,37 @@ namespace CampusActivitiesManagerTest
             var pendingCount = activeEvents.Count(e => e.ApprovalStatus == "Pending");
             Assert.That(pendingCount, Is.EqualTo(1));
         }
+
+        [Test]
+        public void CampusEvent_PointsConfiguration_SetsRewardAndPenaltyCorrectly()
+        {
+            var evt = new CampusEvent
+            {
+                ID = 201,
+                Name = "Cuộc thi Lập trình Olympic Tin học",
+                PointsReward = 25,
+                PointsPenalty = 10,
+                Scope = "Public",
+                RegistrationType = "ApprovalRequired"
+            };
+
+            Assert.That(evt.PointsReward, Is.EqualTo(25));
+            Assert.That(evt.PointsPenalty, Is.EqualTo(10));
+            Assert.That(evt.PointsRewardDisplay, Does.Contain("+25"));
+            Assert.That(evt.PointsPenaltyDisplay, Does.Contain("-10"));
+            Assert.That(evt.TrainingPointsReward, Is.EqualTo(25));
+            Assert.That(evt.TrainingPointsRewardDisplay, Does.Contain("+25"));
+        }
+
+        [Test]
+        public void CampusEvent_DefaultPoints_InitializedWithValidDefaults()
+        {
+            var evt = new CampusEvent();
+
+            Assert.That(evt.PointsReward, Is.EqualTo(10));
+            Assert.That(evt.PointsPenalty, Is.EqualTo(5));
+            Assert.That(evt.PointsRewardDisplay, Does.Contain("+10"));
+            Assert.That(evt.PointsPenaltyDisplay, Does.Contain("-5"));
+        }
     }
 }

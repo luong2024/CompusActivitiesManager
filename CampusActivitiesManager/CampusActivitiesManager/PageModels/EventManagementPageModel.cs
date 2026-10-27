@@ -118,6 +118,18 @@ namespace CampusActivitiesManager.PageModels
         private string _formVideoUrl = string.Empty;
 
         [ObservableProperty]
+        private int _formPointsReward = 10;
+
+        [ObservableProperty]
+        private int _formPointsPenalty = 5;
+
+        [ObservableProperty]
+        private string _formScope = "Public";
+
+        [ObservableProperty]
+        private string _formRegistrationType = "Auto";
+
+        [ObservableProperty]
         private int _selectedCategoryIndex = 0;
 
         [ObservableProperty]
@@ -358,6 +370,10 @@ namespace CampusActivitiesManager.PageModels
             FormIcon = "📅";
             FormImageUrl = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
             FormVideoUrl = string.Empty;
+            FormPointsReward = 10;
+            FormPointsPenalty = 5;
+            FormScope = "Public";
+            FormRegistrationType = "Auto";
             SelectedCategoryIndex = 0;
 
             IsModalVisible = true;
@@ -389,6 +405,10 @@ namespace CampusActivitiesManager.PageModels
             FormIcon = string.IsNullOrWhiteSpace(evt.Icon) ? "📅" : evt.Icon;
             FormImageUrl = evt.ImageUrl;
             FormVideoUrl = evt.VideoUrl;
+            FormPointsReward = evt.PointsReward > 0 ? evt.PointsReward : 10;
+            FormPointsPenalty = evt.PointsPenalty >= 0 ? evt.PointsPenalty : 5;
+            FormScope = string.IsNullOrWhiteSpace(evt.Scope) ? "Public" : evt.Scope;
+            FormRegistrationType = string.IsNullOrWhiteSpace(evt.RegistrationType) ? "Auto" : evt.RegistrationType;
 
             int catIdx = Categories.FindIndex(c => c.ID == evt.CategoryID || c.Title == evt.CategoryTitle);
             SelectedCategoryIndex = catIdx >= 0 ? catIdx : 0;
@@ -495,6 +515,10 @@ namespace CampusActivitiesManager.PageModels
                     StartTime = string.IsNullOrWhiteSpace(FormStartTime) ? "08:00" : FormStartTime.Trim(),
                     EndTime = string.IsNullOrWhiteSpace(FormEndTime) ? "11:30" : FormEndTime.Trim(),
                     MaxParticipants = FormMaxParticipants > 0 ? FormMaxParticipants : 100,
+                    PointsReward = FormPointsReward > 0 ? FormPointsReward : 10,
+                    PointsPenalty = FormPointsPenalty >= 0 ? FormPointsPenalty : 5,
+                    Scope = string.IsNullOrWhiteSpace(FormScope) ? "Public" : FormScope,
+                    RegistrationType = string.IsNullOrWhiteSpace(FormRegistrationType) ? "Auto" : FormRegistrationType,
                     Status = FormStatus,
                     ImageUrl = FormImageUrl?.Trim() ?? "",
                     VideoUrl = FormVideoUrl?.Trim() ?? "",

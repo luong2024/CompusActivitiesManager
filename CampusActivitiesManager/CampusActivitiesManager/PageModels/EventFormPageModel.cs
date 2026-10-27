@@ -1,4 +1,4 @@
-using CampusActivitiesManager.BusinessLogic.Services;
+﻿using CampusActivitiesManager.BusinessLogic.Services;
 using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Utilities;
@@ -58,6 +58,24 @@ namespace CampusActivitiesManager.PageModels
 
         [ObservableProperty]
         private string _description = string.Empty;
+
+        [ObservableProperty]
+        private int _pointsReward = 10;
+
+        [ObservableProperty]
+        private int _pointsPenalty = 5;
+
+        [ObservableProperty]
+        private string _scope = "Public";
+
+        [ObservableProperty]
+        private string _registrationType = "Auto";
+
+        [ObservableProperty]
+        private string _imageUrl = string.Empty;
+
+        [ObservableProperty]
+        private string _icon = "📅";
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(PageTitle))]
@@ -305,6 +323,12 @@ namespace CampusActivitiesManager.PageModels
                         if (DateTime.TryParse(evt.EndDate, out var eDate)) EndDate = eDate;
                         if (TimeSpan.TryParse(evt.StartTime, out var sTime)) StartTime = sTime;
                         if (TimeSpan.TryParse(evt.EndTime, out var eTime)) EndTime = eTime;
+                        PointsReward = evt.PointsReward > 0 ? evt.PointsReward : 10;
+                        PointsPenalty = evt.PointsPenalty >= 0 ? evt.PointsPenalty : 5;
+                        Scope = string.IsNullOrWhiteSpace(evt.Scope) ? "Public" : evt.Scope;
+                        RegistrationType = string.IsNullOrWhiteSpace(evt.RegistrationType) ? "Auto" : evt.RegistrationType;
+                        ImageUrl = evt.ImageUrl ?? string.Empty;
+                        Icon = string.IsNullOrWhiteSpace(evt.Icon) ? "📅" : evt.Icon;
                         IsEditMode = true;
                         return;
                     }
@@ -464,6 +488,12 @@ namespace CampusActivitiesManager.PageModels
                             existing.StartTime = StartTime.ToString(@"hh\:mm");
                             existing.EndTime = EndTime.ToString(@"hh\:mm");
                             existing.MaxParticipants = MaxParticipants ?? 100;
+                            existing.PointsReward = PointsReward > 0 ? PointsReward : 10;
+                            existing.PointsPenalty = PointsPenalty >= 0 ? PointsPenalty : 5;
+                            existing.Scope = string.IsNullOrWhiteSpace(Scope) ? "Public" : Scope;
+                            existing.RegistrationType = string.IsNullOrWhiteSpace(RegistrationType) ? "Auto" : RegistrationType;
+                            if (!string.IsNullOrWhiteSpace(ImageUrl)) existing.ImageUrl = ImageUrl.Trim();
+                            if (!string.IsNullOrWhiteSpace(Icon)) existing.Icon = Icon.Trim();
                             await _eventService.UpdateEventAsync(existing);
                         }
                     }
