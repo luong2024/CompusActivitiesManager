@@ -59,6 +59,31 @@ namespace CampusActivitiesManager.PageModels
         {
             _userService = userService;
             Title = "Đăng ký tài khoản sinh viên";
+            _ = Task.Run(async () => await LoadClassesAsync());
+        }
+
+        private async Task LoadClassesAsync()
+        {
+            try
+            {
+                var classes = await _userService.GetClassesAsync();
+                if (classes != null && classes.Any())
+                {
+                    var names = classes.Select(c => c.ClassName).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct().ToList();
+                    if (names.Any())
+                    {
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            AvailableClasses = names;
+                            if (string.IsNullOrEmpty(SelectedClass) || !AvailableClasses.Contains(SelectedClass))
+                            {
+                                SelectedClass = AvailableClasses.FirstOrDefault() ?? "D20CNTT1";
+                            }
+                        });
+                    }
+                }
+            }
+            catch { }
         }
 
         partial void OnPasswordChanged(string value)
@@ -196,6 +221,7 @@ namespace CampusActivitiesManager.PageModels
                     IsSecretary = false,
                     TrainingPoints = 0, // Quy tắc: điểm rèn luyện khởi điểm ban đầu là 0 ĐRL
                     IsActive = true,
+                    Password = Password,
                     PasswordHash = Password
                 };
 
