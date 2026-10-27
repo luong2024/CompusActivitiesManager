@@ -836,6 +836,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 _localUsers.Add(user);
             }
             _logger.LogInformation("Saved user {Username} ({Id})", user.Username, user.Id);
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () => await _firebaseSync.PushUserAsync(user));
+            }
             await SaveUsersToDiskAsync();
             return 1;
         }

@@ -62,7 +62,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 string claimJson = JsonSerializer.Serialize(new Dictionary<string, object>
                 {
                     ["iss"] = FirebaseConfig.ClientEmail,
-                    ["scope"] = "https://www.googleapis.com/auth/datastore",
+                    ["scope"] = "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/firebase",
                     ["aud"] = FirebaseConfig.TokenUri,
                     ["exp"] = now + 3600,
                     ["iat"] = now
@@ -341,29 +341,33 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             bool allOk = true;
             foreach (var evt in events)
             {
-                if (evt.ApprovalStatus == "Rejected" || evt.Status == "Đã từ chối")
-                {
-                    await DeleteEventAsync(evt.ID);
-                    continue;
-                }
-
-                var stringFields = new Dictionary<string, string>
-                {
-                    ["id"] = evt.ID.ToString(),
-                    ["name"] = evt.Name ?? "",
-                    ["status"] = evt.Status ?? "",
-                    ["approvalStatus"] = evt.ApprovalStatus ?? "",
-                    ["location"] = evt.Location ?? "",
-                    ["startDate"] = evt.StartDate ?? "",
-                    ["createdByRole"] = evt.CreatedByRole ?? "",
-                    ["createdByName"] = evt.CreatedByName ?? ""
-                };
-
-                string payload = JsonSerializer.Serialize(evt, _jsonOptions);
-                bool ok = await WriteFirestoreDocumentAsync("events", evt.ID.ToString(), payload, stringFields);
+                bool ok = await PushEventAsync(evt);
                 if (!ok) allOk = false;
             }
             return allOk;
+        }
+
+        public async Task<bool> PushEventAsync(CampusEvent evt)
+        {
+            if (evt.ApprovalStatus == "Rejected" || evt.Status == "Đã từ chối")
+            {
+                return await DeleteEventAsync(evt.ID);
+            }
+
+            var stringFields = new Dictionary<string, string>
+            {
+                ["id"] = evt.ID.ToString(),
+                ["name"] = evt.Name ?? "",
+                ["status"] = evt.Status ?? "",
+                ["approvalStatus"] = evt.ApprovalStatus ?? "",
+                ["location"] = evt.Location ?? "",
+                ["startDate"] = evt.StartDate ?? "",
+                ["createdByRole"] = evt.CreatedByRole ?? "",
+                ["createdByName"] = evt.CreatedByName ?? ""
+            };
+
+            string payload = JsonSerializer.Serialize(evt, _jsonOptions);
+            return await WriteFirestoreDocumentAsync("events", evt.ID.ToString(), payload, stringFields);
         }
 
         public async Task<bool> DeleteEventAsync(int eventId)
@@ -423,6 +427,20 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             bool allOk = true;
             foreach (var user in users)
             {
+                bool userOk = await PushUserAsync(user);
+                if (!userOk) allOk = false;
+            }
+            return allOk;
+        }
+
+        public async Task<bool> PushUserAsync(User user)
+        {
+            try
+            {
+                // 1. Đồng bộ tài khoản lên Firebase Authentication (bảng Users trên Firebase Console)
+                _ = Task.Run(async () => await SyncUserToFirebaseAuthAsync(user));
+
+                // 2. Đồng bộ thông tin chi tiết vào Cloud Firestore (collection 'users')
                 string docId = !string.IsNullOrWhiteSpace(user.Id) ? user.Id : (!string.IsNullOrWhiteSpace(user.Username) ? user.Username : Guid.NewGuid().ToString("N")[..8]);
                 var stringFields = new Dictionary<string, string>
                 {
@@ -436,10 +454,69 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 };
 
                 string payload = JsonSerializer.Serialize(user, _jsonOptions);
-                bool ok = await WriteFirestoreDocumentAsync("users", docId, payload, stringFields);
-                if (!ok) allOk = false;
+                return await WriteFirestoreDocumentAsync("users", docId, payload, stringFields);
             }
-            return allOk;
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi đồng bộ người dùng {Email} lên Firebase", user.Email);
+                return false;
+            }
+        }
+
+        public async Task<bool> SyncUserToFirebaseAuthAsync(User user)
+        {
+            if (string.IsNullOrWhiteSpace(user.Email)) return false;
+
+            try
+            {
+                string? token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token)) return false;
+
+                string effectivePassword = !string.IsNullOrWhiteSpace(user.Password)
+                    ? user.Password
+                    : (!string.IsNullOrWhiteSpace(user.PasswordHash) ? user.PasswordHash : user.Role.GetDefaultPassword());
+
+                if (string.IsNullOrWhiteSpace(effectivePassword) || effectivePassword.Length < 6)
+                {
+                    effectivePassword = "Password@123";
+                }
+
+                var createPayload = new
+                {
+                    email = user.Email.Trim(),
+                    password = effectivePassword,
+                    displayName = !string.IsNullOrWhiteSpace(user.FullName) ? user.FullName.Trim() : user.Username,
+                    emailVerified = true
+                };
+
+                string url = $"https://identitytoolkit.googleapis.com/v1/projects/{FirebaseConfig.ProjectId}/accounts";
+                using var req = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Headers = { Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token) },
+                    Content = new StringContent(JsonSerializer.Serialize(createPayload), Encoding.UTF8, "application/json")
+                };
+
+                using var res = await _httpClient.SendAsync(req);
+                if (res.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("Successfully synced user {Email} to Firebase Authentication", user.Email);
+                    return true;
+                }
+
+                string body = await res.Content.ReadAsStringAsync();
+                if (body.Contains("EMAIL_EXISTS"))
+                {
+                    return true;
+                }
+
+                _logger.LogWarning("Firebase Authentication account sync for {Email} returned {Status}: {Body}", user.Email, res.StatusCode, body);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Exception syncing user {Email} to Firebase Authentication", user.Email);
+                return false;
+            }
         }
 
         #endregion

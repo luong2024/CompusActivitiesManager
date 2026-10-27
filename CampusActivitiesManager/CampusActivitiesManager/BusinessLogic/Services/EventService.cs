@@ -504,6 +504,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             if (string.IsNullOrWhiteSpace(evt.EndTime)) evt.EndTime = "11:30";
 
             _localEvents.Insert(0, evt);
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () => await _firebaseSync.PushEventAsync(evt));
+            }
             await SaveEventsToDiskAsync();
             _logger.LogInformation("Event '{Name}' created (ID: {Id}, Scope: {Scope}, Approved: {IsApproved})", evt.Name, evt.ID, evt.Scope, evt.IsApproved);
             return true;
@@ -534,6 +538,12 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 local.RegistrationType = evt.RegistrationType;
                 local.PointsReward = evt.PointsReward;
                 local.PointsPenalty = evt.PointsPenalty;
+
+                if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                {
+                    _ = Task.Run(async () => await _firebaseSync.PushEventAsync(local));
+                }
+
                 await SaveEventsToDiskAsync();
                 _logger.LogInformation("Event {Id} updated", evt.ID);
                 return true;
