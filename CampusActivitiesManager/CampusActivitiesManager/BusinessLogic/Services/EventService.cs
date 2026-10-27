@@ -287,7 +287,8 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                                 _localEvents.AddRange(loaded);
                                 _logger.LogInformation("Loaded {Count} events from persistent storage ({Path})", _localEvents.Count, EventsFilePath);
                                 _localEvents.RemoveAll(e => e.ApprovalStatus == "Rejected" || e.Status == "Đã từ chối");
-                _isInitialized = true;
+                                _isInitialized = true;
+                                TriggerBackgroundCloudSync();
                                 return;
                             }
                         }
@@ -334,6 +335,45 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             {
                 _fileLock.Release();
             }
+        }
+
+        private void TriggerBackgroundCloudSync()
+        {
+            if (_firebaseSync == null || !_firebaseSync.IsConfigured) return;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    // 1. Kéo sự kiện mới nhất từ Cloud Firestore
+                    var cloudEvents = await _firebaseSync.PullEventsAsync();
+                    if (cloudEvents != null && cloudEvents.Count > 0)
+                    {
+                        bool hasNew = false;
+                        foreach (var ce in cloudEvents)
+                        {
+                            var existing = _localEvents.FirstOrDefault(e => e.ID == ce.ID);
+                            if (existing == null)
+                            {
+                                _localEvents.Add(ce);
+                                hasNew = true;
+                            }
+                        }
+
+                        if (hasNew)
+                        {
+                            await SaveEventsToDiskAsync();
+                        }
+                    }
+
+                    // 2. Đẩy toàn bộ sự kiện cục bộ lên Cloud Firestore để đảm bảo không bị thiếu
+                    await _firebaseSync.PushEventsAsync(_localEvents);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi đồng bộ tự động 2 chiều sự kiện lúc khởi động");
+                }
+            });
         }
 
         private async Task SaveEventsToDiskAsync()
@@ -506,7 +546,15 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             _localEvents.Insert(0, evt);
             if (_firebaseSync != null && _firebaseSync.IsConfigured)
             {
-                _ = Task.Run(async () => await _firebaseSync.PushEventAsync(evt));
+                try
+                {
+                    await _firebaseSync.PushEventAsync(evt);
+                    _logger.LogInformation("Pushed event '{Name}' (ID {Id}) directly to Firebase Cloud", evt.Name, evt.ID);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi đẩy trực tiếp sự kiện lên Firebase");
+                }
             }
             await SaveEventsToDiskAsync();
             _logger.LogInformation("Event '{Name}' created (ID: {Id}, Scope: {Scope}, Approved: {IsApproved})", evt.Name, evt.ID, evt.Scope, evt.IsApproved);
@@ -541,7 +589,15 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
                 if (_firebaseSync != null && _firebaseSync.IsConfigured)
                 {
-                    _ = Task.Run(async () => await _firebaseSync.PushEventAsync(local));
+                    try
+                    {
+                        await _firebaseSync.PushEventAsync(local);
+                        _logger.LogInformation("Pushed updated event '{Name}' (ID {Id}) directly to Firebase Cloud", local.Name, local.ID);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Lỗi cập nhật sự kiện lên Firebase");
+                    }
                 }
 
                 await SaveEventsToDiskAsync();

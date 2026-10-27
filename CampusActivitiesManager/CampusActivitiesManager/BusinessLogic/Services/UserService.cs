@@ -306,11 +306,51 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 }
 
                 _isLoadedFromFile = true;
+                TriggerBackgroundCloudSync();
             }
             finally
             {
                 _fileLock.Release();
             }
+        }
+
+        private void TriggerBackgroundCloudSync()
+        {
+            if (_firebaseSync == null || !_firebaseSync.IsConfigured) return;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    // 1. Kéo người dùng mới từ Cloud Firestore
+                    var cloudUsers = await _firebaseSync.PullUsersAsync();
+                    if (cloudUsers != null && cloudUsers.Count > 0)
+                    {
+                        bool hasNew = false;
+                        foreach (var cu in cloudUsers)
+                        {
+                            var existing = _localUsers.FirstOrDefault(u => u.Id == cu.Id || u.Email.Equals(cu.Email, StringComparison.OrdinalIgnoreCase));
+                            if (existing == null)
+                            {
+                                _localUsers.Add(cu);
+                                hasNew = true;
+                            }
+                        }
+
+                        if (hasNew)
+                        {
+                            await SaveUsersToDiskAsync();
+                        }
+                    }
+
+                    // 2. Đẩy toàn bộ người dùng cục bộ lên Firebase Authentication & Cloud Firestore
+                    await _firebaseSync.PushUsersAsync(_localUsers);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi đồng bộ tự động 2 chiều người dùng lúc khởi động");
+                }
+            });
         }
 
         private static async Task SaveUsersToDiskInternalAsync()
@@ -838,7 +878,15 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             _logger.LogInformation("Saved user {Username} ({Id})", user.Username, user.Id);
             if (_firebaseSync != null && _firebaseSync.IsConfigured)
             {
-                _ = Task.Run(async () => await _firebaseSync.PushUserAsync(user));
+                try
+                {
+                    await _firebaseSync.PushUserAsync(user);
+                    _logger.LogInformation("Pushed user {Email} directly to Firebase Authentication & Cloud Firestore", user.Email);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi đẩy trực tiếp người dùng lên Firebase");
+                }
             }
             await SaveUsersToDiskAsync();
             return 1;

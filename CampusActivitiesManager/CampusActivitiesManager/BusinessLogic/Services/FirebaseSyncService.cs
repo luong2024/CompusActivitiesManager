@@ -438,7 +438,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             try
             {
                 // 1. Đồng bộ tài khoản lên Firebase Authentication (bảng Users trên Firebase Console)
-                _ = Task.Run(async () => await SyncUserToFirebaseAuthAsync(user));
+                await SyncUserToFirebaseAuthAsync(user);
 
                 // 2. Đồng bộ thông tin chi tiết vào Cloud Firestore (collection 'users')
                 string docId = !string.IsNullOrWhiteSpace(user.Id) ? user.Id : (!string.IsNullOrWhiteSpace(user.Username) ? user.Username : Guid.NewGuid().ToString("N")[..8]);

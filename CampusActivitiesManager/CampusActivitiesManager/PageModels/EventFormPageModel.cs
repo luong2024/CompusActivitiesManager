@@ -24,6 +24,8 @@ namespace CampusActivitiesManager.PageModels
         private readonly ProjectRepository? _projectRepository;
         private readonly ILogger<EventFormPageModel>? _logger;
         private readonly ModalErrorHandler? _errorHandler;
+        private readonly IEventService? _eventService;
+        private readonly IAuthenticationService? _authService;
 
         // Lưu ý: Thuộc tính Title đại diện cho tiêu đề sự kiện, được kế thừa từ BaseViewModel (hỗ trợ INotifyPropertyChanged).
 
@@ -88,12 +90,16 @@ namespace CampusActivitiesManager.PageModels
             CategoryRepository? categoryRepository,
             ProjectRepository? projectRepository,
             ILogger<EventFormPageModel>? logger,
-            ModalErrorHandler? errorHandler)
+            ModalErrorHandler? errorHandler,
+            IEventService? eventService = null,
+            IAuthenticationService? authService = null)
         {
             _categoryRepository = categoryRepository;
             _projectRepository = projectRepository;
             _logger = logger;
             _errorHandler = errorHandler;
+            _eventService = eventService;
+            _authService = authService;
 
             Title = string.Empty;
             LoadCategoriesAsync().FireAndForgetSafeAsync(_errorHandler);
@@ -284,6 +290,26 @@ namespace CampusActivitiesManager.PageModels
                     await LoadCategoriesAsync();
                 }
 
+                if (_eventService != null)
+                {
+                    var evt = await _eventService.GetEventByIdAsync(id);
+                    if (evt != null)
+                    {
+                        EventId = evt.ID;
+                        Title = evt.Name;
+                        Description = evt.Description;
+                        Location = evt.Location;
+                        MaxParticipants = evt.MaxParticipants;
+                        Category = Categories?.FirstOrDefault(c => c.ID == evt.CategoryID) ?? Categories?.FirstOrDefault();
+                        if (DateTime.TryParse(evt.StartDate, out var sDate)) StartDate = sDate;
+                        if (DateTime.TryParse(evt.EndDate, out var eDate)) EndDate = eDate;
+                        if (TimeSpan.TryParse(evt.StartTime, out var sTime)) StartTime = sTime;
+                        if (TimeSpan.TryParse(evt.EndTime, out var eTime)) EndTime = eTime;
+                        IsEditMode = true;
+                        return;
+                    }
+                }
+
                 if (_projectRepository != null)
                 {
                     var project = await _projectRepository.GetAsync(id);
@@ -421,6 +447,49 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 IsBusy = true;
+
+                if (_eventService != null)
+                {
+                    if (IsEditMode && EventId > 0)
+                    {
+                        var existing = await _eventService.GetEventByIdAsync(EventId);
+                        if (existing != null)
+                        {
+                            existing.Name = Title.Trim();
+                            existing.Description = Description?.Trim() ?? string.Empty;
+                            existing.CategoryID = Category?.ID ?? 1;
+                            existing.Location = string.IsNullOrWhiteSpace(Location) ? "Hội trường A2" : Location.Trim();
+                            existing.StartDate = StartDate.ToString("dd/MM/yyyy");
+                            existing.EndDate = EndDate.ToString("dd/MM/yyyy");
+                            existing.StartTime = StartTime.ToString(@"hh\:mm");
+                            existing.EndTime = EndTime.ToString(@"hh\:mm");
+                            existing.MaxParticipants = MaxParticipants ?? 100;
+                            await _eventService.UpdateEventAsync(existing);
+                        }
+                    }
+                    else
+                    {
+                        var newEvt = new CampusEvent
+                        {
+                            Name = Title.Trim(),
+                            Description = Description?.Trim() ?? string.Empty,
+                            CategoryID = Category?.ID ?? 1,
+                            Location = string.IsNullOrWhiteSpace(Location) ? "Hội trường A2" : Location.Trim(),
+                            StartDate = StartDate.ToString("dd/MM/yyyy"),
+                            EndDate = EndDate.ToString("dd/MM/yyyy"),
+                            StartTime = StartTime.ToString(@"hh\:mm"),
+                            EndTime = EndTime.ToString(@"hh\:mm"),
+                            MaxParticipants = MaxParticipants ?? 100,
+                            Icon = "📅",
+                            Scope = "Public",
+                            Status = "Sắp diễn ra",
+                            CreatedByRole = _authService?.CurrentUser?.Role.ToString() ?? "Admin",
+                            CreatedByName = _authService?.CurrentUser?.FullName ?? "Admin",
+                            CreatedByUsername = _authService?.CurrentUser?.Username ?? "admin"
+                        };
+                        await _eventService.CreateEventAsync(newEvt);
+                    }
+                }
 
                 // Ghi log debug thông tin sự kiện
                 string logMessage = $"[SaveEvent] Chế độ: {(IsEditMode ? "Chỉnh sửa" : "Tạo mới")}, " +
