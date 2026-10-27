@@ -565,6 +565,64 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
         #endregion
 
+        #region Categories Sync
+
+        public async Task<List<Category>?> PullCategoriesAsync()
+        {
+            var rawDocs = await ReadFirestoreCollectionAsync("categories");
+            if (rawDocs.Count == 0) return null;
+
+            var list = new List<Category>();
+            foreach (var item in rawDocs)
+            {
+                Category? cat = null;
+                if (!string.IsNullOrWhiteSpace(item.Payload))
+                {
+                    try { cat = JsonSerializer.Deserialize<Category>(item.Payload, _jsonOptions); } catch { }
+                }
+
+                if (cat == null && item.Fields.Count > 0)
+                {
+                    int.TryParse(item.DocId, out int id);
+                    if (id == 0 && item.Fields.TryGetValue("id", out var idStr))
+                        int.TryParse(idStr, out id);
+
+                    cat = new Category
+                    {
+                        ID = id > 0 ? id : 1,
+                        Title = item.Fields.GetValueOrDefault("title", "Danh mục"),
+                        Color = item.Fields.GetValueOrDefault("color", "#2563EB")
+                    };
+                }
+
+                if (cat != null)
+                {
+                    list.Add(cat);
+                }
+            }
+            return list.OrderBy(c => c.ID).ToList();
+        }
+
+        public async Task<bool> PushCategoriesAsync(List<Category> categories)
+        {
+            bool allOk = true;
+            foreach (var cat in categories)
+            {
+                string payload = JsonSerializer.Serialize(cat, _jsonOptions);
+                var stringFields = new Dictionary<string, string>
+                {
+                    ["id"] = cat.ID.ToString(),
+                    ["title"] = cat.Title ?? "",
+                    ["color"] = cat.Color ?? "#2563EB"
+                };
+                bool ok = await WriteFirestoreDocumentAsync("categories", cat.ID.ToString(), payload, stringFields);
+                if (!ok) allOk = false;
+            }
+            return allOk;
+        }
+
+        #endregion
+
         #region Attendance Sync
 
         public async Task<List<AttendanceRecord>?> PullAttendanceAsync()

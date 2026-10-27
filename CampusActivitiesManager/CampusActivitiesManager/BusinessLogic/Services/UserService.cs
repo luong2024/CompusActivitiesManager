@@ -677,7 +677,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
         // ==================== LỚP HỌC & GIẢNG VIÊN ====================
 
-        private static async Task EnsureClassesLoadedAsync()
+        private async Task EnsureClassesLoadedAsync()
         {
             if (_isClassesLoaded) return;
             try
@@ -695,11 +695,55 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                         }
                     }
                 }
+                else if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                {
+                    try
+                    {
+                        var cloudClasses = await _firebaseSync.PullClassesAsync();
+                        if (cloudClasses != null && cloudClasses.Count > 0)
+                        {
+                            _classes.Clear();
+                            _classes.AddRange(cloudClasses);
+                        }
+                    }
+                    catch { }
+                    await SaveClassesToDiskInternalAsync();
+                }
                 else
                 {
                     await SaveClassesToDiskInternalAsync();
                 }
                 _isClassesLoaded = true;
+
+                // Tự động đồng bộ 2 chiều lớp học với Firebase
+                if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var cloud = await _firebaseSync.PullClassesAsync();
+                            if (cloud != null && cloud.Count > 0)
+                            {
+                                bool hasNew = false;
+                                foreach (var c in cloud)
+                                {
+                                    if (!_classes.Any(x => x.ClassName.Equals(c.ClassName, StringComparison.OrdinalIgnoreCase)))
+                                    {
+                                        _classes.Add(c);
+                                        hasNew = true;
+                                    }
+                                }
+                                if (hasNew) await SaveClassesToDiskInternalAsync();
+                            }
+                            await _firebaseSync.PushClassesAsync(_classes);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Lỗi đồng bộ tự động lớp học lên Firebase");
+                        }
+                    });
+                }
             }
             catch { }
         }
@@ -755,7 +799,14 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
             if (_firebaseSync != null && _firebaseSync.IsConfigured)
             {
-                _ = Task.Run(async () => await _firebaseSync.PushClassesAsync(_classes));
+                try
+                {
+                    await _firebaseSync.PushClassesAsync(_classes);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi đồng bộ lớp học lên Firebase");
+                }
             }
 
             return true;
@@ -781,7 +832,14 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
             if (_firebaseSync != null && _firebaseSync.IsConfigured)
             {
-                _ = Task.Run(async () => await _firebaseSync.PushClassesAsync(_classes));
+                try
+                {
+                    await _firebaseSync.PushClassesAsync(_classes);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi đồng bộ lớp học lên Firebase");
+                }
             }
 
             return true;
@@ -797,7 +855,14 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 await SaveClassesToDiskInternalAsync();
                 if (_firebaseSync != null && _firebaseSync.IsConfigured)
                 {
-                    _ = Task.Run(async () => await _firebaseSync.PushClassesAsync(_classes));
+                    try
+                    {
+                        await _firebaseSync.PushClassesAsync(_classes);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Lỗi đồng bộ xóa lớp học lên Firebase");
+                    }
                 }
                 return true;
             }

@@ -176,11 +176,73 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 }
 
                 _isLoadedFromFile = true;
+                TriggerBackgroundCloudSync();
             }
             finally
             {
                 _fileLock.Release();
             }
+        }
+
+        private void TriggerBackgroundCloudSync()
+        {
+            if (_firebaseSync == null || !_firebaseSync.IsConfigured) return;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    // 1. Kéo điểm danh từ Cloud Firestore
+                    var cloudRecords = await _firebaseSync.PullAttendanceAsync();
+                    if (cloudRecords != null && cloudRecords.Count > 0)
+                    {
+                        bool hasNew = false;
+                        foreach (var cr in cloudRecords)
+                        {
+                            var existing = _localRecords.FirstOrDefault(r => r.Id == cr.Id);
+                            if (existing == null)
+                            {
+                                _localRecords.Add(cr);
+                                hasNew = true;
+                            }
+                        }
+
+                        if (hasNew)
+                        {
+                            await SaveRecordsToDiskInternalAsync();
+                        }
+                    }
+
+                    // 2. Kéo thông báo từ Cloud Firestore
+                    var cloudNotifs = await _firebaseSync.PullNotificationsAsync();
+                    if (cloudNotifs != null && cloudNotifs.Count > 0)
+                    {
+                        bool hasNewNotif = false;
+                        foreach (var cn in cloudNotifs)
+                        {
+                            var existing = _localNotifications.FirstOrDefault(n => n.Id == cn.Id);
+                            if (existing == null)
+                            {
+                                _localNotifications.Add(cn);
+                                hasNewNotif = true;
+                            }
+                        }
+
+                        if (hasNewNotif)
+                        {
+                            await SaveRecordsToDiskInternalAsync();
+                        }
+                    }
+
+                    // 3. Đẩy toàn bộ dữ liệu điểm danh và thông báo lên Cloud Firestore
+                    await _firebaseSync.PushAttendanceAsync(_localRecords);
+                    await _firebaseSync.PushNotificationsAsync(_localNotifications);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi đồng bộ tự động 2 chiều điểm danh & thông báo lúc khởi động");
+                }
+            });
         }
 
         private static async Task SaveRecordsToDiskInternalAsync()

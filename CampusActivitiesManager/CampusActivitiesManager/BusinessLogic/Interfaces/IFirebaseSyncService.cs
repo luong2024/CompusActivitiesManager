@@ -19,6 +19,9 @@ namespace CampusActivitiesManager.BusinessLogic.Interfaces
         Task<List<ClassRoom>?> PullClassesAsync();
         Task<bool> PushClassesAsync(List<ClassRoom> classes);
 
+        Task<List<Category>?> PullCategoriesAsync();
+        Task<bool> PushCategoriesAsync(List<Category> categories);
+
         Task<List<AttendanceRecord>?> PullAttendanceAsync();
         Task<bool> PushAttendanceAsync(List<AttendanceRecord> records);
 

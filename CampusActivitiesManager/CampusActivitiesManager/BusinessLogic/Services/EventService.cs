@@ -367,7 +367,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                     }
 
                     // 2. Đẩy toàn bộ sự kiện cục bộ lên Cloud Firestore để đảm bảo không bị thiếu
-                    await _firebaseSync.PushEventsAsync(_localEvents);
+                    if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                    {
+                        await _firebaseSync.PushEventsAsync(_localEvents);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -632,6 +635,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 local.ApprovedBy = approvedBy ?? "Admin";
                 local.RejectionReason = null;
                 await SaveEventsToDiskAsync();
+                if (_firebaseSync != null && _firebaseSync.IsConfigured)
+                {
+                    _ = Task.Run(async () => await _firebaseSync.PushEventAsync(local));
+                }
                 _logger.LogInformation("Event {Id} approval status updated to Approved by {Approver}", id, approvedBy);
                 return true;
             }
@@ -711,6 +718,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             evt.IsRegistered = true;
 
             await SaveEventsToDiskAsync();
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () => await _firebaseSync.PushEventAsync(evt));
+            }
 
             string msg = regStatus == "Approved"
                 ? "Đăng ký thành công! Bạn đã được tự động duyệt tham gia."
@@ -740,6 +751,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             evt.Registrations.Remove(reg);
             evt.IsRegistered = false;
             await SaveEventsToDiskAsync();
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () => await _firebaseSync.PushEventAsync(evt));
+            }
 
             _logger.LogInformation("User {StudentCode} cancelled pending registration for event {EventId}", studentCodeOrId, eventId);
             return (true, "Đã hủy đăng ký tham gia thành công!");
@@ -756,6 +771,10 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             {
                 reg.Status = approve ? "Approved" : "Rejected";
                 await SaveEventsToDiskAsync();
+            if (_firebaseSync != null && _firebaseSync.IsConfigured)
+            {
+                _ = Task.Run(async () => await _firebaseSync.PushEventAsync(evt));
+            }
                 _logger.LogInformation("Registration {Id} for event {EventId} set to {Status}", registrationId, eventId, reg.Status);
                 return true;
             }

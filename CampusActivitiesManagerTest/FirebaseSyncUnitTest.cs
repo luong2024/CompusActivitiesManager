@@ -91,6 +91,29 @@ namespace CampusActivitiesManagerTest
             }
         }
 
+        [Test]
+        public async Task TestFirestore_SyncCategories()
+        {
+            var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<CampusActivitiesManager.BusinessLogic.Services.FirebaseSyncService>.Instance;
+            var syncService = new CampusActivitiesManager.BusinessLogic.Services.FirebaseSyncService(logger);
+
+            var defaultCategories = new List<CampusActivitiesManager.Models.Category>
+            {
+                new CampusActivitiesManager.Models.Category { ID = 1, Title = "Học thuật", Color = "#2563EB" },
+                new CampusActivitiesManager.Models.Category { ID = 2, Title = "Thể thao", Color = "#059669" },
+                new CampusActivitiesManager.Models.Category { ID = 3, Title = "Tình nguyện", Color = "#DC2626" },
+                new CampusActivitiesManager.Models.Category { ID = 4, Title = "Kỹ năng", Color = "#7C3AED" },
+                new CampusActivitiesManager.Models.Category { ID = 5, Title = "Văn hóa nghệ thuật", Color = "#D97706" }
+            };
+
+            bool pushOk = await syncService.PushCategoriesAsync(defaultCategories);
+            Assert.That(pushOk, Is.True);
+
+            var pulled = await syncService.PullCategoriesAsync();
+            Assert.That(pulled, Is.Not.Null);
+            Assert.That(pulled!.Count, Is.GreaterThanOrEqualTo(5));
+        }
+
         private static string Base64UrlEncode(byte[] bytes)
         {
             return Convert.ToBase64String(bytes).Replace("+", "-").Replace("/", "_").Replace("=", "");
