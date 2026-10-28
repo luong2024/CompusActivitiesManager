@@ -386,7 +386,12 @@ namespace CampusActivitiesManager.Models
         public int RegisteredCount => Registrations?.Count(r => r.Status == "Approved" || r.Status == "Pending") ?? 0;
 
         [JsonIgnore]
-        public string ParticipantsDisplay => $"👥 Đã đăng ký: {RegisteredCount}/{MaxParticipants}";
+        public bool IsUnlimitedParticipants => MaxParticipants <= 0;
+
+        [JsonIgnore]
+        public string ParticipantsDisplay => IsUnlimitedParticipants
+            ? $"👥 Đã đăng ký: {RegisteredCount} (Không giới hạn)"
+            : $"👥 Đã đăng ký: {RegisteredCount}/{MaxParticipants}";
 
         [JsonIgnore]
         public string Title { get => Name; set => Name = value; }

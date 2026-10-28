@@ -485,6 +485,7 @@
               Padding="16,24">
 
             <Border MaximumWidthRequest="520" 
+                    MaximumHeightRequest="640"
                     StrokeShape="RoundRectangle 20" 
                     Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
                     StrokeThickness="1" 
@@ -586,12 +587,18 @@
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Column="1" Spacing="6">
-                                    <Label Text="Số lượng tối đa" FontSize="13" FontAttributes="Bold" 
-                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="Số lượng tối đa" FontSize="13" FontAttributes="Bold" 
+                                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                        <HorizontalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                            <CheckBox IsChecked="{Binding IsUnlimitedCapacity}" VerticalOptions="Center" />
+                                            <Label Text="Không giới hạn" FontSize="11" VerticalOptions="Center" TextColor="{StaticResource Primary}" />
+                                        </HorizontalStackLayout>
+                                    </Grid>
                                     <Border StrokeShape="RoundRectangle 10" 
                                             Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
                                             Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
-                                        <Entry Text="{Binding FormMaxParticipants}" Keyboard="Numeric" Placeholder="150" FontSize="13" HeightRequest="42" />
+                                        <Entry Text="{Binding FormMaxParticipants}" Keyboard="Numeric" Placeholder="150 (Nhập 0 nếu không giới hạn)" FontSize="13" HeightRequest="42" />
                                     </Border>
                                 </VerticalStackLayout>
                             </Grid>
@@ -701,6 +708,15 @@
                                     </Border>
                                 </VerticalStackLayout>
                             </Grid>
+
+                            <!-- Form Field: Lựa chọn lớp cụ thể khi Phạm vi là ClassOnly -->
+                            <VerticalStackLayout Spacing="6" IsVisible="{Binding IsClassOnlyScope}">
+                                <Label Text="Lớp tham gia (Chỉ lớp này mới được đăng ký) *" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Primary}" StrokeThickness="1"
+                                        Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                    <Picker ItemsSource="{Binding AvailableClasses}" SelectedItem="{Binding FormTargetClass}" FontSize="13" HeightRequest="42" />
+                                </Border>
+                            </VerticalStackLayout>
 
                         <!-- Form Field: Trạng thái sự kiện -->
                         <VerticalStackLayout Spacing="6">

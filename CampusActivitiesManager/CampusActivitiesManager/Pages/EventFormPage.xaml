@@ -165,16 +165,22 @@
 
                     <!-- Trường 6: Số lượng người tham gia tối đa (MaxParticipants) -->
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Số người tham gia tối đa"
-                               FontAttributes="Bold"
-                               FontSize="14"
-                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="Số người tham gia tối đa"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <HorizontalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                                <CheckBox IsChecked="{Binding IsUnlimitedCapacity}" VerticalOptions="Center" />
+                                <Label Text="Không giới hạn" FontSize="13" VerticalOptions="Center" TextColor="{StaticResource Primary}" />
+                            </HorizontalStackLayout>
+                        </Grid>
                         <Border StrokeShape="RoundRectangle 8"
                                 Stroke="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
                                 Padding="12,2"
                                 BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}">
                             <Entry Text="{Binding MaxParticipants}"
-                                   Placeholder="Ví dụ: 150"
+                                   Placeholder="Ví dụ: 150 (Nhập 0 nếu không giới hạn)"
                                    Keyboard="Numeric"
                                    HeightRequest="44"
                                    FontSize="14"
@@ -289,6 +295,26 @@
                             </Border>
                         </VerticalStackLayout>
                     </Grid>
+
+                    <!-- Lựa chọn lớp cụ thể khi Scope là ClassOnly -->
+                    <VerticalStackLayout Spacing="6" IsVisible="{Binding IsClassOnlyScope}">
+                        <Label Text="Lớp tham gia (Chỉ sinh viên lớp này mới được đăng ký) (*)"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{StaticResource Primary}" />
+                        <Border StrokeShape="RoundRectangle 8"
+                                Stroke="{StaticResource Primary}"
+                                StrokeThickness="1"
+                                Padding="10,2"
+                                BackgroundColor="{AppThemeBinding Light=#EFF6FF, Dark=#1E293B}">
+                            <Picker ItemsSource="{Binding AvailableClasses}"
+                                    SelectedItem="{Binding TargetClass}"
+                                    Title="-- Chọn lớp học --"
+                                    HeightRequest="44"
+                                    FontSize="14"
+                                    TextColor="{AppThemeBinding Light=#111827, Dark=#F9FAFB}" />
+                        </Border>
+                    </VerticalStackLayout>
 
                     <!-- Trường 9: Mô tả chi tiết (Description) -->
                     <VerticalStackLayout Spacing="6">

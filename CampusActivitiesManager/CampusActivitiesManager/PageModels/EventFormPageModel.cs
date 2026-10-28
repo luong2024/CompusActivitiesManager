@@ -69,6 +69,29 @@ namespace CampusActivitiesManager.PageModels
         private string _scope = "Public";
 
         [ObservableProperty]
+        private string _targetClass = "D20CNTT1";
+
+        [ObservableProperty]
+        private List<string> _availableClasses = new() { "D20CNTT1", "D20CNTT2", "D21CNTT1", "D21CNTT2", "D22CNTT1", "D22CNTT2", "D23CNTT1" };
+
+        [ObservableProperty]
+        private bool _isClassOnlyScope = false;
+
+        [ObservableProperty]
+        private bool _isUnlimitedCapacity = false;
+
+        partial void OnScopeChanged(string value)
+        {
+            IsClassOnlyScope = value == "ClassOnly";
+        }
+
+        partial void OnIsUnlimitedCapacityChanged(bool value)
+        {
+            if (value) MaxParticipants = 0;
+            else if (MaxParticipants == 0) MaxParticipants = 100;
+        }
+
+        [ObservableProperty]
         private string _registrationType = "Auto";
 
         [ObservableProperty]
@@ -318,6 +341,7 @@ namespace CampusActivitiesManager.PageModels
                         Description = evt.Description;
                         Location = evt.Location;
                         MaxParticipants = evt.MaxParticipants;
+                        IsUnlimitedCapacity = evt.IsUnlimitedParticipants;
                         Category = Categories?.FirstOrDefault(c => c.ID == evt.CategoryID) ?? Categories?.FirstOrDefault();
                         if (DateTime.TryParse(evt.StartDate, out var sDate)) StartDate = sDate;
                         if (DateTime.TryParse(evt.EndDate, out var eDate)) EndDate = eDate;
@@ -326,6 +350,8 @@ namespace CampusActivitiesManager.PageModels
                         PointsReward = evt.PointsReward > 0 ? evt.PointsReward : 10;
                         PointsPenalty = evt.PointsPenalty >= 0 ? evt.PointsPenalty : 5;
                         Scope = string.IsNullOrWhiteSpace(evt.Scope) ? "Public" : evt.Scope;
+                        TargetClass = string.IsNullOrWhiteSpace(evt.TargetClass) ? "D20CNTT1" : evt.TargetClass;
+                        IsClassOnlyScope = Scope == "ClassOnly";
                         RegistrationType = string.IsNullOrWhiteSpace(evt.RegistrationType) ? "Auto" : evt.RegistrationType;
                         ImageUrl = evt.ImageUrl ?? string.Empty;
                         Icon = string.IsNullOrWhiteSpace(evt.Icon) ? "📅" : evt.Icon;
@@ -487,10 +513,12 @@ namespace CampusActivitiesManager.PageModels
                             existing.EndDate = EndDate.ToString("dd/MM/yyyy");
                             existing.StartTime = StartTime.ToString(@"hh\:mm");
                             existing.EndTime = EndTime.ToString(@"hh\:mm");
-                            existing.MaxParticipants = MaxParticipants ?? 100;
+                            int effectiveCap = IsUnlimitedCapacity ? 0 : (MaxParticipants ?? 100);
+                            existing.MaxParticipants = effectiveCap;
                             existing.PointsReward = PointsReward > 0 ? PointsReward : 10;
                             existing.PointsPenalty = PointsPenalty >= 0 ? PointsPenalty : 5;
                             existing.Scope = string.IsNullOrWhiteSpace(Scope) ? "Public" : Scope;
+                            existing.TargetClass = (Scope == "ClassOnly" ? TargetClass : "Tất cả");
                             existing.RegistrationType = string.IsNullOrWhiteSpace(RegistrationType) ? "Auto" : RegistrationType;
                             if (!string.IsNullOrWhiteSpace(ImageUrl)) existing.ImageUrl = ImageUrl.Trim();
                             if (!string.IsNullOrWhiteSpace(Icon)) existing.Icon = Icon.Trim();
@@ -499,6 +527,7 @@ namespace CampusActivitiesManager.PageModels
                     }
                     else
                     {
+                        int effectiveCap = IsUnlimitedCapacity ? 0 : (MaxParticipants ?? 100);
                         var newEvt = new CampusEvent
                         {
                             Name = Title.Trim(),
@@ -509,9 +538,13 @@ namespace CampusActivitiesManager.PageModels
                             EndDate = EndDate.ToString("dd/MM/yyyy"),
                             StartTime = StartTime.ToString(@"hh\:mm"),
                             EndTime = EndTime.ToString(@"hh\:mm"),
-                            MaxParticipants = MaxParticipants ?? 100,
-                            Icon = "📅",
-                            Scope = "Public",
+                            MaxParticipants = effectiveCap,
+                            PointsReward = PointsReward > 0 ? PointsReward : 10,
+                            PointsPenalty = PointsPenalty >= 0 ? PointsPenalty : 5,
+                            Icon = string.IsNullOrWhiteSpace(Icon) ? "📅" : Icon.Trim(),
+                            Scope = string.IsNullOrWhiteSpace(Scope) ? "Public" : Scope,
+                            TargetClass = (Scope == "ClassOnly" ? TargetClass : "Tất cả"),
+                            RegistrationType = string.IsNullOrWhiteSpace(RegistrationType) ? "Auto" : RegistrationType,
                             Status = "Sắp diễn ra",
                             CreatedByRole = _authService?.CurrentUser?.Role.ToString() ?? "Admin",
                             CreatedByName = _authService?.CurrentUser?.FullName ?? "Admin",

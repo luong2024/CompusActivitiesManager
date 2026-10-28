@@ -494,56 +494,41 @@ namespace CampusActivitiesManager.PageModels
 
             int points = int.TryParse(pointsStr, out int p) ? p : 10;
 
+            string capacityStr = await Shell.Current.DisplayPromptAsync(
+                "Số Lượng Người Tham Gia",
+                "Nhập số lượng người tham gia tối đa (Nhập 0 hoặc để trống nếu Không Giới Hạn):",
+                "Xác nhận", "Hủy",
+                initialValue: TotalStudents > 0 ? TotalStudents.ToString() : "0",
+                keyboard: Keyboard.Numeric);
 
+            if (capacityStr == null) return; // Người dùng hủy thao tác
+
+            int maxParticipants = int.TryParse(capacityStr, out int cap) ? Math.Max(0, cap) : 0;
 
             var newEvent = new CampusEvent
-
             {
-
                 ID = new Random().Next(100, 999),
-
                 Name = title.Trim(),
-
                 CategoryID = 4,
-
                 Category = new EventCategoryDto { ID = 4, Title = "Hoạt động Lớp", Color = "#7C3AED" },
-
                 Location = $"Phòng học lớp {targetClass}",
-
                 StartDate = DateTime.UtcNow.AddDays(3).ToString("dd/MM/yyyy"),
-
                 EndDate = DateTime.UtcNow.AddDays(3).ToString("dd/MM/yyyy"),
-
                 StartTime = "19:00",
-
                 EndTime = "21:00",
-
                 CreatedByName = _authService.CurrentUser?.FullName ?? "Ban cán sự lớp",
-
                 CreatedByUsername = _authService.CurrentUser?.Username ?? "bithu",
-
                 CreatedByRole = _authService.CurrentUser?.Role.ToString() ?? "Secretary",
-
                 Description = $"Hoạt động rèn luyện nội bộ của chi đoàn/lớp {targetClass}. Chỉ sinh viên trong lớp mới có thể tham gia và ghi nhận điểm rèn luyện.",
-
                 Scope = "ClassOnly",
-
                 TargetClass = targetClass,
-
                 RegistrationType = "Auto",
-
                 PointsReward = points,
-
                 PointsPenalty = 5,
-
                 IsApproved = IsAdmin,
-
                 ApprovalStatus = IsAdmin ? "Approved" : "Pending", // Admin tạo thì duyệt luôn, Bí thư tạo thì chờ Admin duyệt
-
-                MaxParticipants = TotalStudents > 0 ? TotalStudents : 50,
-
+                MaxParticipants = maxParticipants,
                 ImageUrl = "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=80"
-
             };
 
 

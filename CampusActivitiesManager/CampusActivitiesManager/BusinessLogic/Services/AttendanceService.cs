@@ -541,6 +541,18 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
             _localRecords.Insert(0, record);
             await _userService.AdjustTrainingPointsAsync(studentCode, points);
+
+            await AddNotificationAsync(new CampusNotificationDto
+            {
+                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                Title = points >= 0 ? "Cộng điểm rèn luyện 🏆" : "Trừ điểm rèn luyện ⚠️",
+                Message = $"Bạn đã được {(points >= 0 ? "cộng +" : "trừ -")}{Math.Abs(points)} ĐRL cho '{record.EventName}'. Ghi chú: {notes}",
+                Type = "Points",
+                TargetUsername = studentCode,
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            });
+
             await SaveRecordsToDiskAsync();
 
             _logger.LogInformation("Manual attendance recorded for event {EventId}, student {StudentCode}", eventId, studentCode);
@@ -581,16 +593,18 @@ namespace CampusActivitiesManager.BusinessLogic.Services
 
         // ==================== THÔNG BÁO (NOTIFICATIONS) ====================
 
-        public async Task<List<CampusNotificationDto>> GetNotificationsAsync(string? studentCode = null)
+        public async Task<List<CampusNotificationDto>> GetNotificationsAsync(string? studentCode = null, string? className = null)
         {
             await EnsureLoadedAsync();
-            if (string.IsNullOrWhiteSpace(studentCode) || studentCode == "ALL")
+            if ((string.IsNullOrWhiteSpace(studentCode) || studentCode == "ALL") && string.IsNullOrWhiteSpace(className))
                 return _localNotifications.OrderByDescending(n => n.CreatedAt).ToList();
 
             return _localNotifications.Where(n =>
                 string.IsNullOrWhiteSpace(n.TargetUsername) ||
                 n.TargetUsername == "ALL" ||
-                string.Equals(n.TargetUsername, studentCode, StringComparison.OrdinalIgnoreCase))
+                (!string.IsNullOrWhiteSpace(studentCode) && string.Equals(n.TargetUsername, studentCode, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(className) && (string.Equals(n.TargetUsername, className, StringComparison.OrdinalIgnoreCase) ||
+                                                          string.Equals(n.TargetUsername, "CLASS:" + className, StringComparison.OrdinalIgnoreCase))))
                 .OrderByDescending(n => n.CreatedAt)
                 .ToList();
         }

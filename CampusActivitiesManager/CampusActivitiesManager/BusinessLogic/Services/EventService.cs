@@ -257,12 +257,14 @@ namespace CampusActivitiesManager.BusinessLogic.Services
         };
 
         private readonly IFirebaseSyncService? _firebaseSync;
+        private readonly IServiceProvider? _serviceProvider;
 
-        public EventService(ModalErrorHandler errorHandler, ILogger<EventService> logger, IFirebaseSyncService? firebaseSync = null)
+        public EventService(ModalErrorHandler errorHandler, ILogger<EventService> logger, IFirebaseSyncService? firebaseSync = null, IServiceProvider? serviceProvider = null)
         {
             _errorHandler = errorHandler;
             _logger = logger;
             _firebaseSync = firebaseSync;
+            _serviceProvider = serviceProvider;
         }
 
         private async Task EnsureLoadedAsync()
@@ -560,6 +562,48 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 }
             }
             await SaveEventsToDiskAsync();
+
+            if (_serviceProvider != null)
+            {
+                try
+                {
+                    var attendanceService = (IAttendanceService?)_serviceProvider.GetService(typeof(IAttendanceService));
+                    if (attendanceService != null)
+                    {
+                        if (evt.Scope == "ClassOnly")
+                        {
+                            await attendanceService.AddNotificationAsync(new CampusNotificationDto
+                            {
+                                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                                Title = $"Hoạt động mới dành cho lớp {evt.TargetClass} 📢",
+                                Message = $"Hoạt động '{evt.Name}' ({evt.AttendanceTimeWindowDisplay}) vừa được tạo dành riêng cho lớp {evt.TargetClass}. Đăng ký ngay để nhận +{evt.PointsReward} ĐRL!",
+                                Type = "Reminder",
+                                TargetUsername = evt.TargetClass,
+                                CreatedAt = DateTime.UtcNow,
+                                IsRead = false
+                            });
+                        }
+                        else
+                        {
+                            await attendanceService.AddNotificationAsync(new CampusNotificationDto
+                            {
+                                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                                Title = $"Sự kiện mới toàn trường: {evt.Name} 📢",
+                                Message = $"Nhà trường vừa công bố hoạt động '{evt.Name}' ({evt.AttendanceTimeWindowDisplay}) tại {evt.Location}. Tham gia nhận ngay +{evt.PointsReward} ĐRL!",
+                                Type = "Reminder",
+                                TargetUsername = "ALL",
+                                CreatedAt = DateTime.UtcNow,
+                                IsRead = false
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi gửi thông báo tạo sự kiện mới '{Name}'", evt.Name);
+                }
+            }
+
             _logger.LogInformation("Event '{Name}' created (ID: {Id}, Scope: {Scope}, Approved: {IsApproved})", evt.Name, evt.ID, evt.Scope, evt.IsApproved);
             return true;
         }
@@ -639,6 +683,48 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 {
                     _ = Task.Run(async () => await _firebaseSync.PushEventAsync(local));
                 }
+
+                if (_serviceProvider != null)
+                {
+                    try
+                    {
+                        var attendanceService = (IAttendanceService?)_serviceProvider.GetService(typeof(IAttendanceService));
+                        if (attendanceService != null)
+                        {
+                            if (local.Scope == "ClassOnly")
+                            {
+                                await attendanceService.AddNotificationAsync(new CampusNotificationDto
+                                {
+                                    Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                                    Title = $"Hoạt động lớp {local.TargetClass} đã duyệt 📢",
+                                    Message = $"Hoạt động '{local.Name}' dành cho lớp {local.TargetClass} đã được Admin phê duyệt. Các bạn có thể đăng ký tham gia ngay!",
+                                    Type = "Reminder",
+                                    TargetUsername = local.TargetClass,
+                                    CreatedAt = DateTime.UtcNow,
+                                    IsRead = false
+                                });
+                            }
+                            else
+                            {
+                                await attendanceService.AddNotificationAsync(new CampusNotificationDto
+                                {
+                                    Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                                    Title = $"Sự kiện đã được duyệt: {local.Name} 📢",
+                                    Message = $"Sự kiện '{local.Name}' tại {local.Location} đã được Admin phê duyệt và sẵn sàng cho sinh viên toàn trường đăng ký!",
+                                    Type = "Reminder",
+                                    TargetUsername = "ALL",
+                                    CreatedAt = DateTime.UtcNow,
+                                    IsRead = false
+                                });
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Lỗi gửi thông báo phê duyệt sự kiện '{Name}'", local.Name);
+                    }
+                }
+
                 _logger.LogInformation("Event {Id} approval status updated to Approved by {Approver}", id, approvedBy);
                 return true;
             }
@@ -699,6 +785,16 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                     return (false, "Đơn đăng ký của bạn đang chờ ban tổ chức phê duyệt.", "AlreadyPending");
             }
 
+            // Kiểm tra giới hạn số lượng tham gia tối đa (AC: mọi hoạt động không cho phép đăng ký quá số lượng, trừ khi không giới hạn)
+            if (!evt.IsUnlimitedParticipants)
+            {
+                int currentActive = evt.Registrations.Count(r => r.Status == "Approved" || r.Status == "Pending");
+                if (currentActive >= evt.MaxParticipants)
+                {
+                    return (false, $"Hoạt động '{evt.Name}' đã đủ số lượng người tham gia tối đa ({evt.MaxParticipants} người). Không thể đăng ký thêm!", "Full");
+                }
+            }
+
             string regStatus = evt.RegistrationType == "RequiresApproval" ? "Pending" : "Approved";
 
             var reg = new EventRegistration
@@ -726,6 +822,33 @@ namespace CampusActivitiesManager.BusinessLogic.Services
             string msg = regStatus == "Approved"
                 ? "Đăng ký thành công! Bạn đã được tự động duyệt tham gia."
                 : "Đăng ký thành công! Đơn đăng ký đang chờ Ban tổ chức phê duyệt.";
+
+            if (_serviceProvider != null)
+            {
+                try
+                {
+                    var attendanceService = (IAttendanceService?)_serviceProvider.GetService(typeof(IAttendanceService));
+                    if (attendanceService != null)
+                    {
+                        await attendanceService.AddNotificationAsync(new CampusNotificationDto
+                        {
+                            Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                            Title = regStatus == "Approved" ? "Đăng ký thành công 🎉" : "Đã gửi đăng ký tham gia ⏳",
+                            Message = regStatus == "Approved"
+                                ? $"Bạn đã đăng ký tham gia thành công hoạt động '{evt.Name}' ({evt.AttendanceTimeWindowDisplay})."
+                                : $"Đơn đăng ký hoạt động '{evt.Name}' của bạn đang chờ Ban tổ chức phê duyệt.",
+                            Type = regStatus == "Approved" ? "Success" : "Info",
+                            TargetUsername = user.Username,
+                            CreatedAt = DateTime.UtcNow,
+                            IsRead = false
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi gửi thông báo đăng ký sự kiện cho {Username}", user.Username);
+                }
+            }
 
             _logger.LogInformation("User {StudentCode} registered for event {EventId} with status {Status}", user.Username, eventId, regStatus);
             return (true, msg, regStatus);

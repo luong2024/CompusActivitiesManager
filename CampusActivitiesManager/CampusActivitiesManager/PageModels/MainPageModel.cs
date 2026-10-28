@@ -155,6 +155,73 @@ namespace CampusActivitiesManager.PageModels
         private bool _isCreateNotificationModalVisible;
 
         [ObservableProperty]
+        private string _selectedNotificationFilter = "ALL";
+
+        public Color FilterAllBg => SelectedNotificationFilter == "ALL" ? Color.FromArgb("#2563EB") : Color.FromArgb("#F1F5F9");
+        public Color FilterAllText => SelectedNotificationFilter == "ALL" ? Colors.White : Color.FromArgb("#475569");
+
+        public Color FilterSchoolBg => SelectedNotificationFilter == "SCHOOL" ? Color.FromArgb("#2563EB") : Color.FromArgb("#F1F5F9");
+        public Color FilterSchoolText => SelectedNotificationFilter == "SCHOOL" ? Colors.White : Color.FromArgb("#475569");
+
+        public Color FilterClassBg => SelectedNotificationFilter == "CLASS" ? Color.FromArgb("#2563EB") : Color.FromArgb("#F1F5F9");
+        public Color FilterClassText => SelectedNotificationFilter == "CLASS" ? Colors.White : Color.FromArgb("#475569");
+
+        public Color FilterPersonalBg => SelectedNotificationFilter == "PERSONAL" ? Color.FromArgb("#2563EB") : Color.FromArgb("#F1F5F9");
+        public Color FilterPersonalText => SelectedNotificationFilter == "PERSONAL" ? Colors.White : Color.FromArgb("#475569");
+
+        private List<CampusNotificationDto> _allNotifications = new();
+
+        [RelayCommand]
+        public void SetNotificationFilter(string filter)
+        {
+            SelectedNotificationFilter = filter ?? "ALL";
+            OnPropertyChanged(nameof(FilterAllBg));
+            OnPropertyChanged(nameof(FilterAllText));
+            OnPropertyChanged(nameof(FilterSchoolBg));
+            OnPropertyChanged(nameof(FilterSchoolText));
+            OnPropertyChanged(nameof(FilterClassBg));
+            OnPropertyChanged(nameof(FilterClassText));
+            OnPropertyChanged(nameof(FilterPersonalBg));
+            OnPropertyChanged(nameof(FilterPersonalText));
+            ApplyNotificationFilter();
+        }
+
+        private void ApplyNotificationFilter()
+        {
+            var currentUser = _authService.CurrentUser;
+            string myUser = currentUser?.Username ?? "";
+            string myClass = currentUser?.ClassName ?? "";
+
+            IEnumerable<CampusNotificationDto> filtered = _allNotifications;
+
+            if (SelectedNotificationFilter == "SCHOOL")
+            {
+                filtered = _allNotifications.Where(n => string.IsNullOrWhiteSpace(n.TargetUsername) || n.TargetUsername == "ALL");
+            }
+            else if (SelectedNotificationFilter == "CLASS")
+            {
+                filtered = _allNotifications.Where(n =>
+                    !string.IsNullOrWhiteSpace(n.TargetUsername) &&
+                    n.TargetUsername != "ALL" &&
+                    (string.Equals(n.TargetUsername, myClass, StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(n.TargetUsername, "CLASS:" + myClass, StringComparison.OrdinalIgnoreCase) ||
+                     (!n.TargetUsername.Equals(myUser, StringComparison.OrdinalIgnoreCase) && n.Type != "Points")));
+            }
+            else if (SelectedNotificationFilter == "PERSONAL")
+            {
+                filtered = _allNotifications.Where(n =>
+                    n.Type == "Points" ||
+                    string.Equals(n.TargetUsername, myUser, StringComparison.OrdinalIgnoreCase));
+            }
+
+            Notifications.Clear();
+            foreach (var item in filtered.OrderByDescending(x => x.CreatedAt))
+            {
+                Notifications.Add(item);
+            }
+        }
+
+        [ObservableProperty]
         private string _newNotifTitle = string.Empty;
 
         [ObservableProperty]
@@ -552,13 +619,10 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 var currentUser = _authService.CurrentUser;
-                var list = await _attendanceService.GetNotificationsAsync(currentUser?.Username);
-                Notifications.Clear();
-                foreach (var n in list.OrderByDescending(x => x.CreatedAt))
-                {
-                    Notifications.Add(n);
-                }
-                UnreadNotificationsCount = Notifications.Count(n => !n.IsRead);
+                var list = await _attendanceService.GetNotificationsAsync(currentUser?.Username, currentUser?.ClassName);
+                _allNotifications = list;
+                ApplyNotificationFilter();
+                UnreadNotificationsCount = _allNotifications.Count(n => !n.IsRead);
                 HasUnreadNotifications = UnreadNotificationsCount > 0;
             }
             catch { }
@@ -591,16 +655,11 @@ namespace CampusActivitiesManager.PageModels
         {
             var currentUser = _authService.CurrentUser;
             await _attendanceService.MarkAllNotificationsAsReadAsync(currentUser?.Username);
-            foreach (var n in Notifications)
+            foreach (var n in _allNotifications)
             {
                 n.IsRead = true;
             }
-            var copy = Notifications.ToList();
-            Notifications.Clear();
-            foreach (var item in copy)
-            {
-                Notifications.Add(item);
-            }
+            ApplyNotificationFilter();
             UnreadNotificationsCount = 0;
             HasUnreadNotifications = false;
         }

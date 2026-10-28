@@ -127,6 +127,29 @@ namespace CampusActivitiesManager.PageModels
         private string _formScope = "Public";
 
         [ObservableProperty]
+        private string _formTargetClass = "D20CNTT1";
+
+        [ObservableProperty]
+        private List<string> _availableClasses = new() { "D20CNTT1", "D20CNTT2", "D21CNTT1", "D21CNTT2", "D22CNTT1", "D22CNTT2", "D23CNTT1" };
+
+        [ObservableProperty]
+        private bool _isClassOnlyScope = false;
+
+        [ObservableProperty]
+        private bool _isUnlimitedCapacity = false;
+
+        partial void OnFormScopeChanged(string value)
+        {
+            IsClassOnlyScope = value == "ClassOnly";
+        }
+
+        partial void OnIsUnlimitedCapacityChanged(bool value)
+        {
+            if (value) FormMaxParticipants = 0;
+            else if (FormMaxParticipants == 0) FormMaxParticipants = 150;
+        }
+
+        [ObservableProperty]
         private string _formRegistrationType = "Auto";
 
         [ObservableProperty]
@@ -373,6 +396,9 @@ namespace CampusActivitiesManager.PageModels
             FormPointsReward = 10;
             FormPointsPenalty = 5;
             FormScope = "Public";
+            FormTargetClass = "D20CNTT1";
+            IsClassOnlyScope = false;
+            IsUnlimitedCapacity = false;
             FormRegistrationType = "Auto";
             SelectedCategoryIndex = 0;
 
@@ -408,6 +434,9 @@ namespace CampusActivitiesManager.PageModels
             FormPointsReward = evt.PointsReward > 0 ? evt.PointsReward : 10;
             FormPointsPenalty = evt.PointsPenalty >= 0 ? evt.PointsPenalty : 5;
             FormScope = string.IsNullOrWhiteSpace(evt.Scope) ? "Public" : evt.Scope;
+            FormTargetClass = string.IsNullOrWhiteSpace(evt.TargetClass) ? "D20CNTT1" : evt.TargetClass;
+            IsClassOnlyScope = FormScope == "ClassOnly";
+            IsUnlimitedCapacity = evt.IsUnlimitedParticipants;
             FormRegistrationType = string.IsNullOrWhiteSpace(evt.RegistrationType) ? "Auto" : evt.RegistrationType;
 
             int catIdx = Categories.FindIndex(c => c.ID == evt.CategoryID || c.Title == evt.CategoryTitle);
@@ -514,10 +543,11 @@ namespace CampusActivitiesManager.PageModels
                     EndDate = FormEndDate,
                     StartTime = string.IsNullOrWhiteSpace(FormStartTime) ? "08:00" : FormStartTime.Trim(),
                     EndTime = string.IsNullOrWhiteSpace(FormEndTime) ? "11:30" : FormEndTime.Trim(),
-                    MaxParticipants = FormMaxParticipants > 0 ? FormMaxParticipants : 100,
+                    MaxParticipants = IsUnlimitedCapacity ? 0 : (FormMaxParticipants > 0 ? FormMaxParticipants : 100),
                     PointsReward = FormPointsReward > 0 ? FormPointsReward : 10,
                     PointsPenalty = FormPointsPenalty >= 0 ? FormPointsPenalty : 5,
                     Scope = string.IsNullOrWhiteSpace(FormScope) ? "Public" : FormScope,
+                    TargetClass = (FormScope == "ClassOnly" ? FormTargetClass : "Tất cả"),
                     RegistrationType = string.IsNullOrWhiteSpace(FormRegistrationType) ? "Auto" : FormRegistrationType,
                     Status = FormStatus,
                     ImageUrl = FormImageUrl?.Trim() ?? "",

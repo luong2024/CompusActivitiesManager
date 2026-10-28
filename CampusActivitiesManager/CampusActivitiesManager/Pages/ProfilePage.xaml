@@ -220,8 +220,10 @@
                     VerticalOptions="Center"
                     HorizontalOptions="Center"
                     MaximumWidthRequest="420"
-                    Padding="24">
-                <VerticalStackLayout Spacing="16">
+                    MaximumHeightRequest="580"
+                    Padding="20">
+                <ScrollView VerticalScrollBarVisibility="Default">
+                    <VerticalStackLayout Spacing="14">
                     <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
                         <Label Text="🔑" FontSize="22" VerticalOptions="Center" />
                         <Label Text="Đổi Mật Khẩu" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Primary}" VerticalOptions="Center" />
@@ -277,7 +279,8 @@
                                 HeightRequest="44"
                                 CornerRadius="12" />
                     </Grid>
-                </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </ScrollView>
             </Border>
         </Grid>
     </Grid>

@@ -1105,7 +1105,7 @@
                     <TapGestureRecognizer />
                 </Border.GestureRecognizers>
 
-                <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
+                <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="10">
                     <!-- Modal Header -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
                         <HorizontalStackLayout Grid.Column="0" Spacing="6" VerticalOptions="Center">
@@ -1133,8 +1133,29 @@
 
                     <BoxView Grid.Row="1" HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
 
+                    <!-- Notification Filters (US: Lọc thông báo Trường, Lớp, Cá nhân) -->
+                    <ScrollView Grid.Row="2" Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                        <HorizontalStackLayout Spacing="6" Padding="0,2">
+                            <Button Text="Tất cả" Command="{Binding SetNotificationFilterCommand}" CommandParameter="ALL"
+                                    HeightRequest="28" CornerRadius="14" Padding="10,0" FontSize="11" FontAttributes="Bold"
+                                    BackgroundColor="{Binding FilterAllBg}" TextColor="{Binding FilterAllText}" />
+
+                            <Button Text="🌐 Toàn trường" Command="{Binding SetNotificationFilterCommand}" CommandParameter="SCHOOL"
+                                    HeightRequest="28" CornerRadius="14" Padding="10,0" FontSize="11" FontAttributes="Bold"
+                                    BackgroundColor="{Binding FilterSchoolBg}" TextColor="{Binding FilterSchoolText}" />
+
+                            <Button Text="👥 Lớp học" Command="{Binding SetNotificationFilterCommand}" CommandParameter="CLASS"
+                                    HeightRequest="28" CornerRadius="14" Padding="10,0" FontSize="11" FontAttributes="Bold"
+                                    BackgroundColor="{Binding FilterClassBg}" TextColor="{Binding FilterClassText}" />
+
+                            <Button Text="🏆 Điểm &amp; Cá nhân" Command="{Binding SetNotificationFilterCommand}" CommandParameter="PERSONAL"
+                                    HeightRequest="28" CornerRadius="14" Padding="10,0" FontSize="11" FontAttributes="Bold"
+                                    BackgroundColor="{Binding FilterPersonalBg}" TextColor="{Binding FilterPersonalText}" />
+                        </HorizontalStackLayout>
+                    </ScrollView>
+
                     <!-- Notifications List -->
-                    <ScrollView Grid.Row="2" VerticalScrollBarVisibility="Default">
+                    <ScrollView Grid.Row="3" VerticalScrollBarVisibility="Default">
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Notifications}" Spacing="8">
                             <BindableLayout.EmptyView>
                                 <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,30">
@@ -1218,8 +1239,9 @@
                     HorizontalOptions="Center"
                     VerticalOptions="Center"
                     MaximumWidthRequest="480"
+                    MaximumHeightRequest="600"
                     WidthRequest="460"
-                    Padding="22">
+                    Padding="20">
                 <Border.Shadow>
                     <Shadow Brush="{StaticResource Black}" Offset="0,10" Radius="30" Opacity="0.35" />
                 </Border.Shadow>
@@ -1228,7 +1250,8 @@
                     <TapGestureRecognizer />
                 </Border.GestureRecognizers>
 
-                <VerticalStackLayout Spacing="16">
+                <ScrollView VerticalScrollBarVisibility="Default">
+                    <VerticalStackLayout Spacing="14">
                     <!-- Modal Header -->
                     <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
                         <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
@@ -1328,7 +1351,8 @@
                                 FontAttributes="Bold" FontSize="14" />
                     </Grid>
 
-                </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </ScrollView>
             </Border>
         </Grid>
 

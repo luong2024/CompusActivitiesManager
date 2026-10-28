@@ -10,7 +10,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
         Task<List<AttendanceRecord>> GetEventAttendanceAsync(int eventId);
         Task<List<AttendanceRecord>> GetStudentAttendanceHistoryAsync(string studentCode);
         Task<string> ExportAttendanceCsvAsync(int eventId);
-        Task<List<CampusNotificationDto>> GetNotificationsAsync(string? studentCode = null);
+        Task<List<CampusNotificationDto>> GetNotificationsAsync(string? studentCode = null, string? className = null);
         Task AddNotificationAsync(CampusNotificationDto notification);
         Task MarkNotificationAsReadAsync(string notificationId);
         Task MarkAllNotificationsAsReadAsync(string? studentCode = null);

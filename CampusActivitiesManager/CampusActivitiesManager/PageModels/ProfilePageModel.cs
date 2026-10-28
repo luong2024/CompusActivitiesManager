@@ -135,8 +135,13 @@ namespace CampusActivitiesManager.PageModels
                 var (success, message) = await _userService.ChangePasswordAsync(user.Username, CurrentPasswordInput.Trim(), NewPasswordInput.Trim());
                 if (success)
                 {
+                    user.Password = NewPasswordInput.Trim();
+                    user.PasswordHash = NewPasswordInput.Trim();
+                    CurrentPasswordInput = string.Empty;
+                    NewPasswordInput = string.Empty;
+                    ConfirmPasswordInput = string.Empty;
                     IsChangePasswordModalVisible = false;
-                    await Shell.Current.DisplayAlert("Thành công 🎉", "Mật khẩu tài khoản đã được thay đổi thành công!", "OK");
+                    await Shell.Current.DisplayAlert("Thành công 🎉", "Mật khẩu tài khoản đã được thay đổi và đồng bộ thành công!", "OK");
                 }
                 else
                 {

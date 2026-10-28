@@ -149,5 +149,25 @@ namespace CampusActivitiesManagerTest
             audit.Reason = "Vắng sinh hoạt lớp không phép";
             Assert.That(audit.DeltaDisplay, Is.EqualTo("-5 ĐRL"));
         }
+
+        [Test]
+        public void User_ChangePassword_UpdatesEffectivePassword()
+        {
+            var user = new User
+            {
+                Username = "sv_test",
+                Role = Role.User,
+                Password = "Student@123"
+            };
+
+            Assert.That(user.EffectivePassword, Is.EqualTo("Student@123"));
+
+            // User updates new password
+            user.Password = "NewSecurePass!2026";
+            user.PasswordHash = "NewSecurePass!2026";
+
+            Assert.That(user.EffectivePassword, Is.EqualTo("NewSecurePass!2026"));
+            Assert.That(user.Password, Is.EqualTo("NewSecurePass!2026"));
+        }
     }
 }

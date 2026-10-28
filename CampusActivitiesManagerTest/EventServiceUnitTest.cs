@@ -174,5 +174,58 @@ namespace CampusActivitiesManagerTest
             Assert.That(evt.PointsRewardDisplay, Does.Contain("+10"));
             Assert.That(evt.PointsPenaltyDisplay, Does.Contain("-5"));
         }
+
+        [Test]
+        public void CampusEvent_CapacityLimit_UnlimitedVersusLimited()
+        {
+            var unlimitedEvt = new CampusEvent { MaxParticipants = 0 };
+            Assert.That(unlimitedEvt.IsUnlimitedParticipants, Is.True);
+            Assert.That(unlimitedEvt.ParticipantsDisplay, Does.Contain("Không giới hạn"));
+
+            var negativeEvt = new CampusEvent { MaxParticipants = -1 };
+            Assert.That(negativeEvt.IsUnlimitedParticipants, Is.True);
+
+            var limitedEvt = new CampusEvent { MaxParticipants = 50 };
+            Assert.That(limitedEvt.IsUnlimitedParticipants, Is.False);
+            Assert.That(limitedEvt.ParticipantsDisplay, Does.Contain("/50"));
+        }
+
+        [Test]
+        public void CampusEvent_Scope_ClassOnlyVersusPublicBadge()
+        {
+            var classEvt = new CampusEvent
+            {
+                Scope = "ClassOnly",
+                TargetClass = "D20CNTT1"
+            };
+            Assert.That(classEvt.ScopeBadgeText, Does.Contain("Lớp D20CNTT1"));
+            Assert.That(classEvt.ScopeBadge, Does.Contain("Lớp D20CNTT1"));
+
+            var publicEvt = new CampusEvent
+            {
+                Scope = "Public"
+            };
+            Assert.That(publicEvt.ScopeBadgeText, Does.Contain("Toàn trường"));
+        }
+
+        [Test]
+        public void CampusEvent_RegistrationCapacity_CalculationMatchesCount()
+        {
+            var evt = new CampusEvent
+            {
+                MaxParticipants = 2,
+                Registrations = new List<EventRegistration>
+                {
+                    new EventRegistration { StudentCode = "SV01", Status = "Approved" },
+                    new EventRegistration { StudentCode = "SV02", Status = "Pending" },
+                    new EventRegistration { StudentCode = "SV03", Status = "Rejected" }
+                }
+            };
+
+            // Active registrations count (Approved or Pending) is 2
+            Assert.That(evt.RegisteredCount, Is.EqualTo(2));
+            Assert.That(evt.ParticipantsDisplay, Does.Contain("2/2"));
+            Assert.That(evt.IsUnlimitedParticipants, Is.False);
+        }
     }
 }
