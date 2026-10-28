@@ -36,6 +36,9 @@ namespace CampusActivitiesManager.PageModels
         private bool _isAdmin;
 
         [ObservableProperty]
+        private bool _isStudent = true;
+
+        [ObservableProperty]
         private string _className = "D20CNTT1";
 
         [ObservableProperty]
@@ -246,6 +249,7 @@ namespace CampusActivitiesManager.PageModels
                 ClassName = user.ClassName ?? "D20CNTT1";
                 TrainingPoints = user.TrainingPoints;
                 IsAdmin = user.Role == Role.Admin;
+                IsStudent = user.Role == Role.User || user.Role == Role.Secretary;
                 RoleDisplay = user.Role switch
                 {
                     Role.Admin => "Quản trị viên (Admin)",

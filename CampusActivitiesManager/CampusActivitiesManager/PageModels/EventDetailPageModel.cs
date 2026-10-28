@@ -165,11 +165,47 @@ namespace CampusActivitiesManager.PageModels
 
             if (myReg == null || myReg.Status == "Cancelled")
             {
-                UserRegistrationStatus = "Chưa đăng ký tham gia";
-                RegistrationStatusColor = Color.FromArgb("#64748B");
-                CanRegister = EventItem.ApprovalStatus == "Approved" || IsAdmin;
                 CanCancel = false;
                 CanCheckInPhoto = false;
+
+                // 1. Kiểm tra nếu hoạt động đã kết thúc
+                if (EventItem.IsEventEnded)
+                {
+                    UserRegistrationStatus = "Hoạt động đã kết thúc (Đóng đăng ký)";
+                    RegistrationStatusColor = Color.FromArgb("#94A3B8");
+                    CanRegister = false;
+                }
+                // 2. Kiểm tra nếu là hoạt động nội bộ lớp (ClassOnly) và sinh viên khác lớp
+                else if (string.Equals(EventItem.Scope, "ClassOnly", StringComparison.OrdinalIgnoreCase) &&
+                         !string.IsNullOrWhiteSpace(EventItem.TargetClass) &&
+                         !IsAdmin &&
+                         !string.Equals(currentUser?.AssignedClass, EventItem.TargetClass, StringComparison.OrdinalIgnoreCase))
+                {
+                    UserRegistrationStatus = $"Hoạt động nội bộ chỉ dành riêng cho lớp {EventItem.TargetClass}";
+                    RegistrationStatusColor = Color.FromArgb("#DC2626");
+                    CanRegister = false;
+                }
+                // 3. Kiểm tra số lượng người tham gia tối đa (Capacity check)
+                else if (!EventItem.IsUnlimitedParticipants && EventItem.MaxParticipants > 0 && EventItem.RegisteredCount >= EventItem.MaxParticipants)
+                {
+                    UserRegistrationStatus = $"Hoạt động đã đủ số lượng tham gia ({EventItem.RegisteredCount}/{EventItem.MaxParticipants})";
+                    RegistrationStatusColor = Color.FromArgb("#EF4444");
+                    CanRegister = false;
+                }
+                // 4. Kiểm tra sự kiện chưa được Admin duyệt (nếu không phải Admin)
+                else if (EventItem.ApprovalStatus != "Approved" && !IsAdmin)
+                {
+                    UserRegistrationStatus = "Hoạt động đang chờ Quản trị viên phê duyệt";
+                    RegistrationStatusColor = Color.FromArgb("#D97706");
+                    CanRegister = false;
+                }
+                // 5. Thỏa mãn mọi điều kiện
+                else
+                {
+                    UserRegistrationStatus = "Chưa đăng ký tham gia";
+                    RegistrationStatusColor = Color.FromArgb("#64748B");
+                    CanRegister = true;
+                }
             }
             else if (myReg.Status == "Pending")
             {

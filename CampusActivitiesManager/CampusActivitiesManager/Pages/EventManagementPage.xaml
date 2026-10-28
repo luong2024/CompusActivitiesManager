@@ -67,19 +67,19 @@
                             </Border>
                         </Grid>
 
-                        <!-- Non-Manager Warning Banner -->
-                        <Border StrokeShape="RoundRectangle 10"
-                                Stroke="{StaticResource WarningColor}"
+                        <!-- Student Discovery Banner -->
+                        <Border StrokeShape="RoundRectangle 14"
+                                Stroke="#BFDBFE"
                                 StrokeThickness="1"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource WarningBgLight}, Dark={StaticResource WarningBgDark}}"
+                                BackgroundColor="{AppThemeBinding Light=#EFF6FF, Dark={StaticResource DarkSecondaryBackground}}"
                                 Padding="14,10"
                                 IsVisible="{Binding IsManagerOrAdmin, Converter={toolkit:InvertedBoolConverter}}">
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
-                                <Label Text="⚠️" FontSize="20" Grid.Column="0" VerticalOptions="Center" />
-                                <VerticalStackLayout Grid.Column="1">
-                                    <Label Text="Chế độ chỉ xem (View-Only)" FontAttributes="Bold" TextColor="{StaticResource WarningTextLight}" FontSize="14" />
-                                    <Label Text="Bạn chỉ có thể xem danh sách sự kiện. Quyền tạo mới và sửa đổi dành cho Admin/Manager."
-                                           TextColor="{AppThemeBinding Light={StaticResource WarningTextLight}, Dark={StaticResource WarningTextDark}}" FontSize="12" />
+                                <Label Text="💡" FontSize="20" Grid.Column="0" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <Label Text="Khám Phá Hoạt Động &amp; Rèn Luyện Kỹ Năng" FontAttributes="Bold" TextColor="#1E40AF" FontSize="13" />
+                                    <Label Text="Chạm vào bất kỳ hoạt động nào để xem thể lệ chi tiết, tích lũy điểm ĐRL và đăng ký tham gia."
+                                           TextColor="{AppThemeBinding Light=#2563EB, Dark=#93C5FD}" FontSize="11.5" />
                                 </VerticalStackLayout>
                             </Grid>
                         </Border>
@@ -276,6 +276,10 @@
                                     StrokeThickness="1" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}" 
                                     Padding="16">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEventDetailCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
                                 <VerticalStackLayout Spacing="10">
 
                                     <!-- Top Row: Icon + Title & Tags (Zero Horizontal Overflow) -->
@@ -394,56 +398,54 @@
                                                 TextColor="{StaticResource ErrorDark}" />
                                     </Grid>
 
-                                    <!-- Action Section 2: Management, Report & Media Tools (Full Width Grid) -->
-                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="6">
-                                        <!-- Event Details Button -->
-                                        <Button Grid.Column="0" Text="🔍 Chi tiết" 
+                                    <!-- Action Section 2: Details & Manager Tools (Clean 2-Tier Layout) -->
+                                    <VerticalStackLayout Spacing="8">
+                                        <!-- Primary Action Button: View Details & Register -->
+                                        <Button Text="🔍 Xem Chi Tiết &amp; Đăng Ký Tham Gia" 
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEventDetailCommand, x:DataType=pageModels:EventManagementPageModel}" 
                                                 CommandParameter="{Binding .}"
-                                                HeightRequest="36" CornerRadius="10" FontSize="11.5" FontAttributes="Bold"
-                                                BackgroundColor="#EFF6FF" TextColor="#1D4ED8" Padding="6,0" />
+                                                HeightRequest="40" CornerRadius="10" FontSize="12.5" FontAttributes="Bold"
+                                                Background="{StaticResource PrimaryGradientBrush}" TextColor="{StaticResource White}">
+                                            <Button.Shadow>
+                                                <Shadow Brush="{StaticResource Primary}" Offset="0,2" Radius="6" Opacity="0.2" />
+                                            </Button.Shadow>
+                                        </Button>
 
-                                        <!-- Attendance Report Button -->
-                                        <Button Grid.Column="1" Text="📊 Điểm danh" 
-                                                IsVisible="{Binding CanUserManage}"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ViewAttendanceReportCommand, x:DataType=pageModels:EventManagementPageModel}" 
-                                                CommandParameter="{Binding .}"
-                                                HeightRequest="36" CornerRadius="10" FontSize="11.5" FontAttributes="Bold"
-                                                BackgroundColor="#F0FDF4" TextColor="#15803D" Padding="6,0" />
+                                        <!-- Manager & Admin Toolbar (Only visible to Event Managers/Admins) -->
+                                        <Grid ColumnDefinitions="*,*,Auto,Auto" ColumnSpacing="8" IsVisible="{Binding CanUserManage}">
+                                            <!-- Attendance Report Button -->
+                                            <Button Grid.Column="0" Text="📊 Điểm danh" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ViewAttendanceReportCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="36" CornerRadius="8" FontSize="11.5" FontAttributes="Bold"
+                                                    BackgroundColor="#F0FDF4" TextColor="#15803D" Padding="6,0" />
 
-                                        <!-- Video Button -->
-                                        <Button Grid.Column="2" Text="▶ Video" 
-                                                IsVisible="{Binding HasVideo}"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenVideoCommand, x:DataType=pageModels:EventManagementPageModel}" 
-                                                CommandParameter="{Binding .}"
-                                                HeightRequest="36" CornerRadius="10" FontSize="11.5" FontAttributes="Bold"
-                                                BackgroundColor="#FEE2E2" TextColor="#DC2626" Padding="10,0" />
+                                            <!-- Video Button -->
+                                            <Button Grid.Column="1" Text="▶ Video" 
+                                                    IsVisible="{Binding HasVideo}"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenVideoCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="36" CornerRadius="8" FontSize="11.5" FontAttributes="Bold"
+                                                    BackgroundColor="#FEE2E2" TextColor="#DC2626" Padding="6,0" />
 
-                                        <!-- Edit Button (Only authorized manager or Admin) -->
-                                        <Button Grid.Column="3" Text="✏️" 
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEditModalCommand, x:DataType=pageModels:EventManagementPageModel}" 
-                                                CommandParameter="{Binding .}"
-                                                IsVisible="{Binding CanUserManage}"
-                                                HeightRequest="36" 
-                                                CornerRadius="10" 
-                                                FontSize="11.5" 
-                                                FontAttributes="Bold"
-                                                Padding="8,0"
-                                                BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
-                                                TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" />
+                                            <!-- Edit Button -->
+                                            <Button Grid.Column="2" Text="✏️ Sửa" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEditModalCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="36" CornerRadius="8" FontSize="11.5" FontAttributes="Bold"
+                                                    Padding="12,0"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
+                                                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" />
 
-                                        <!-- Delete Button (Only authorized manager or Admin) -->
-                                        <Button Grid.Column="4" Text="🗑️" 
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=DeleteEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
-                                                CommandParameter="{Binding .}"
-                                                IsVisible="{Binding CanUserManage}"
-                                                HeightRequest="36" 
-                                                CornerRadius="10" 
-                                                FontSize="12" 
-                                                Padding="8,0"
-                                                BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}" 
-                                                TextColor="{StaticResource ErrorDark}" />
-                                    </Grid>
+                                            <!-- Delete Button -->
+                                            <Button Grid.Column="3" Text="🗑️" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=DeleteEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="36" CornerRadius="8" FontSize="12" Padding="12,0"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}" 
+                                                    TextColor="{StaticResource ErrorDark}" />
+                                        </Grid>
+                                    </VerticalStackLayout>
 
                                 </VerticalStackLayout>
                             </Border>
