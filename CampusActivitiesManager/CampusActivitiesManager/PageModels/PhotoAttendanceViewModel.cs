@@ -25,6 +25,11 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private CampusEvent? _selectedEvent;
 
+        partial void OnSelectedEventChanged(CampusEvent? value)
+        {
+            _ = CheckExistingAttendanceAsync();
+        }
+
         [ObservableProperty]
         private ImageSource? _capturedPhotoSource;
 
@@ -54,6 +59,31 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private string _statusMessage = string.Empty;
 
+        // Trạng thái Điểm danh thành công & Phê duyệt
+        [ObservableProperty]
+        private bool _isAlreadyCheckedIn;
+
+        [ObservableProperty]
+        private AttendanceRecord? _currentAttendanceRecord;
+
+        [ObservableProperty]
+        private string _approvalStatusBadge = string.Empty;
+
+        [ObservableProperty]
+        private string _approvalStatusText = string.Empty;
+
+        [ObservableProperty]
+        private string _approvalStatusSubtitle = string.Empty;
+
+        [ObservableProperty]
+        private Color _approvalStatusColor = Color.FromArgb("#16A34A");
+
+        [ObservableProperty]
+        private Color _approvalStatusBg = Color.FromArgb("#DCFCE7");
+
+        [ObservableProperty]
+        private bool _canReSubmitProof;
+
         public PhotoAttendanceViewModel(
             IAttendanceService attendanceService,
             IEventService eventService,
@@ -81,6 +111,7 @@ namespace CampusActivitiesManager.PageModels
         {
             InitializeStudentInfo();
             await LoadEventsAsync();
+            await CheckExistingAttendanceAsync();
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -135,9 +166,103 @@ namespace CampusActivitiesManager.PageModels
             }
         }
 
+        public async Task CheckExistingAttendanceAsync()
+        {
+            if (SelectedEvent == null)
+            {
+                IsAlreadyCheckedIn = false;
+                CurrentAttendanceRecord = null;
+                return;
+            }
+
+            try
+            {
+                var history = await _attendanceService.GetStudentAttendanceHistoryAsync(StudentCode);
+                var match = history.FirstOrDefault(r => r.EventId == SelectedEvent.ID);
+                if (match != null)
+                {
+                    CurrentAttendanceRecord = match;
+                    IsAlreadyCheckedIn = true;
+                    UpdateApprovalStatusDisplay(match);
+                }
+                else
+                {
+                    CurrentAttendanceRecord = null;
+                    IsAlreadyCheckedIn = false;
+                }
+            }
+            catch
+            {
+                // Fallback gracefully
+            }
+        }
+
+        public void UpdateApprovalStatusDisplay(AttendanceRecord record)
+        {
+            if (record.Status == "Approved")
+            {
+                ApprovalStatusBadge = $"✅ ĐÃ PHÊ DUYỆT (+{record.TrainingPointsAwarded} ĐRL)";
+                ApprovalStatusText = "Điểm danh của bạn đã được phê duyệt thành công!";
+                ApprovalStatusSubtitle = $"Đã cộng +{record.TrainingPointsAwarded} Điểm Rèn Luyện vào hồ sơ sinh viên của bạn.";
+                ApprovalStatusColor = Color.FromArgb("#16A34A");
+                ApprovalStatusBg = Color.FromArgb("#DCFCE7");
+                CanReSubmitProof = false;
+            }
+            else if (record.Status == "Rejected")
+            {
+                ApprovalStatusBadge = "❌ MINH CHỨNG BỊ TỪ CHỐI";
+                ApprovalStatusText = "Minh chứng điểm danh không được chấp thuận";
+                ApprovalStatusSubtitle = string.IsNullOrWhiteSpace(record.ReviewNotes)
+                    ? "Hình ảnh minh chứng không rõ ràng hoặc không hợp lệ. Vui lòng chụp lại ảnh mới để gửi xét duyệt lại."
+                    : $"Lý do từ chối: {record.ReviewNotes}. Bạn có thể chụp ảnh mới và gửi lại.";
+                ApprovalStatusColor = Color.FromArgb("#DC2626");
+                ApprovalStatusBg = Color.FromArgb("#FEE2E2");
+                CanReSubmitProof = true;
+            }
+            else // "PendingReview"
+            {
+                ApprovalStatusBadge = "⏳ ĐANG CHỜ PHÊ DUYỆT";
+                ApprovalStatusText = "Đã gửi minh chứng thành công! Đang chờ duyệt";
+                ApprovalStatusSubtitle = $"Hệ thống đã ghi nhận ảnh chụp lúc {record.FormattedCheckInTime}. Ban tổ chức / Quản trị viên sẽ kiểm tra và cộng +{record.TrainingPointsAwarded} ĐRL khi đạt yêu cầu.";
+                ApprovalStatusColor = Color.FromArgb("#D97706");
+                ApprovalStatusBg = Color.FromArgb("#FEF3C7");
+                CanReSubmitProof = true;
+            }
+        }
+
+        [RelayCommand]
+        public void ReSubmitProof()
+        {
+            IsAlreadyCheckedIn = false;
+            CapturedPhotoBytes = null;
+            CapturedPhotoSource = null;
+            HasCapturedPhoto = false;
+            Notes = $"Cập nhật lại ảnh minh chứng cho {SelectedEvent?.Name ?? "sự kiện"}";
+        }
+
+        [RelayCommand]
+        public async Task GoToHistoryAsync()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("attendancehistory");
+            }
+        }
+
+        [RelayCommand]
+        public async Task BackToHomeAsync()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//MainPage");
+            }
+        }
+
         [RelayCommand]
         public async Task CapturePhotoAsync()
         {
+            if (IsBusy) return;
+
             try
             {
                 FileResult? photo = null;
@@ -148,7 +273,6 @@ namespace CampusActivitiesManager.PageModels
                 }
                 else
                 {
-                    // Fallback to PickPhotoAsync on emulators / Windows without physical cameras
                     photo = await MediaPicker.Default.PickPhotoAsync();
                 }
 
@@ -169,6 +293,8 @@ namespace CampusActivitiesManager.PageModels
         [RelayCommand]
         public async Task PickPhotoAsync()
         {
+            if (IsBusy) return;
+
             try
             {
                 var photo = await MediaPicker.Default.PickPhotoAsync();
@@ -188,32 +314,37 @@ namespace CampusActivitiesManager.PageModels
 
         private async Task LoadPhotoFileAsync(FileResult photo)
         {
-            using var stream = await photo.OpenReadAsync();
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            CapturedPhotoBytes = ms.ToArray();
-            CapturedPhotoSource = ImageSource.FromStream(() => new MemoryStream(CapturedPhotoBytes));
-            HasCapturedPhoto = true;
-
-            if (string.IsNullOrWhiteSpace(Notes))
+            try
             {
-                Notes = $"Điểm danh ảnh thực tế tại {SelectedEvent?.Location ?? "hội trường"} lúc {DateTime.Now:HH:mm dd/MM/yyyy}";
-            }
-        }
+                IsBusy = true;
+                var bytes = await Task.Run(async () =>
+                {
+                    using var stream = await photo.OpenReadAsync();
+                    using var ms = new MemoryStream();
+                    await stream.CopyToAsync(ms);
+                    return ms.ToArray();
+                });
 
-        [RelayCommand]
-        public void LoadSampleProofPhoto()
-        {
-            // Sample photo simulation for quick testing in emulator / desktop
-            CapturedPhotoBytes = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46 };
-            CapturedPhotoSource = "dotnet_bot.png";
-            HasCapturedPhoto = true;
-            Notes = $"Hình ảnh minh chứng check-in tham gia tại {SelectedEvent?.Location ?? "Sân trường"} (Bản mẫu kiểm thử)";
+                CapturedPhotoBytes = bytes;
+                CapturedPhotoSource = ImageSource.FromStream(() => new MemoryStream(bytes));
+                HasCapturedPhoto = true;
+
+                if (string.IsNullOrWhiteSpace(Notes))
+                {
+                    Notes = $"Điểm danh ảnh thực tế tại {SelectedEvent?.Location ?? "hội trường"} lúc {DateTime.Now:HH:mm dd/MM/yyyy}";
+                }
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         [RelayCommand]
         public async Task SubmitPhotoAttendanceAsync()
         {
+            if (IsBusy) return;
+
             if (SelectedEvent == null)
             {
                 if (Shell.Current != null)
@@ -223,7 +354,6 @@ namespace CampusActivitiesManager.PageModels
                 return;
             }
 
-            // Kiểm tra ràng buộc thời gian: Sau giờ kết thúc KHÔNG THỂ ĐIỂM DANH
             if (SelectedEvent.IsEventEnded)
             {
                 if (Shell.Current != null)
@@ -236,7 +366,6 @@ namespace CampusActivitiesManager.PageModels
                 return;
             }
 
-            // Kiểm tra ràng buộc thời gian: Chưa tới giờ bắt đầu KHÔNG THỂ ĐIỂM DANH
             if (SelectedEvent.IsEventNotStarted)
             {
                 if (Shell.Current != null)
@@ -249,14 +378,13 @@ namespace CampusActivitiesManager.PageModels
                 return;
             }
 
-            // Ràng buộc phê duyệt: Hoạt động chưa được Quản trị viên duyệt không được điểm danh
             if (!SelectedEvent.IsApproved)
             {
                 if (Shell.Current != null)
                 {
                     await Shell.Current.DisplayAlert(
                         "Chưa được phê duyệt ⏳",
-                        $"Hoạt động \"{SelectedEvent.Name}\" đang chờ Quản trị viên (Admin) duyệt trước khi mở điểm danh.",
+                        $"Hoạt động \"{SelectedEvent.Name}\" đang chờ Quản trị viên duyệt trước khi mở điểm danh.",
                         "Đóng");
                 }
                 return;
@@ -274,27 +402,40 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 IsBusy = true;
-                string base64 = Convert.ToBase64String(CapturedPhotoBytes);
+                string base64 = await Task.Run(() => Convert.ToBase64String(CapturedPhotoBytes));
                 var (success, msg, record) = await _attendanceService.CheckInWithPhotoAsync(SelectedEvent.ID, StudentCode, base64, Notes);
 
                 IsSuccess = success;
                 StatusMessage = msg;
 
-                if (success && Shell.Current != null)
+                if (success && record != null)
                 {
-                    await Shell.Current.DisplayAlert(
-                        "Điểm danh thành công! 🎉",
-                        $"Ảnh minh chứng của bạn đã được ghi nhận vào hệ thống!\n" +
-                        $"Sự kiện: {SelectedEvent.Name}\n" +
-                        $"Quyền lợi: +{SelectedEvent.PointsReward} Điểm rèn luyện (khi duyệt)\n" +
-                        $"Thời gian: {DateTime.Now:HH:mm dd/MM/yyyy}",
-                        "Tuyệt vời");
+                    CurrentAttendanceRecord = record;
+                    UpdateApprovalStatusDisplay(record);
+                    IsAlreadyCheckedIn = true;
 
-                    ClearPhoto();
+                    CapturedPhotoBytes = null;
+                    CapturedPhotoSource = null;
+                    HasCapturedPhoto = false;
+                    Notes = string.Empty;
+
+                    if (Shell.Current != null)
+                    {
+                        await Shell.Current.DisplayAlert(
+                            "Điểm danh thành công! 🎉",
+                            $"Minh chứng hình ảnh đã được gửi lên hệ thống.\n\n• Sự kiện: {SelectedEvent.Name}\n• Trạng thái: Đang chờ phê duyệt (+{SelectedEvent.PointsReward} ĐRL khi duyệt)\n• Thời gian: {DateTime.Now:HH:mm dd/MM/yyyy}",
+                            "Xem trạng thái duyệt");
+                    }
                 }
                 else if (!success && Shell.Current != null)
                 {
-                    await Shell.Current.DisplayAlert("Không thể điểm danh ⚠️", msg, "Đóng");
+                    if (record != null)
+                    {
+                        CurrentAttendanceRecord = record;
+                        UpdateApprovalStatusDisplay(record);
+                        IsAlreadyCheckedIn = true;
+                    }
+                    await Shell.Current.DisplayAlert("Thông báo ⚠️", msg, "Đóng");
                 }
             }
             finally
