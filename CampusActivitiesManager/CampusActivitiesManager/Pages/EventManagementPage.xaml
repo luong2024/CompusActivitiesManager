@@ -460,6 +460,14 @@
                         <Label Text="Thử tìm kiếm với từ khóa khác hoặc bấm '+ Thêm Sự Kiện' để tạo sự kiện mới." 
                                FontSize="13" HorizontalOptions="Center" HorizontalTextAlignment="Center"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                        <Button Text="🔄 Đặt lại bộ lọc &amp; Tải lại"
+                                Command="{Binding ResetFilterCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                HeightRequest="38"
+                                FontSize="12"
+                                CornerRadius="8"
+                                HorizontalOptions="Center"
+                                Margin="0,8,0,0" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
 

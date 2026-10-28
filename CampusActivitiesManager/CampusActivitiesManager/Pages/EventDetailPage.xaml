@@ -213,14 +213,30 @@
                                 BackgroundColor="{StaticResource Primary}" TextColor="{StaticResource White}"
                                 CornerRadius="12" HeightRequest="48"
                                 IsVisible="{Binding CanRegister}"
-                                Command="{Binding RegisterCommand}" />
+                                IsEnabled="{Binding IsLoading, Converter={toolkit:InvertedBoolConverter}}"
+                                Command="{Binding RegisterCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsLoading}" Value="True">
+                                    <Setter Property="Text" Value="Đang xử lý..." />
+                                    <Setter Property="Opacity" Value="0.7" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
 
                         <!-- Action: Cancel Registration (while Pending) -->
                         <Button Text="❌ Hủy đăng ký tham gia" FontSize="14" FontAttributes="Bold"
                                 BackgroundColor="#FEF2F2" TextColor="#DC2626"
                                 BorderColor="#FECACA" BorderWidth="1" CornerRadius="12" HeightRequest="44"
                                 IsVisible="{Binding CanCancel}"
-                                Command="{Binding CancelRegistrationCommand}" />
+                                IsEnabled="{Binding IsLoading, Converter={toolkit:InvertedBoolConverter}}"
+                                Command="{Binding CancelRegistrationCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsLoading}" Value="True">
+                                    <Setter Property="Text" Value="Đang hủy..." />
+                                    <Setter Property="Opacity" Value="0.7" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
 
                         <!-- Action: Photo Check-In (when Approved AND event is active) -->
                         <Button Text="📸 Điểm danh bằng ảnh minh chứng" FontSize="15" FontAttributes="Bold"
@@ -241,9 +257,11 @@
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                             <Button Grid.Column="0" Text="✅ Duyệt bài" FontSize="14" FontAttributes="Bold"
                                     BackgroundColor="#16A34A" TextColor="{StaticResource White}" CornerRadius="10"
+                                    IsEnabled="{Binding IsLoading, Converter={toolkit:InvertedBoolConverter}}"
                                     Command="{Binding ApproveEventPostCommand}" />
                             <Button Grid.Column="1" Text="🗑️ Từ chối &amp; Xóa" FontSize="14" FontAttributes="Bold"
                                     BackgroundColor="#DC2626" TextColor="{StaticResource White}" CornerRadius="10"
+                                    IsEnabled="{Binding IsLoading, Converter={toolkit:InvertedBoolConverter}}"
                                     Command="{Binding RejectEventPostCommand}" />
                         </Grid>
                     </VerticalStackLayout>

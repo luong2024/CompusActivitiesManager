@@ -2,11 +2,18 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:pm="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="CampusActivitiesManager.Pages.ProfilePage"
              x:DataType="pm:ProfilePageModel"
              BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
              Title="{Binding Title}"
              Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <Grid>
         <!-- Main Content ScrollView -->
@@ -175,6 +182,7 @@
                                FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
                         <Button Text="⚡ Đồng bộ toàn bộ dữ liệu lên Firebase Cloud"
                                 Command="{Binding SyncFirebaseDataCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
                                 BackgroundColor="#DCFCE7"
                                 TextColor="#15803D"
                                 BorderColor="#86EFAC"
@@ -182,7 +190,14 @@
                                 FontAttributes="Bold"
                                 FontSize="13"
                                 HeightRequest="40"
-                                CornerRadius="10" />
+                                CornerRadius="10">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="Text" Value="⏳ Đang đồng bộ..." />
+                                    <Setter Property="Opacity" Value="0.7" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                     </VerticalStackLayout>
                 </Border>
 
@@ -234,24 +249,90 @@
                     <!-- Mật khẩu hiện tại -->
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Mật khẩu hiện tại" FontSize="12" FontAttributes="Bold" />
-                        <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Gray300}" StrokeThickness="1" Padding="12,2">
-                            <Entry Text="{Binding CurrentPasswordInput}" IsPassword="True" Placeholder="Nhập mật khẩu hiện tại" FontSize="14" HeightRequest="40" />
+                        <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Gray300}" StrokeThickness="1" Padding="12,2,4,2">
+                            <Grid ColumnDefinitions="*,40">
+                                <Entry Grid.Column="0"
+                                       Text="{Binding CurrentPasswordInput}"
+                                       IsPassword="{Binding IsCurrentPasswordHidden}"
+                                       Placeholder="Nhập mật khẩu hiện tại"
+                                       FontSize="14"
+                                       HeightRequest="40" />
+                                <ImageButton Grid.Column="1"
+                                             Command="{Binding ToggleCurrentPasswordVisibilityCommand}"
+                                             BackgroundColor="Transparent"
+                                             HeightRequest="36" WidthRequest="36"
+                                             Padding="8"
+                                             Opacity="0.65">
+                                    <ImageButton.Triggers>
+                                        <DataTrigger TargetType="ImageButton" Binding="{Binding IsCurrentPasswordHidden}" Value="True">
+                                            <Setter Property="Source" Value="eye_off.png" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="ImageButton" Binding="{Binding IsCurrentPasswordHidden}" Value="False">
+                                            <Setter Property="Source" Value="eye_on.png" />
+                                        </DataTrigger>
+                                    </ImageButton.Triggers>
+                                </ImageButton>
+                            </Grid>
                         </Border>
                     </VerticalStackLayout>
 
                     <!-- Mật khẩu mới -->
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Mật khẩu mới (tối thiểu 6 ký tự)" FontSize="12" FontAttributes="Bold" />
-                        <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Gray300}" StrokeThickness="1" Padding="12,2">
-                            <Entry Text="{Binding NewPasswordInput}" IsPassword="True" Placeholder="Nhập mật khẩu mới" FontSize="14" HeightRequest="40" />
+                        <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Gray300}" StrokeThickness="1" Padding="12,2,4,2">
+                            <Grid ColumnDefinitions="*,40">
+                                <Entry Grid.Column="0"
+                                       Text="{Binding NewPasswordInput}"
+                                       IsPassword="{Binding IsNewPasswordHidden}"
+                                       Placeholder="Nhập mật khẩu mới"
+                                       FontSize="14"
+                                       HeightRequest="40" />
+                                <ImageButton Grid.Column="1"
+                                             Command="{Binding ToggleNewPasswordVisibilityCommand}"
+                                             BackgroundColor="Transparent"
+                                             HeightRequest="36" WidthRequest="36"
+                                             Padding="8"
+                                             Opacity="0.65">
+                                    <ImageButton.Triggers>
+                                        <DataTrigger TargetType="ImageButton" Binding="{Binding IsNewPasswordHidden}" Value="True">
+                                            <Setter Property="Source" Value="eye_off.png" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="ImageButton" Binding="{Binding IsNewPasswordHidden}" Value="False">
+                                            <Setter Property="Source" Value="eye_on.png" />
+                                        </DataTrigger>
+                                    </ImageButton.Triggers>
+                                </ImageButton>
+                            </Grid>
                         </Border>
                     </VerticalStackLayout>
 
                     <!-- Xác nhận mật khẩu mới -->
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Xác nhận mật khẩu mới" FontSize="12" FontAttributes="Bold" />
-                        <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Gray300}" StrokeThickness="1" Padding="12,2">
-                            <Entry Text="{Binding ConfirmPasswordInput}" IsPassword="True" Placeholder="Nhập lại mật khẩu mới" FontSize="14" HeightRequest="40" />
+                        <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Gray300}" StrokeThickness="1" Padding="12,2,4,2">
+                            <Grid ColumnDefinitions="*,40">
+                                <Entry Grid.Column="0"
+                                       Text="{Binding ConfirmPasswordInput}"
+                                       IsPassword="{Binding IsConfirmPasswordHidden}"
+                                       Placeholder="Nhập lại mật khẩu mới"
+                                       FontSize="14"
+                                       HeightRequest="40" />
+                                <ImageButton Grid.Column="1"
+                                             Command="{Binding ToggleConfirmPasswordVisibilityCommand}"
+                                             BackgroundColor="Transparent"
+                                             HeightRequest="36" WidthRequest="36"
+                                             Padding="8"
+                                             Opacity="0.65">
+                                    <ImageButton.Triggers>
+                                        <DataTrigger TargetType="ImageButton" Binding="{Binding IsConfirmPasswordHidden}" Value="True">
+                                            <Setter Property="Source" Value="eye_off.png" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="ImageButton" Binding="{Binding IsConfirmPasswordHidden}" Value="False">
+                                            <Setter Property="Source" Value="eye_on.png" />
+                                        </DataTrigger>
+                                    </ImageButton.Triggers>
+                                </ImageButton>
+                            </Grid>
                         </Border>
                     </VerticalStackLayout>
 
@@ -273,11 +354,19 @@
 
                         <Button Grid.Column="1" Text="Xác nhận đổi"
                                 Command="{Binding ExecuteChangePasswordCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={toolkit:InvertedBoolConverter}}"
                                 BackgroundColor="{StaticResource Primary}"
                                 TextColor="{StaticResource White}"
                                 FontAttributes="Bold"
                                 HeightRequest="44"
-                                CornerRadius="12" />
+                                CornerRadius="12">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="Text" Value="Đang xử lý..." />
+                                    <Setter Property="Opacity" Value="0.7" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                     </Grid>
                     </VerticalStackLayout>
                 </ScrollView>

@@ -316,6 +316,14 @@ namespace CampusActivitiesManager.PageModels
             ApplyFilter();
         }
 
+        [RelayCommand]
+        private void ResetFilter()
+        {
+            SearchText = string.Empty;
+            SelectedCategoryFilter = "Tất cả";
+            ApplyFilter();
+        }
+
         private void ApplyFilter()
         {
             var currentUser = _authService?.CurrentUser;

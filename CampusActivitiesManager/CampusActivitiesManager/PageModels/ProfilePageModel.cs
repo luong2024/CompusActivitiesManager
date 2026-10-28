@@ -67,6 +67,15 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private bool _hasChangePasswordError = false;
 
+        [ObservableProperty]
+        private bool _isCurrentPasswordHidden = true;
+
+        [ObservableProperty]
+        private bool _isNewPasswordHidden = true;
+
+        [ObservableProperty]
+        private bool _isConfirmPasswordHidden = true;
+
         public ProfilePageModel(
             IUserService userService,
             IAuthenticationService authService,
@@ -90,7 +99,28 @@ namespace CampusActivitiesManager.PageModels
             ConfirmPasswordInput = string.Empty;
             ChangePasswordErrorMessage = string.Empty;
             HasChangePasswordError = false;
+            IsCurrentPasswordHidden = true;
+            IsNewPasswordHidden = true;
+            IsConfirmPasswordHidden = true;
             IsChangePasswordModalVisible = true;
+        }
+
+        [RelayCommand]
+        public void ToggleCurrentPasswordVisibility()
+        {
+            IsCurrentPasswordHidden = !IsCurrentPasswordHidden;
+        }
+
+        [RelayCommand]
+        public void ToggleNewPasswordVisibility()
+        {
+            IsNewPasswordHidden = !IsNewPasswordHidden;
+        }
+
+        [RelayCommand]
+        public void ToggleConfirmPasswordVisibility()
+        {
+            IsConfirmPasswordHidden = !IsConfirmPasswordHidden;
         }
 
         [RelayCommand]
