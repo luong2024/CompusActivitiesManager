@@ -44,7 +44,7 @@
                             BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}"
                             Padding="12,10"
                             IsVisible="{Binding HasError}">
-                        <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorDark}" FontSize="13" />
+                        <Label AutomationId="lblError" Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorDark}" FontSize="13" />
                     </Border>
 
                     <!-- Username / Email -->
@@ -55,7 +55,8 @@
                                 StrokeThickness="1"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
-                            <Entry Text="{Binding UsernameOrEmail}"
+                            <Entry AutomationId="txtUsername"
+                                   Text="{Binding UsernameOrEmail}"
                                    Placeholder="Nhập email hoặc mã số sinh viên"
                                    Keyboard="Email"
                                    FontSize="14"
@@ -72,13 +73,15 @@
                                 BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2,4,2">
                             <Grid ColumnDefinitions="*,40">
-                                <Entry Grid.Column="0"
+                                <Entry AutomationId="txtPassword"
+                                       Grid.Column="0"
                                        Text="{Binding Password}"
                                        IsPassword="{Binding IsPasswordHidden}"
                                        Placeholder="Nhập mật khẩu"
                                        FontSize="14"
                                        HeightRequest="42" />
-                                <ImageButton Grid.Column="1"
+                                <ImageButton AutomationId="btnTogglePassword"
+                                             Grid.Column="1"
                                              Command="{Binding TogglePasswordVisibilityCommand}"
                                              BackgroundColor="Transparent"
                                              HeightRequest="38" WidthRequest="38"
@@ -99,12 +102,13 @@
 
                     <!-- Remember Me -->
                     <HorizontalStackLayout Spacing="8">
-                        <CheckBox IsChecked="{Binding RememberMe}" Color="{StaticResource Primary}" />
+                        <CheckBox AutomationId="chkRememberMe" IsChecked="{Binding RememberMe}" Color="{StaticResource Primary}" />
                         <Label Text="Ghi nhớ đăng nhập" VerticalOptions="Center" FontSize="13" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
                     </HorizontalStackLayout>
 
                     <!-- Login Button -->
-                    <Button Command="{Binding LoginCommand}"
+                    <Button AutomationId="btnLogin"
+                            Command="{Binding LoginCommand}"
                             Background="{StaticResource PrimaryGradientBrush}"
                             TextColor="{StaticResource White}"
                             FontAttributes="Bold"
@@ -132,7 +136,8 @@
                                    FontSize="13"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
                                    VerticalOptions="Center" />
-                            <Button Text="Đăng ký ngay"
+                            <Button AutomationId="btnRegister"
+                                    Text="Đăng ký ngay"
                                     Command="{Binding NavigateToRegisterCommand}"
                                     BackgroundColor="Transparent"
                                     TextColor="{StaticResource Primary}"
@@ -141,7 +146,8 @@
                                     Padding="6,2" />
                         </HorizontalStackLayout>
 
-                        <Button Text="Quên mật khẩu?"
+                        <Button AutomationId="btnForgotPassword"
+                                Text="Quên mật khẩu?"
                                 Command="{Binding ForgotPasswordCommand}"
                                 BackgroundColor="Transparent"
                                 TextColor="{StaticResource Gray500}"

@@ -147,7 +147,8 @@
                                     Padding="12,2">
                                 <Grid ColumnDefinitions="Auto,*">
                                     <Label Text="🔍" FontSize="14" VerticalOptions="Center" Grid.Column="0" Margin="0,0,8,0" />
-                                    <Entry Grid.Column="1" 
+                                    <Entry AutomationId="txtSearchEvent"
+                                           Grid.Column="1" 
                                            Placeholder="Tìm kiếm sự kiện theo tên, địa điểm, nội dung..." 
                                            Text="{Binding SearchText}"
                                            FontSize="13"
@@ -156,7 +157,8 @@
                                 </Grid>
                             </Border>
 
-                            <Button Grid.Column="1" 
+                            <Button AutomationId="btnCreateEvent"
+                                    Grid.Column="1" 
                                     Text="+ Thêm Sự Kiện" 
                                     Command="{Binding OpenCreateModalCommand}" 
                                     IsVisible="{Binding CanCreateEvent}"

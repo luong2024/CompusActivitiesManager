@@ -31,9 +31,9 @@
                 <Shadow Brush="{StaticResource Black}" Offset="0,2" Radius="6" Opacity="0.05" />
             </Border.Shadow>
 
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
-                <!-- Nút Hamburger Menu (Mở thanh menu) -->
-                <Border Grid.Column="0"
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">                <!-- Nút Hamburger Menu (Mở thanh menu) -->
+                <Border AutomationId="btnMenuToggle"
+                        Grid.Column="0"
                         WidthRequest="42" HeightRequest="42"
                         StrokeShape="RoundRectangle 12"
                         Background="{AppThemeBinding Light=#EFF6FF, Dark={StaticResource DarkCardBackground}}"
@@ -60,7 +60,8 @@
                         <Label Text="🎓" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
                     </Border>
                     <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
-                        <Label Text="{Binding StudentGreeting}" FontSize="14.5" FontAttributes="Bold"
+                        <Label AutomationId="lblStudentGreeting"
+                               Text="{Binding StudentGreeting}" FontSize="14.5" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
                                LineBreakMode="TailTruncation" MaxLines="1" />
                         <Label Text="{Binding RoleSubtitle}" FontSize="11" 
@@ -72,7 +73,8 @@
                 <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
                     <!-- Notification Bell Button with Badge -->
                     <Grid WidthRequest="40" HeightRequest="40">
-                        <Border WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 12"
+                        <Border AutomationId="btnNotifications"
+                                WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 12"
                                 Background="{AppThemeBinding Light=#EFF6FF, Dark={StaticResource DarkCardBackground}}"
                                 Stroke="{AppThemeBinding Light=#BFDBFE, Dark={StaticResource Gray700}}"
                                 StrokeThickness="1" VerticalOptions="Center" HorizontalOptions="Center">
