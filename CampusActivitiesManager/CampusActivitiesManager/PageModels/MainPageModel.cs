@@ -510,7 +510,7 @@ namespace CampusActivitiesManager.PageModels
             if (evt == null) return;
             if (Shell.Current != null)
             {
-                await Shell.Current.GoToAsync($"//photoattendance?eventId={evt.ID}");
+                await Shell.Current.GoToAsync($"photoattendance?eventId={evt.ID}");
             }
         }
 
@@ -520,7 +520,7 @@ namespace CampusActivitiesManager.PageModels
             if (evt == null) return;
             if (Shell.Current != null)
             {
-                await Shell.Current.GoToAsync($"//attendancereport?eventId={evt.ID}");
+                await Shell.Current.GoToAsync($"attendancereport?eventId={evt.ID}");
             }
         }
 

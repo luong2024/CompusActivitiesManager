@@ -254,7 +254,7 @@ namespace CampusActivitiesManager.PageModels
         {
             if (Shell.Current != null)
             {
-                await Shell.Current.GoToAsync("//MainPage");
+                await Shell.Current.GoToAsync("//homeTab/main");
             }
         }
 
