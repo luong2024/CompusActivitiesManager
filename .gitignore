@@ -13,6 +13,18 @@ templatesTest/
 *.user
 *.userosscache
 *.sln.docstates
+*.iml
+.idea/
+*.zip
+*.binlog
+*.xlsx
+*.xls
+*.docx
+*.doc
+*.pptx
+*.ppt
+*.pdf
+*.lnk
 /src/Controls/tests/TestCases.HostApp/MauiProgram.user.cs
 CustomAgentLogsTmp/
 .github/.baseline-state.json
@@ -398,3 +410,8 @@ src/Core/AndroidNative/build/reports/
 # explicit path the workflow passes, so a local run leaves them untracked
 # in the repo root one `git add -A` away from being committed.
 ci-scan-reconcile-*.json
+# Firebase service account credentials and keys
+*credentials*.json
+*service-account*.json
+firebase_credentials.json
+temp_pk.txt

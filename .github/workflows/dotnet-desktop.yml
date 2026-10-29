@@ -25,7 +25,7 @@ jobs:
       run: dotnet workload install maui-windows
 
     - name: Restore Dependencies
-      run: dotnet restore CampusActivitiesManager/CampusActivitiesManager/CampusActivitiesManager.csproj
+      run: dotnet restore CampusActivitiesManager/CampusActivitiesManager/CampusActivitiesManager.csproj /p:TargetFramework=net9.0-windows10.0.19041.0
 
     - name: Build Project (Windows Desktop)
-      run: dotnet build CampusActivitiesManager/CampusActivitiesManager/CampusActivitiesManager.csproj -c Release -f net9.0-windows10.0.19041.0 --no-restore
+      run: dotnet build CampusActivitiesManager/CampusActivitiesManager/CampusActivitiesManager.csproj -c Release -f net9.0-windows10.0.19041.0

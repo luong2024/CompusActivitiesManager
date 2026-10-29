@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks>net9.0-android</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">$(TargetFrameworks);net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net9.0-tizen</TargetFrameworks> -->
 
@@ -21,8 +22,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<!-- https://github.com/CommunityToolkit/Maui/issues/2205 -->
-		<NoWarn>XC0103</NoWarn>
-		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+		<NoWarn>$(NoWarn);XC0103;XC0025;CA1416</NoWarn>
 
 		<!-- Display name -->
 		<ApplicationTitle>CampusActivitiesManager</ApplicationTitle>
@@ -47,7 +47,6 @@
 
 		<!-- Fix for Android Fast Deployment / RemoveDirFixed (XARDF7024) -->
 		<EmbedAssembliesIntoApk Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">true</EmbedAssembliesIntoApk>
-		<RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -69,6 +68,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+		<PackageReference Include="QRCoder" Version="1.8.1" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -85,5 +85,5 @@
 		<PackageReference Include="Xamarin.AndroidX.Navigation.Runtime" Version="2.8.9.1" />
 		<PackageReference Include="Xamarin.AndroidX.Navigation.Common" Version="2.8.9.1" />
 	</ItemGroup>
-	
+
 </Project>

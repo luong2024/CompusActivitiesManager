@@ -31,9 +31,9 @@ namespace CampusActivitiesManager.Models
         public AccountStatus Status { get; set; } = AccountStatus.DangHoc;
         public AccountRole Role { get; set; } = AccountRole.SinhVien;
         public string ClassName { get; set; } = string.Empty;
-        public string AcademicYear { get; set; } = string.Empty;
-        public int TrainingPoints { get; set; } = 85; // Điểm rèn luyện
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public string AcademicYear { get; set; } = "K20 (2020–2025)";
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public int TrainingPoints { get; set; } = 0; // Điểm rèn luyện khởi điểm là 0
 
         // UI Helpers
         public bool HasAvatar => !string.IsNullOrWhiteSpace(AvatarUrl);

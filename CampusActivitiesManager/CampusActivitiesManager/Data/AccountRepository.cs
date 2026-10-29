@@ -68,7 +68,7 @@ namespace CampusActivitiesManager.Data
         {
             var seedAccounts = new List<Account>
             {
-                new() { StudentCode = "20110001", FullName = "Nguyễn An Cương", Email = "cuong.na20@campus.edu.vn", PhoneNumber = "0987123456", AvatarUrl = "", Status = AccountStatus.DangHoc, Role = AccountRole.LopTruong, ClassName = "D20CNTT1", AcademicYear = "K20" },
+                new() { StudentCode = "20110001", FullName = "Nguyễn Tuấn Dũng", Email = "dung.nt20@campus.edu.vn", PhoneNumber = "0987123456", AvatarUrl = "", Status = AccountStatus.DangHoc, Role = AccountRole.LopTruong, ClassName = "D20CNTT1", AcademicYear = "K20" },
                 new() { StudentCode = "20110002", FullName = "Trần Thị Mai Hương", Email = "huong.ttm20@campus.edu.vn", PhoneNumber = "0912345678", AvatarUrl = "", Status = AccountStatus.DangHoc, Role = AccountRole.BanChuNhiem, ClassName = "D20CNTT1", AcademicYear = "K20" },
                 new() { StudentCode = "20110003", FullName = "Lê Hoàng Long", Email = "long.lh20@campus.edu.vn", PhoneNumber = "0978901234", AvatarUrl = "", Status = AccountStatus.BaoLuu, Role = AccountRole.SinhVien, ClassName = "D20CNTT2", AcademicYear = "K20" },
                 new() { StudentCode = "21110015", FullName = "Phạm Minh Đức", Email = "duc.pm21@campus.edu.vn", PhoneNumber = "0934567890", AvatarUrl = "", Status = AccountStatus.DangHoc, Role = AccountRole.SinhVien, ClassName = "D21KHMT1", AcademicYear = "K21" },

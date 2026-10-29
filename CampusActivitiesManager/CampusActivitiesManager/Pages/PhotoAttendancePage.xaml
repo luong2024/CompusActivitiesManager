@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pagemodels="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
+             x:Class="CampusActivitiesManager.Pages.PhotoAttendancePage"
+             x:DataType="pagemodels:PhotoAttendanceViewModel"
+             Title="Điểm Danh Bằng Ảnh"
+             BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,20,20,100" Spacing="16">
+
+            <!-- Banner Header -->
+            <Border StrokeShape="RoundRectangle 20"
+                    Background="{StaticResource PrimaryGradientBrush}"
+                    Padding="20"
+                    StrokeThickness="0">
+                <VerticalStackLayout Spacing="6">
+                    <HorizontalStackLayout Spacing="8">
+                        <Label Text="📸" FontSize="22" VerticalOptions="Center" />
+                        <Label Text="Điểm Danh Bằng Hình Ảnh"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource White}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <Label Text="Chụp ảnh minh chứng có mặt tại sự kiện đúng khung giờ để nhận điểm rèn luyện. Hệ thống tự động khóa điểm danh sau khi sự kiện kết thúc."
+                           FontSize="12.5"
+                           TextColor="#E0E7FF"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Event Selector & Time Status Display -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    StrokeThickness="1"
+                    Padding="16,14">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="SỰ KIỆN THAM GIA"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}" />
+                    <Picker Title="-- Chọn sự kiện tham dự --"
+                            ItemsSource="{Binding ActiveEvents}"
+                            ItemDisplayBinding="{Binding Name, x:DataType='models:CampusEvent'}"
+                            SelectedItem="{Binding SelectedEvent}"
+                            TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                            FontSize="13.5" />
+
+                    <!-- Selected Event Time & Status Details -->
+                    <Border StrokeShape="RoundRectangle 12"
+                            BackgroundColor="{Binding SelectedEvent.AttendanceStatusBg}"
+                            StrokeThickness="0"
+                            Padding="12,10"
+                            Margin="0,4,0,0">
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="{Binding SelectedEvent.AttendanceTimeWindowDisplay}"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{Binding SelectedEvent.AttendanceStatusTextColor}" />
+                                <Label Text="{Binding SelectedEvent.Location, StringFormat='📍 {0}'}"
+                                       FontSize="11.5"
+                                       TextColor="{Binding SelectedEvent.AttendanceStatusTextColor}" />
+                            </VerticalStackLayout>
+                            <Border Grid.Column="1"
+                                    StrokeShape="RoundRectangle 8"
+                                    BackgroundColor="{StaticResource White}"
+                                    Padding="8,4"
+                                    StrokeThickness="0"
+                                    VerticalOptions="Center">
+                                <Label Text="{Binding SelectedEvent.AttendanceStatusBadge}"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="{Binding SelectedEvent.AttendanceStatusTextColor}" />
+                            </Border>
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Camera / Photo Preview Container -->
+            <Border StrokeShape="RoundRectangle 20"
+                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    StrokeThickness="1"
+                    Padding="18">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="HÌNH ẢNH MINH CHỨNG"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}" />
+
+                    <!-- Placeholder when no photo is taken -->
+                    <Border StrokeShape="RoundRectangle 16"
+                            IsVisible="{Binding HasNoCapturedPhoto}"
+                            Background="#F8FAFC"
+                            Stroke="#CBD5E1"
+                            StrokeThickness="1.5"
+                            StrokeDashArray="4,4"
+                            HeightRequest="180"
+                            Padding="16">
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="8">
+                            <Label Text="📷" FontSize="36" HorizontalOptions="Center" />
+                            <Label Text="Chưa có ảnh minh chứng"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="#64748B"
+                                   HorizontalOptions="Center" />
+                            <Label Text="Chụp ảnh tại hội trường hoặc chọn ảnh có sẵn"
+                                   FontSize="11"
+                                   TextColor="#94A3B8"
+                                   HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Preview of captured photo -->
+                    <Border StrokeShape="RoundRectangle 16"
+                            IsVisible="{Binding HasCapturedPhoto}"
+                            Background="#000000"
+                            HeightRequest="220"
+                            StrokeThickness="0">
+                        <Grid>
+                            <Image Source="{Binding CapturedPhotoSource}"
+                                   Aspect="AspectFit"
+                                   HorizontalOptions="FillAndExpand"
+                                   VerticalOptions="FillAndExpand" />
+                            <Button Text="Đổi ảnh khác"
+                                    Command="{Binding ClearPhotoCommand}"
+                                    HorizontalOptions="End"
+                                    VerticalOptions="Start"
+                                    Margin="8"
+                                    Background="#CC000000"
+                                    TextColor="{StaticResource White}"
+                                    FontSize="11"
+                                    HeightRequest="32"
+                                    CornerRadius="8"
+                                    Padding="10,0" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Action Buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="📷 Chụp Ảnh"
+                                Command="{Binding CapturePhotoCommand}"
+                                Background="{StaticResource Primary}"
+                                TextColor="{StaticResource White}"
+                                FontAttributes="Bold"
+                                CornerRadius="12"
+                                HeightRequest="44" />
+                        <Button Grid.Column="1"
+                                Text="🖼️ Chọn Thư Viện"
+                                Command="{Binding PickPhotoCommand}"
+                                Background="#F1F5F9"
+                                TextColor="{StaticResource DarkOnLightBackground}"
+                                FontAttributes="Bold"
+                                CornerRadius="12"
+                                HeightRequest="44" />
+                    </Grid>
+
+                    <!-- Fast Test Simulation Button -->
+                    <Button Text="⚡ Dùng Ảnh Mẫu Kiểm Thử (1-Click Test)"
+                            Command="{Binding LoadSampleProofPhotoCommand}"
+                            Background="Transparent"
+                            TextColor="{StaticResource Primary}"
+                            FontSize="11.5"
+                            FontAttributes="Bold"
+                            HeightRequest="36" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Notes Card -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    StrokeThickness="1"
+                    Padding="16">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="GHI CHÚ MINH CHỨNG (TÙY CHỌN)"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}" />
+                    <Editor Placeholder="Nhập vị trí ngồi, số ghế hoặc ghi chú cho Ban tổ chức..."
+                            Text="{Binding Notes}"
+                            HeightRequest="80"
+                            FontSize="12.5" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Submit Button -->
+            <Button Text="GỬI ĐIỂM DANH HÌNH ẢNH (+ ĐRL)"
+                    Command="{Binding SubmitPhotoAttendanceCommand}"
+                    Background="{StaticResource PrimaryGradientBrush}"
+                    TextColor="{StaticResource White}"
+                    FontAttributes="Bold"
+                    FontSize="14"
+                    HeightRequest="48"
+                    CornerRadius="14">
+                <Button.Shadow>
+                    <Shadow Brush="{StaticResource Primary}" Offset="0,4" Radius="10" Opacity="0.35" />
+                </Button.Shadow>
+            </Button>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
