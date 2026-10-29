@@ -38,7 +38,7 @@
                             BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}"
                             Padding="12,10"
                             IsVisible="{Binding HasError}">
-                        <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorDark}" FontSize="13" />
+                        <Label AutomationId="lblRegisterError" Text="{Binding ErrorMessage}" TextColor="{StaticResource ErrorDark}" FontSize="13" />
                     </Border>
 
                     <!-- Full Name -->
@@ -49,7 +49,7 @@
                                 StrokeThickness="1"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
-                            <Entry Text="{Binding FullName}" Placeholder="Ví dụ: Nguyễn Văn An" FontSize="14" HeightRequest="42" />
+                            <Entry AutomationId="txtRegisterFullName" Text="{Binding FullName}" Placeholder="Ví dụ: Nguyễn Văn An" FontSize="14" HeightRequest="42" />
                         </Border>
                     </VerticalStackLayout>
 
@@ -61,7 +61,7 @@
                                 StrokeThickness="1"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
-                            <Entry Text="{Binding Username}" Placeholder="Ví dụ: B20DCCN001" FontSize="14" HeightRequest="42" />
+                            <Entry AutomationId="txtRegisterUsername" Text="{Binding Username}" Placeholder="Ví dụ: B20DCCN001" FontSize="14" HeightRequest="42" />
                         </Border>
                     </VerticalStackLayout>
 
@@ -73,7 +73,7 @@
                                 StrokeThickness="1"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
-                            <Entry Text="{Binding Email}" Placeholder="sinhvien@campus.edu.vn" Keyboard="Email" FontSize="14" HeightRequest="42" />
+                            <Entry AutomationId="txtRegisterEmail" Text="{Binding Email}" Placeholder="sinhvien@campus.edu.vn" Keyboard="Email" FontSize="14" HeightRequest="42" />
                         </Border>
                     </VerticalStackLayout>
 
@@ -85,7 +85,7 @@
                                 StrokeThickness="1"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
-                            <Entry Text="{Binding PhoneNumber}" Placeholder="Ví dụ: 0912345678" Keyboard="Telephone" FontSize="14" HeightRequest="42" />
+                            <Entry AutomationId="txtRegisterPhone" Text="{Binding PhoneNumber}" Placeholder="Ví dụ: 0912345678" Keyboard="Telephone" FontSize="14" HeightRequest="42" />
                         </Border>
                     </VerticalStackLayout>
 
@@ -97,7 +97,8 @@
                                 StrokeThickness="1"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2">
-                            <Picker ItemsSource="{Binding AvailableClasses}"
+                            <Picker AutomationId="pickerRegisterClass"
+                                    ItemsSource="{Binding AvailableClasses}"
                                     SelectedItem="{Binding SelectedClass}"
                                     Title="Chọn lớp sinh hoạt"
                                     FontSize="14"
@@ -117,13 +118,15 @@
                                 BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2,4,2">
                             <Grid ColumnDefinitions="*,40">
-                                <Entry Grid.Column="0"
+                                <Entry AutomationId="txtRegisterPassword"
+                                       Grid.Column="0"
                                        Text="{Binding Password}"
                                        IsPassword="{Binding IsPasswordHidden}"
                                        Placeholder="Tối thiểu 6 ký tự"
                                        FontSize="14"
                                        HeightRequest="42" />
-                                <ImageButton Grid.Column="1"
+                                <ImageButton AutomationId="btnToggleRegisterPassword"
+                                             Grid.Column="1"
                                              Command="{Binding TogglePasswordVisibilityCommand}"
                                              BackgroundColor="Transparent"
                                              HeightRequest="38" WidthRequest="38"
@@ -151,13 +154,15 @@
                                 BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                 Padding="12,2,4,2">
                             <Grid ColumnDefinitions="*,40">
-                                <Entry Grid.Column="0"
+                                <Entry AutomationId="txtRegisterConfirmPassword"
+                                       Grid.Column="0"
                                        Text="{Binding ConfirmPassword}"
                                        IsPassword="{Binding IsConfirmPasswordHidden}"
                                        Placeholder="Nhập lại mật khẩu"
                                        FontSize="14"
                                        HeightRequest="42" />
-                                <ImageButton Grid.Column="1"
+                                <ImageButton AutomationId="btnToggleRegisterConfirmPassword"
+                                             Grid.Column="1"
                                              Command="{Binding ToggleConfirmPasswordVisibilityCommand}"
                                              BackgroundColor="Transparent"
                                              HeightRequest="38" WidthRequest="38"
@@ -194,7 +199,8 @@
                     </Border>
 
                     <!-- Register Button -->
-                    <Button Text="Đăng Ký Tài Khoản"
+                    <Button AutomationId="btnRegisterSubmit"
+                            Text="Đăng Ký Tài Khoản"
                             Command="{Binding RegisterCommand}"
                             Background="{StaticResource PrimaryGradientBrush}"
                             TextColor="{StaticResource White}"
@@ -216,7 +222,8 @@
                     </Button>
 
                     <!-- Go back to login -->
-                    <Button Text="Đã có tài khoản? Quay lại đăng nhập"
+                    <Button AutomationId="btnBackToLogin"
+                            Text="Đã có tài khoản? Quay lại đăng nhập"
                             Command="{Binding GoBackCommand}"
                             BackgroundColor="Transparent"
                             TextColor="{StaticResource Primary}"

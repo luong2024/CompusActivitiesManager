@@ -56,7 +56,7 @@
                                     StrokeThickness="1"
                                     BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                     Padding="12,2">
-                                <Entry Placeholder="Nhập họ và tên đầy đủ" Text="{Binding FullName}" FontSize="14" HeightRequest="42" />
+                                <Entry AutomationId="txtProfileFullName" Placeholder="Nhập họ và tên đầy đủ" Text="{Binding FullName}" FontSize="14" HeightRequest="42" />
                             </Border>
                         </VerticalStackLayout>
 
@@ -68,7 +68,7 @@
                                     StrokeThickness="1"
                                     BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                     Padding="12,2">
-                                <Entry Placeholder="Nhập số điện thoại liên hệ" Text="{Binding PhoneNumber}" Keyboard="Telephone" FontSize="14" HeightRequest="42" />
+                                <Entry AutomationId="txtProfilePhoneNumber" Placeholder="Nhập số điện thoại liên hệ" Text="{Binding PhoneNumber}" Keyboard="Telephone" FontSize="14" HeightRequest="42" />
                             </Border>
                         </VerticalStackLayout>
 
@@ -80,13 +80,13 @@
                                     StrokeThickness="1"
                                     BackgroundColor="{AppThemeBinding Light={StaticResource InputBackgroundLight}, Dark={StaticResource InputBackgroundDark}}"
                                     Padding="12,2">
-                                <Entry Placeholder="https://example.com/avatar.png" Text="{Binding AvatarUrl}" FontSize="14" HeightRequest="42" />
+                                <Entry AutomationId="txtProfileAvatarUrl" Placeholder="https://example.com/avatar.png" Text="{Binding AvatarUrl}" FontSize="14" HeightRequest="42" />
                             </Border>
                         </VerticalStackLayout>
 
                         <!-- Save Button -->
                         <Button Text="💾 Lưu thay đổi thông tin"
-                                Command="{Binding UpdateProfileCommand}"
+                                AutomationId="btnSaveProfile" Command="{Binding UpdateProfileCommand}"
                                 IsEnabled="{Binding IsNotBusy}"
                                 Background="{StaticResource PrimaryGradientBrush}"
                                 TextColor="{StaticResource White}"

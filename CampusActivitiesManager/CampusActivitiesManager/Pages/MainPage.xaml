@@ -43,7 +43,7 @@
                         HorizontalOptions="Center"
                         Padding="0">
                     <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding ToggleMenuCommand}" />
+                        <TapGestureRecognizer AutomationId="btnMenuToggle" Command="{Binding ToggleMenuCommand}" />
                     </Border.GestureRecognizers>
                     <Label Text="☰"
                            FontSize="22"
@@ -60,7 +60,7 @@
                         <Label Text="🎓" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
                     </Border>
                     <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
-                        <Label Text="{Binding StudentGreeting}" FontSize="14.5" FontAttributes="Bold"
+                        <Label AutomationId="lblStudentGreeting" Text="{Binding StudentGreeting}" FontSize="14.5" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
                                LineBreakMode="TailTruncation" MaxLines="1" />
                         <Label Text="{Binding RoleSubtitle}" FontSize="11" 
@@ -77,7 +77,7 @@
                                 Stroke="{AppThemeBinding Light=#BFDBFE, Dark={StaticResource Gray700}}"
                                 StrokeThickness="1" VerticalOptions="Center" HorizontalOptions="Center">
                             <Border.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding ToggleNotificationsModalCommand}" />
+                                <TapGestureRecognizer AutomationId="btnNotifications" Command="{Binding ToggleNotificationsModalCommand}" />
                             </Border.GestureRecognizers>
                             <Label Text="🔔" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
