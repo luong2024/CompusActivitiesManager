@@ -140,14 +140,7 @@
                             </Button.Shadow>
                         </Button>
 
-                        <!-- Fast Test Simulation Button -->
-                        <Button Text="⚡ Quét Giả Lập Mở Link QR (1-Click)"
-                                Command="{Binding SimulateQuickScanCommand}"
-                                Background="#F1F5F9"
-                                TextColor="{StaticResource Primary}"
-                                FontAttributes="Bold"
-                                HeightRequest="40"
-                                CornerRadius="10" />
+                        
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>

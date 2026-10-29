@@ -751,7 +751,7 @@ namespace CampusActivitiesManager.PageModels
 
             if (Shell.Current != null)
             {
-                await Shell.Current.GoToAsync($"//attendancereport?eventId={evt.ID}");
+                await Shell.Current.GoToAsync($"attendancereport?eventId={evt.ID}");
             }
         }
 
