@@ -86,5 +86,34 @@ namespace UITests.Android
             Assert.That(content, Does.Contain("HeightRequest=\"44\""));
             Assert.That(content, Does.Contain("HeightRequest=\"48\""));
         }
+
+        [Test]
+        public void Android_QrScannerPage_RealCameraViewfinderAndControls_AreProperlyConfigured()
+        {
+            var xamlPath = Path.Combine(_solutionRoot, "CampusActivitiesManager", "CampusActivitiesManager", "Pages", "QrScannerPage.xaml");
+            Assert.That(File.Exists(xamlPath), Is.True);
+            var content = File.ReadAllText(xamlPath);
+
+            // Kiểm tra CameraBarcodeReaderView thực tế
+            Assert.That(content, Does.Contain("<zxing:CameraBarcodeReaderView"), "Phải chứa component CameraBarcodeReaderView quét thật");
+            Assert.That(content, Does.Contain("CameraLocation=\"{Binding SelectedCameraLocation}\""), "Phải liên kết với SelectedCameraLocation");
+            Assert.That(content, Does.Contain("IsTorchOn=\"{Binding IsTorchOn}\""), "Phải liên kết với công tắc đèn flash");
+            Assert.That(content, Does.Contain("IsDetecting=\"{Binding IsDetecting}\""), "Phải điều khiển trạng thái quét camera");
+
+            // Kiểm tra các nút tiện ích Camera
+            Assert.That(content, Does.Contain("Command=\"{Binding ToggleTorchCommand}\""), "Phải có nút bật/tắt đèn pin");
+            Assert.That(content, Does.Contain("Command=\"{Binding SwitchCameraLocationCommand}\""), "Phải có nút đổi camera trước/sau");
+            Assert.That(content, Does.Contain("Command=\"{Binding InitializeCameraPermissionCommand}\""), "Phải có nút cấp quyền camera fallback");
+        }
+
+        [Test]
+        public void Android_NotificationModal_ScrollViewHasExplicitHeightConstraint()
+        {
+            var xamlPath = Path.Combine(_solutionRoot, "CampusActivitiesManager", "CampusActivitiesManager", "Pages", "MainPage.xaml");
+            var content = File.ReadAllText(xamlPath);
+
+            // ScrollView danh sách thông báo phải có HeightRequest cố định để không đè lên nút Đóng thông báo
+            Assert.That(content, Does.Contain("HeightRequest=\"250\""), "ScrollView thông báo phải có HeightRequest để tránh tràn màn hình Android");
+        }
     }
 }

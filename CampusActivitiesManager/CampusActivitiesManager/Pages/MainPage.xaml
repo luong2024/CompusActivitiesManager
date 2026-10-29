@@ -1199,7 +1199,7 @@
                     </ScrollView>
 
                     <!-- Notifications List -->
-                    <ScrollView Grid.Row="3" VerticalScrollBarVisibility="Default">
+                    <ScrollView Grid.Row="3" HeightRequest="250" VerticalScrollBarVisibility="Default">
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Notifications}" Spacing="8">
                             <BindableLayout.EmptyView>
                                 <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,30">

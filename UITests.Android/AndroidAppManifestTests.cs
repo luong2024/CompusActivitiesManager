@@ -81,9 +81,17 @@ namespace UITests.Android
                                  .Where(v => !string.IsNullOrEmpty(v))
                                  .ToList();
 
-            // Rà soát các quyền cốt lõi cho Điểm Danh Ảnh & Đồng Bộ Mạng
+            // Rà soát các quyền cốt lõi cho Điểm Danh Ảnh, Quét QR Camera & Đồng Bộ Mạng
             Assert.That(permissions, Does.Contain("android.permission.INTERNET"), "Thiếu quyền INTERNET");
             Assert.That(permissions, Does.Contain("android.permission.ACCESS_NETWORK_STATE"), "Thiếu quyền ACCESS_NETWORK_STATE");
+            Assert.That(permissions, Does.Contain("android.permission.CAMERA"), "Thiếu quyền CAMERA cho tính năng quét mã QR trực tiếp qua Camera");
+
+            var features = xml.Descendants("uses-feature")
+                              .Select(e => e.Attribute(XName.Get("name", "http://schemas.android.com/apk/res/android"))?.Value)
+                              .Where(v => !string.IsNullOrEmpty(v))
+                              .ToList();
+            Assert.That(features, Does.Contain("android.hardware.camera"), "Thiếu khai báo feature camera");
+            Assert.That(features, Does.Contain("android.hardware.camera.autofocus"), "Thiếu khai báo feature camera autofocus");
         }
     }
 }

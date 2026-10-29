@@ -1,4 +1,6 @@
-using System.Collections.ObjectModel;using CampusActivitiesManager.BusinessLogic.Services;
+using ZXing.Net.Maui;
+using System.Collections.ObjectModel;
+using CampusActivitiesManager.BusinessLogic.Services;
 using CampusActivitiesManager.Models;
 
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -84,6 +86,25 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
 
         private CampusEvent? _selectedEvent;
+
+        [ObservableProperty]
+        private bool _isCameraPermissionGranted;
+
+        [ObservableProperty]
+        private bool _isDetecting = true;
+
+        [ObservableProperty]
+        private bool _isTorchOn;
+
+        [ObservableProperty]
+        private ZXing.Net.Maui.CameraLocation _selectedCameraLocation = ZXing.Net.Maui.CameraLocation.Rear;
+
+        [ObservableProperty]
+        private string _torchButtonText = "⚡ Bật Flash";
+
+        private DateTime _lastScanTime = DateTime.MinValue;
+        private string _lastScannedValue = string.Empty;
+
 
 
 
@@ -430,7 +451,63 @@ namespace CampusActivitiesManager.PageModels
 
         }
 
+[RelayCommand]
+        public async Task InitializeCameraPermissionAsync()
+        {
+            try
+            {
+                var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
+                if (status != PermissionStatus.Granted)
+                {
+                    status = await Permissions.RequestAsync<Permissions.Camera>();
+                }
+
+                IsCameraPermissionGranted = (status == PermissionStatus.Granted);
+                IsDetecting = IsCameraPermissionGranted;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Camera permission error: {ex.Message}");
+                IsCameraPermissionGranted = false;
+                IsDetecting = false;
+            }
+        }
+
+        [RelayCommand]
+        public void ToggleTorch()
+        {
+            IsTorchOn = !IsTorchOn;
+            TorchButtonText = IsTorchOn ? "💡 Tắt Flash" : "⚡ Bật Flash";
+        }
+
+        [RelayCommand]
+        public void SwitchCameraLocation()
+        {
+            SelectedCameraLocation = (SelectedCameraLocation == ZXing.Net.Maui.CameraLocation.Rear) ? ZXing.Net.Maui.CameraLocation.Front : ZXing.Net.Maui.CameraLocation.Rear;
+        }
+
+        public async Task ProcessScannedBarcodeAsync(string rawBarcode)
+        {
+            if (string.IsNullOrWhiteSpace(rawBarcode)) return;
+
+            // Debounce: prevent duplicate scan within 2.5 seconds
+            var now = DateTime.UtcNow;
+            if (_lastScannedValue == rawBarcode && (now - _lastScanTime).TotalSeconds < 2.5)
+            {
+                return;
+            }
+
+            _lastScanTime = now;
+            _lastScannedValue = rawBarcode;
+
+            try
+            {
+                HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+            }
+            catch { }
+
+            QrInput = rawBarcode;
+            await ProcessQrCodeAsync(rawBarcode);
     }
-
 }
-
+}

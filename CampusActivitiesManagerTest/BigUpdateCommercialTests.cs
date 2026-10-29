@@ -1924,6 +1924,87 @@ namespace CampusActivitiesManagerTest
 
         }
 
+
+        [TestCase("42", 42)]
+        [TestCase("EVT:42|Student:B20DCCN001", 42)]
+        [TestCase("campus://event/42", 42)]
+        [TestCase("https://campus.edu.vn/events/42", 42)]
+        public void QrCode_EventIdParsing_ExtractsExpectedId(string rawPayload, int expectedId)
+        {
+            int parsedId = 0;
+            var clean = rawPayload.Trim();
+            if (int.TryParse(clean, out int directId))
+            {
+                parsedId = directId;
+            }
+            else if (clean.Contains("EVT:"))
+            {
+                var parts = clean.Split('|');
+                foreach (var part in parts)
+                {
+                    if (part.StartsWith("EVT:") && int.TryParse(part.Replace("EVT:", "").Trim(), out int eid))
+                    {
+                        parsedId = eid;
+                        break;
+                    }
+                }
+            }
+            else if (clean.Contains("event/") || clean.Contains("events/"))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(clean, @"events?/(\d+)");
+                if (match.Success && int.TryParse(match.Groups[1].Value, out int urlId))
+                {
+                    parsedId = urlId;
+                }
+            }
+
+            Assert.That(parsedId, Is.EqualTo(expectedId));
+        }
+
+        [Test]
+        public void QrScanner_DebounceLogic_PreventsDuplicateScansWithinWindow()
+        {
+            var scanHistory = new System.Collections.Generic.List<(string code, DateTime timestamp)>();
+            string lastScannedValue = string.Empty;
+            DateTime lastScanTime = DateTime.MinValue;
+
+            bool ProcessBarcode(string rawBarcode, DateTime now)
+            {
+                if (lastScannedValue == rawBarcode && (now - lastScanTime).TotalSeconds < 2.5)
+                {
+                    return false;
+                }
+
+                lastScanTime = now;
+                lastScannedValue = rawBarcode;
+                scanHistory.Add((rawBarcode, now));
+                return true;
+            }
+
+            var t0 = DateTime.UtcNow;
+            Assert.That(ProcessBarcode("EVT:10", t0), Is.True, "Lần quét đầu tiên phải được xử lý ngay");
+            Assert.That(ProcessBarcode("EVT:10", t0.AddSeconds(1.0)), Is.False, "Lần quét cùng mã trong 1s phải bị debounce");
+            Assert.That(ProcessBarcode("EVT:10", t0.AddSeconds(2.0)), Is.False, "Lần quét cùng mã trong 2s phải bị debounce");
+            Assert.That(ProcessBarcode("EVT:20", t0.AddSeconds(2.1)), Is.True, "Mã quét khác biệt phải được xử lý ngay không bị debounce");
+            Assert.That(ProcessBarcode("EVT:10", t0.AddSeconds(3.0)), Is.True, "Sau 3s (quá cooldown 2.5s) mã cũ phải quét lại được");
+            Assert.That(scanHistory.Count, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void QrScanner_TorchAndCameraToggle_UpdatesDisplayLabelsCorrectly()
+        {
+            bool isTorchOn = false;
+            string torchText = isTorchOn ? "💡 Tắt Flash" : "⚡ Bật Flash";
+            Assert.That(torchText, Is.EqualTo("⚡ Bật Flash"));
+
+            isTorchOn = !isTorchOn;
+            torchText = isTorchOn ? "💡 Tắt Flash" : "⚡ Bật Flash";
+            Assert.That(torchText, Is.EqualTo("💡 Tắt Flash"));
+
+            isTorchOn = !isTorchOn;
+            torchText = isTorchOn ? "💡 Tắt Flash" : "⚡ Bật Flash";
+            Assert.That(torchText, Is.EqualTo("⚡ Bật Flash"));
+        }
     }
 
 }

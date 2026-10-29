@@ -1,3 +1,4 @@
+using ZXing.Net.Maui.Controls;
 using CampusActivitiesManager.BusinessLogic.Interfaces;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ namespace CampusActivitiesManager
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .UseBarcodeReader()
                 .ConfigureSyncfusionToolkit()
                 .ConfigureMauiHandlers(handlers =>
                 {
