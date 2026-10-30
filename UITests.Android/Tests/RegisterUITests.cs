@@ -23,6 +23,8 @@ namespace UITests.Android.Tests
 
             // Từ màn hình Login, điều hướng sang màn hình Register
             _loginPage.ClickRegister();
+            // Đảm bảo màn hình Đăng ký đã tải xong trước khi thực thi ca test
+            FindByText("Đăng Ký Tài Khoản Sinh Viên");
         }
 
         [Test]
@@ -53,7 +55,7 @@ namespace UITests.Android.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(errorAlert, Is.Not.Null, "Thông báo validation đăng ký không xuất hiện khi form rỗng.");
-                Assert.That(_registerPage.GetErrorMessage(), Does.Contain("vui lòng")
+                Assert.That(_registerPage.GetErrorMessage(), Does.Contain("vui lòng").IgnoreCase
                     .Or.Contain("bắt buộc")
                     .Or.Contain("đầy đủ"), "Nội dung cảnh báo validation không phù hợp.");
             });

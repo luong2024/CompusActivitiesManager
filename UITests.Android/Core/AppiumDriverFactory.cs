@@ -45,7 +45,8 @@ namespace UITests.Android.Core
             // Thiết lập App Package & App Activity
             options.AddAdditionalAppiumOption(AndroidMobileCapabilityType.AppPackage, AppiumConfig.AppPackage);
             options.AddAdditionalAppiumOption(AndroidMobileCapabilityType.AppActivity, AppiumConfig.AppActivity);
-            options.AddAdditionalAppiumOption(MobileCapabilityType.NoReset, true);
+            bool noReset = bool.TryParse(Environment.GetEnvironmentVariable("APPIUM_NO_RESET"), out var nr) && nr;
+            options.AddAdditionalAppiumOption(MobileCapabilityType.NoReset, noReset);
             options.AddAdditionalAppiumOption(MobileCapabilityType.NewCommandTimeout, 120);
             options.AddAdditionalAppiumOption(AndroidMobileCapabilityType.AutoGrantPermissions, true);
 

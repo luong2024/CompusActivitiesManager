@@ -32,9 +32,9 @@ namespace UITests.Android.Tests
         {
             _mainPage.SwitchTab("Cá nhân");
 
-            var fullNameInput = FindByAutomationId("txtProfileFullName");
-            var phoneInput = FindByAutomationId("txtProfilePhoneNumber");
-            var saveButton = FindByAutomationId("btnSaveProfile");
+            var fullNameInput = FindByAutomationId("txtProfileFullName") ?? FindByClassName("android.widget.EditText", 0);
+            var phoneInput = FindByAutomationId("txtProfilePhoneNumber") ?? FindByClassName("android.widget.EditText", 1);
+            var saveButton = FindByAutomationId("btnSaveProfile") ?? FindByText("Lưu Thay Đổi") ?? FindByClassName("android.widget.Button", 0);
 
             Assert.Multiple(() =>
             {
@@ -56,11 +56,14 @@ namespace UITests.Android.Tests
 
             SafeClick(logoutItem);
 
-            // Xác nhận hộp thoại DisplayAlert xác nhận đăng xuất
-            var confirmBtn = FindByText("Đăng xuất") ?? FindByText("OK");
+            // Xác nhận hộp thoại DisplayAlert xác nhận đăng xuất (nhấn Button 'Đăng xuất', tránh click nhầm tiêu đề AlertTitle)
+            var confirmBtn = (Driver?.FindElements(OpenQA.Selenium.By.Id("android:id/button1")).FirstOrDefault() as OpenQA.Selenium.Appium.AppiumElement)
+                ?? (Driver?.FindElements(OpenQA.Selenium.By.XPath("//android.widget.Button[@text='Đăng xuất']")).FirstOrDefault() as OpenQA.Selenium.Appium.AppiumElement)
+                ?? FindByText("Đăng xuất");
             if (confirmBtn != null)
             {
                 SafeClick(confirmBtn);
+                System.Threading.Thread.Sleep(1500);
             }
 
             // Kiểm tra đã quay về màn hình Đăng nhập

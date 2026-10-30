@@ -16,14 +16,14 @@ namespace UITests.Android.Pages
         }
 
         public AppiumElement? TitleHeader => _test.FindByText("Campus Activities Manager") ?? _test.FindByText("Đăng nhập Hệ thống");
-        public AppiumElement? UsernameInput => _test.FindByAutomationId("txtUsername");
-        public AppiumElement? PasswordInput => _test.FindByAutomationId("txtPassword");
-        public AppiumElement? TogglePasswordButton => _test.FindByAutomationId("btnTogglePassword");
-        public AppiumElement? RememberMeCheckbox => _test.FindByAutomationId("chkRememberMe");
-        public AppiumElement? LoginButton => _test.FindByAutomationId("btnLogin") ?? _test.FindByText("Đăng nhập");
-        public AppiumElement? ErrorAlert => _test.FindByAutomationId("lblError");
-        public AppiumElement? RegisterLink => _test.FindByAutomationId("btnRegister") ?? _test.FindByText("Đăng ký ngay");
-        public AppiumElement? ForgotPasswordLink => _test.FindByAutomationId("btnForgotPassword") ?? _test.FindByText("Quên mật khẩu?");
+        public AppiumElement? UsernameInput => _test.FindByAutomationId("txtUsername") ?? _test.FindByClassName("android.widget.EditText", 0);
+        public AppiumElement? PasswordInput => _test.FindByAutomationId("txtPassword") ?? _test.FindByClassName("android.widget.EditText", 1);
+        public AppiumElement? TogglePasswordButton => _test.FindByAutomationId("btnTogglePassword") ?? _test.FindByClassName("android.widget.ImageView", 0);
+        public AppiumElement? RememberMeCheckbox => _test.FindByAutomationId("chkRememberMe") ?? _test.FindByClassName("android.widget.CheckBox", 0);
+        public AppiumElement? LoginButton => _test.FindByAutomationId("btnLogin") ?? _test.FindByClassName("android.widget.Button", 0);
+        public AppiumElement? ErrorAlert => _test.FindByAutomationId("lblError") ?? (_test.Driver?.FindElements(OpenQA.Selenium.By.XPath("//android.widget.TextView[contains(@text, 'chính xác') or contains(@text, 'không đúng') or contains(@text, 'bị khóa') or contains(@text, 'Vui lòng nhập Tên') or contains(@text, 'Vui lòng nhập Mật') or contains(@text, 'Lỗi')]")).FirstOrDefault() as AppiumElement);
+        public AppiumElement? RegisterLink => _test.FindByAutomationId("btnRegister") ?? _test.FindByClassName("android.widget.Button", 1);
+        public AppiumElement? ForgotPasswordLink => _test.FindByAutomationId("btnForgotPassword") ?? _test.FindByClassName("android.widget.Button", 2);
 
         /// <summary>
         /// Kiểm tra màn hình Đăng nhập đã hiển thị đầy đủ các phần tử thiết yếu hay chưa.

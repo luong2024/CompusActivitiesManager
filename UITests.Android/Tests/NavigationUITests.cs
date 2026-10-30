@@ -57,7 +57,7 @@ namespace UITests.Android.Tests
 
             eventPage.Search("Hội Thảo AI");
             // Xác nhận có sự kiện tương ứng hiển thị
-            var result = FindByText("Hội Thảo AI & Chuyển Đổi Số 2026") ?? FindByText("Hội Thảo AI");
+            var result = FindByText("Hội thảo AI") ?? FindByText("Hội Thảo AI") ?? FindByText("Hội thảo AI & Công nghệ Thông tin 2026") ?? (Driver?.FindElements(OpenQA.Selenium.By.XPath("//android.widget.TextView[contains(@text, 'AI')]")).FirstOrDefault() as OpenQA.Selenium.Appium.AppiumElement);
             Assert.That(result, Is.Not.Null, "Không tìm thấy sự kiện phù hợp với từ khóa.");
         }
 

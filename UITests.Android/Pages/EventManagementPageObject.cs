@@ -16,11 +16,11 @@ namespace UITests.Android.Pages
         }
 
         public AppiumElement? TitleHeader => _test.FindByText("Quản lý & Tổ chức Sự kiện");
-        public AppiumElement? SearchInput => _test.FindByAutomationId("txtSearchEvent");
+        public AppiumElement? SearchInput => _test.FindByAutomationId("txtSearchEvent") ?? _test.FindByClassName("android.widget.EditText", 0);
         public AppiumElement? CreateEventButton => _test.FindByAutomationId("btnCreateEvent") ?? _test.FindByText("+ Thêm Sự Kiện");
         public AppiumElement? FilterAllChip => _test.FindByText("Tất cả sự kiện");
-        public AppiumElement? FilterParticipatingChip => _test.FindByText("🎯 Đang tham gia");
-        public AppiumElement? FilterPendingChip => _test.FindByText("⏳ Chờ duyệt");
+        public AppiumElement? FilterParticipatingChip => _test.FindByText("🎯 Đang tham gia") ?? _test.FindByText("Đang tham gia");
+        public AppiumElement? FilterPendingChip => _test.FindByText("⏳ Chờ duyệt") ?? _test.FindByText("Chờ duyệt");
 
         /// <summary>
         /// Kiểm tra màn hình Quản lý Sự kiện đã hiển thị.

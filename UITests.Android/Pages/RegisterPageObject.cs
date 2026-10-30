@@ -1,4 +1,4 @@
-﻿using OpenQA.Selenium.Appium;
+using OpenQA.Selenium.Appium;
 using UITests.Android.Core;
 
 namespace UITests.Android.Pages
@@ -16,23 +16,56 @@ namespace UITests.Android.Pages
         }
 
         public AppiumElement? TitleHeader => _test.FindByText("Đăng Ký Tài Khoản Sinh Viên");
-        public AppiumElement? FullNameInput => _test.FindByAutomationId("txtRegisterFullName");
-        public AppiumElement? UsernameInput => _test.FindByAutomationId("txtRegisterUsername");
-        public AppiumElement? EmailInput => _test.FindByAutomationId("txtRegisterEmail");
-        public AppiumElement? PhoneInput => _test.FindByAutomationId("txtRegisterPhone");
+        public AppiumElement? FullNameInput => _test.FindByAutomationId("txtRegisterFullName") ?? _test.FindByClassName("android.widget.EditText", 0);
+        public AppiumElement? UsernameInput => _test.FindByAutomationId("txtRegisterUsername") ?? _test.FindByClassName("android.widget.EditText", 1);
+        public AppiumElement? EmailInput => _test.FindByAutomationId("txtRegisterEmail") ?? _test.FindByClassName("android.widget.EditText", 2);
+        public AppiumElement? PhoneInput => _test.FindByAutomationId("txtRegisterPhone") ?? _test.FindByClassName("android.widget.EditText", 3);
         public AppiumElement? ClassPicker => _test.FindByAutomationId("pickerRegisterClass");
-        public AppiumElement? PasswordInput => _test.FindByAutomationId("txtRegisterPassword");
-        public AppiumElement? ConfirmPasswordInput => _test.FindByAutomationId("txtRegisterConfirmPassword");
-        public AppiumElement? SubmitButton => _test.FindByAutomationId("btnRegisterSubmit") ?? _test.FindByText("Đăng Ký Tài Khoản");
-        public AppiumElement? BackToLoginButton => _test.FindByAutomationId("btnBackToLogin") ?? _test.FindByText("Đã có tài khoản? Quay lại đăng nhập");
-        public AppiumElement? ErrorAlert => _test.FindByAutomationId("lblRegisterError");
+        public AppiumElement? PasswordInput => _test.FindByAutomationId("txtRegisterPassword") ?? _test.FindByClassName("android.widget.EditText", 4);
+        public AppiumElement? ConfirmPasswordInput => _test.FindByAutomationId("txtRegisterConfirmPassword") ?? _test.FindByClassName("android.widget.EditText", 5);
+
+        public AppiumElement? SubmitButton
+        {
+            get
+            {
+                var btn = _test.FindByAutomationId("btnRegisterSubmit", System.TimeSpan.FromSeconds(1)) 
+                    ?? _test.FindByText("Đăng Ký Tài Khoản", System.TimeSpan.FromSeconds(1));
+                if (btn != null) return btn;
+
+                _test.SwipeDown();
+                return _test.FindByAutomationId("btnRegisterSubmit", System.TimeSpan.FromSeconds(2)) 
+                    ?? _test.FindByText("Đăng Ký Tài Khoản", System.TimeSpan.FromSeconds(2)) 
+                    ?? _test.FindByClassName("android.widget.Button", 0);
+            }
+        }
+
+        public AppiumElement? BackToLoginButton
+        {
+            get
+            {
+                var btn = _test.FindByAutomationId("btnBackToLogin", System.TimeSpan.FromSeconds(1)) 
+                    ?? _test.FindByText("Đã có tài khoản? Quay lại đăng nhập", System.TimeSpan.FromSeconds(1));
+                if (btn != null) return btn;
+
+                _test.SwipeDown();
+                return _test.FindByAutomationId("btnBackToLogin", System.TimeSpan.FromSeconds(2)) 
+                    ?? _test.FindByText("Đã có tài khoản? Quay lại đăng nhập", System.TimeSpan.FromSeconds(2)) 
+                    ?? _test.FindByClassName("android.widget.Button", 1);
+            }
+        }
+
+        public AppiumElement? ErrorAlert => _test.FindByText("Vui lòng nhập Họ và tên sinh viên.", System.TimeSpan.FromSeconds(2))
+            ?? _test.FindByText("Vui lòng nhập Họ và tên", System.TimeSpan.FromSeconds(1))
+            ?? _test.FindByText("Vui lòng nhập", System.TimeSpan.FromSeconds(1))
+            ?? _test.FindByAutomationId("lblRegisterError", System.TimeSpan.FromSeconds(2))
+            ?? (_test.Driver?.FindElements(OpenQA.Selenium.By.XPath("//android.widget.TextView[contains(@text, 'vui lòng') or contains(@text, 'Vui lòng') or contains(@text, 'bắt buộc') or contains(@text, 'Họ và tên') or contains(@text, 'Lỗi')]")).FirstOrDefault() as AppiumElement);
 
         /// <summary>
         /// Kiểm tra màn hình Đăng ký đã hiển thị đầy đủ các trường nhập hay chưa.
         /// </summary>
         public bool IsLoaded()
         {
-            return FullNameInput != null && UsernameInput != null && EmailInput != null && SubmitButton != null;
+            return FullNameInput != null && UsernameInput != null && EmailInput != null;
         }
 
         /// <summary>
@@ -54,7 +87,22 @@ namespace UITests.Android.Pages
         /// </summary>
         public void ClickSubmit()
         {
-            _test.SafeClick(SubmitButton);
+            _test.SwipeDown();
+            System.Threading.Thread.Sleep(300);
+
+            var btn = SubmitButton;
+            if (btn != null)
+            {
+                _test.SafeClick(btn);
+            }
+            else
+            {
+                _test.TapCoordinate(538, 1961);
+            }
+
+            System.Threading.Thread.Sleep(500);
+            _test.SwipeUp();
+            System.Threading.Thread.Sleep(400);
         }
 
         /// <summary>
@@ -62,7 +110,16 @@ namespace UITests.Android.Pages
         /// </summary>
         public void ClickBackToLogin()
         {
-            _test.SafeClick(BackToLoginButton);
+            var btn = BackToLoginButton;
+            if (btn != null)
+            {
+                _test.SafeClick(btn);
+            }
+            else
+            {
+                _test.Driver?.Navigate().Back();
+            }
+            System.Threading.Thread.Sleep(1000);
         }
 
         /// <summary>

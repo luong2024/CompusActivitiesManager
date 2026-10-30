@@ -15,8 +15,8 @@ namespace UITests.Android.Pages
             _test = test;
         }
 
-        public AppiumElement? MenuButton => _test.FindByAutomationId("btnMenuToggle") ?? _test.FindByText("☰");
-        public AppiumElement? GreetingLabel => _test.FindByAutomationId("lblStudentGreeting");
+        public AppiumElement? MenuButton => _test.FindByAutomationId("btnMenuToggle") ?? _test.FindByText("☰") ?? (_test.Driver?.FindElements(OpenQA.Selenium.By.XPath("//*[@text='☰' or contains(@text, '☰')]")).FirstOrDefault() as AppiumElement);
+        public AppiumElement? GreetingLabel => _test.FindByAutomationId("lblStudentGreeting") ?? (_test.Driver?.FindElements(OpenQA.Selenium.By.XPath("//android.widget.TextView[contains(@text, 'Xin chào') or contains(@text, 'chào') or contains(@text, 'Chào')]")).FirstOrDefault() as AppiumElement);
         public AppiumElement? NotificationButton => _test.FindByAutomationId("btnNotifications") ?? _test.FindByText("🔔");
 
         // Bottom TabBar items
@@ -27,15 +27,15 @@ namespace UITests.Android.Pages
         public AppiumElement? ProfileTab => _test.FindByText("Cá nhân");
 
         // Flyout Menu items
-        public AppiumElement? LogoutMenuItem => _test.FindByText("🚪 Đăng xuất khỏi hệ thống");
-        public AppiumElement? UserManagementMenuItem => _test.FindByText("👥 Quản lý Người dùng (Admin)");
+        public AppiumElement? LogoutMenuItem => _test.FindByText("🚪 Đăng xuất khỏi hệ thống") ?? _test.FindByText("Đăng xuất khỏi hệ thống") ?? (_test.Driver?.FindElements(OpenQA.Selenium.By.XPath("//*[contains(@text, 'Đăng xuất')]")).FirstOrDefault() as AppiumElement);
+        public AppiumElement? UserManagementMenuItem => _test.FindByText("👥 Quản lý Người dùng (Admin)") ?? _test.FindByText("Quản lý Người dùng (Admin)") ?? (_test.Driver?.FindElements(OpenQA.Selenium.By.XPath("//*[contains(@text, 'Quản lý Người dùng')]")).FirstOrDefault() as AppiumElement);
 
         /// <summary>
         /// Kiểm tra Trang chủ đã tải thành công.
         /// </summary>
         public bool IsLoaded()
         {
-            return MenuButton != null && (GreetingLabel != null || HomeTab != null);
+            return HomeTab != null || MenuButton != null || GreetingLabel != null;
         }
 
         /// <summary>

@@ -14,10 +14,10 @@
         public const string AutomationName = "UIAutomator2";
         public const string DeviceName = "Android Emulator";
         public const string AppPackage = "com.companyname.campusactivitiesmanager";
-        public const string AppActivity = "crc64e1fb321c08285b90.MainActivity";
+        public static string AppActivity => Environment.GetEnvironmentVariable("APPIUM_ACTIVITY") ?? "crc64fcefef3a6ce9c358.MainActivity";
 
         public static readonly TimeSpan CommandTimeout = TimeSpan.FromSeconds(120);
-        public static readonly TimeSpan ImplicitWait = TimeSpan.FromSeconds(10);
-        public static readonly TimeSpan ExplicitWait = TimeSpan.FromSeconds(15);
+        public static readonly TimeSpan ImplicitWait = TimeSpan.FromSeconds(1);
+        public static readonly TimeSpan ExplicitWait = TimeSpan.FromSeconds(3);
     }
 }

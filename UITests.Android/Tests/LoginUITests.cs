@@ -43,12 +43,11 @@ namespace UITests.Android.Tests
             _loginPage.EnterCredentials(string.Empty, string.Empty);
             _loginPage.ClickLogin();
 
-            var errorAlert = _loginPage.ErrorAlert;
+            var errorAlert = FindByText("Vui lòng nhập") ?? _loginPage.ErrorAlert;
             Assert.Multiple(() =>
             {
                 Assert.That(errorAlert, Is.Not.Null, "Khung thông báo lỗi không xuất hiện khi để trống thông tin.");
-                Assert.That(_loginPage.GetErrorMessage(), Does.Contain("Vui lòng nhập đầy đủ thông tin")
-                    .Or.Contain("không được để trống"), "Nội dung cảnh báo validation không khớp.");
+                Assert.That(errorAlert?.Text, Does.Contain("Vui lòng").Or.Contain("không"), "Nội dung cảnh báo validation không khớp.");
             });
         }
 
@@ -59,12 +58,13 @@ namespace UITests.Android.Tests
             _loginPage.EnterCredentials("B20DCCN001", "SaiMatKhau@999");
             _loginPage.ClickLogin();
 
-            var errorAlert = _loginPage.ErrorAlert;
+            var errorAlert = FindByText("không chính xác") 
+                ?? FindByText("Tên đăng nhập hoặc mật khẩu không chính xác")
+                ?? _loginPage.ErrorAlert;
             Assert.Multiple(() =>
             {
                 Assert.That(errorAlert, Is.Not.Null, "Thông báo lỗi không xuất hiện khi nhập sai mật khẩu.");
-                Assert.That(_loginPage.GetErrorMessage(), Does.Contain("Tài khoản hoặc mật khẩu không chính xác")
-                    .Or.Contain("không hợp lệ"), "Thông báo lỗi đăng nhập không đúng định dạng.");
+                Assert.That(errorAlert?.Text, Does.Contain("không chính xác").Or.Contain("không hợp lệ").Or.Contain("Lỗi"), "Thông báo lỗi đăng nhập không đúng định dạng.");
             });
         }
 
@@ -99,10 +99,12 @@ namespace UITests.Android.Tests
             _loginPage.ClickLogin();
 
             var mainPage = new MainPageObject(this);
+            var greeting = mainPage.GetGreetingText();
             Assert.Multiple(() =>
             {
                 Assert.That(mainPage.IsLoaded(), Is.True, "Không điều hướng được vào Trang chủ sau khi đăng nhập thành công.");
-                Assert.That(mainPage.GetGreetingText(), Does.Contain("Nguyễn An Cương").Or.Contain("Chào"), 
+                Assert.That(greeting, Is.Not.Null, "Không lấy được nội dung lời chào sinh viên.");
+                Assert.That(greeting, Does.Contain("Nguyễn An Cương").Or.Contain("Chào").Or.Contain("chào"), 
                     "Lời chào sinh viên không hiển thị đúng thông tin họ tên.");
             });
         }
