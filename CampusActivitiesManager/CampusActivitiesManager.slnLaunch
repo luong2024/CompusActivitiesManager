@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Run All (API + MAUI)",
+    "Projects": [
+      {
+        "Path": "CampusActivitiesManager\\CampusActivitiesManager.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\CampusActivitiesManager.Api\\CampusActivitiesManager.Api.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
