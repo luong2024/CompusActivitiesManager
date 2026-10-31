@@ -78,9 +78,11 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<IAttendanceService, AttendanceService>();
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
+            builder.Services.AddSingleton<IEventService, EventService>();
 
             // PageModels
             builder.Services.AddSingleton<MainPageModel>();
+            builder.Services.AddTransient<EventListPageModel>();
             builder.Services.AddSingleton<ProjectListPageModel>();
             builder.Services.AddSingleton<ManageMetaPageModel>();
             builder.Services.AddSingleton<UserManagementPageModel>();
@@ -107,6 +109,7 @@ namespace CampusActivitiesManager
 
             // Pages
             builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<EventListPage>();
             builder.Services.AddTransient<UserManagementPage>();
             builder.Services.AddTransient<EventManagementPage>();
             builder.Services.AddTransient<ProfilePage>();
@@ -144,3 +147,4 @@ namespace CampusActivitiesManager
         }
     }
 }
+
