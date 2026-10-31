@@ -2,17 +2,17 @@
 
 **Mã Task**: T37.2  
 **User Story**: US37 – Student & User Self-Registration (Đăng ký tài khoản người dùng và sinh viên mới trên ứng dụng)  
-**Người được giao (Assignee)**: `campus-worker-ui` & `campus-worker-integration`  
+**Người được giao (Assignee)**: **Nguyễn Đức Mạnh**  
 **Trạng thái**: Hoàn thành (Done)  
 **Thời gian dự kiến (Estimate)**: 8 giờ  
 
 ---
 
 ## 1. Mục tiêu nhiệm vụ
-Cung cấp màn hình và luồng nghiệp vụ cho phép sinh viên / người dùng mới tự đăng ký tài khoản tham gia ứng dụng **Campus Activities Manager**:
+Cung cấp màn hình và luồng nghiệp vụ cho phép sinh viên / người dùng mới tự đăng ký tài khoản tham gia ứng dụng **Campus Activities Manager** và đồng bộ trực tiếp lên Firebase:
 1. Cho phép nhập đầy đủ thông tin: Họ và tên, Mã sinh viên (Tên đăng nhập), Email, Số điện thoại, Lớp sinh hoạt và Mật khẩu.
-2. Kiểm tra tính hợp lệ dữ liệu (Client-side validation): các trường bắt buộc, định dạng email, độ dài mật khẩu tối thiểu 6 ký tự, mật khẩu xác nhận trùng khớp.
-3. Kiểm tra tính duy nhất (Unique check): ngăn chặn đăng ký trùng Mã sinh viên hoặc Email đã tồn tại trong hệ thống.
+2. Kiểm tra tính hợp lệ dữ liệu (Client-side validation): các trường bắt buộc, định dạng email chuẩn RFC 5322 regex, độ dài mật khẩu tối thiểu 6 ký tự, mật khẩu xác nhận trùng khớp.
+3. Kiểm tra tính duy nhất (Unique check): ngăn chặn đăng ký trùng Mã sinh viên hoặc Email đã tồn tại trong cơ sở dữ liệu Cloud Firestore.
 4. Thiết lập đúng các quy tắc nghiệp vụ dự án:
    - Vai trò mặc định: `Role.Student` (`Role.User`).
    - **Điểm rèn luyện khởi điểm ban đầu: 0 ĐRL** (Chỉ tiêu tối thiểu: 50 ĐRL/học kỳ, 250 ĐRL/năm học).
@@ -25,7 +25,7 @@ Cung cấp màn hình và luồng nghiệp vụ cho phép sinh viên / người 
 
 ### 2.1. Quản lý Dữ liệu & Dịch vụ Xác thực (`Services`)
 - [x] Cập nhật `IAuthenticationService` và `AuthenticationService` hỗ trợ xác thực người dùng mới đăng ký.
-- [x] Tích hợp với `IUserService<User>`: Kiểm tra `GetUserByUsernameAsync`, kiểm tra trùng lặp email và lưu qua `SaveUserAsync`.
+- [x] Tích hợp với `IUserService<User>`: Kiểm tra `GetUserByUsernameAsync`, kiểm tra trùng lặp email và lưu qua `SaveUserAsync` đồng bộ lên Cloud Firestore.
 - [x] Khởi tạo tài khoản với `TrainingPoints = 0`, phân lớp `ClassName` (`D20CNTT1`, `D21CNTT1`, `D22CNTT1`, `D20ATTT1`...).
 
 ### 2.2. Giao diện Người dùng (.NET MAUI MVVM)

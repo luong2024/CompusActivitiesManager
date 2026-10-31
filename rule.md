@@ -14,7 +14,7 @@ Mục tiêu: xem sự kiện sắp diễn ra, đăng ký sự kiện, theo dõi 
 
 Vai trò người dùng: Student, Event Manager, Admin (trong code dùng role: ADMIN, USER, ... — xem mục 6). 
 
-Backend: API dùng Firebase (theo AC của US35). Xác thực dùng Firebase Authentication (ID Token dạng JWT do Firebase cấp), dữ liệu lưu trên Firebase. [TODO: xác nhận Firestore hay Realtime Database; app gọi thẳng Firebase SDK hay qua REST API trung gian (Cloud Functions/ASP.NET)] 
+Backend: Hệ thống áp dụng kiến trúc Serverless Cloud-Native. Ứng dụng .NET MAUI kết nối trực tiếp với Google Cloud Firestore và Firebase Authentication qua FirebaseSyncService (sử dụng cơ chế trao đổi khóa bảo mật Service Account OAuth2 RS256 JWT để lấy Access Token an toàn, kết hợp fallback SQLite/memory cache). Không sử dụng máy chủ ASP.NET Web API trung gian riêng. 
 
 Xem mục 7B cho quy tắc riêng của Firebase. 
 
