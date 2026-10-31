@@ -1,17 +1,17 @@
 using System.Collections.ObjectModel;
+using CampusActivitiesManager.BusinessLogic.Services;
 using CampusActivitiesManager.Models;
-using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace CampusActivitiesManager.PageModels
 {
     /// <summary>
-    /// ViewModel quản lý người dùng và thực thi nghiệp vụ phân quyền truy cập (RBAC).
+    /// ViewModel quản lý người dùng, duyệt reset mật khẩu và thực thi nghiệp vụ phân quyền truy cập (RBAC).
     /// </summary>
     public partial class UserManagementPageModel : BaseViewModel
     {
-        private readonly IUserService<User> _userService;
+        private readonly IUserService _userService;
         private readonly IAuthenticationService _authService;
         private readonly ModalErrorHandler _errorHandler;
 
@@ -60,8 +60,18 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private bool _isRoleModalVisible;
 
+        // Quản lý yêu cầu Reset mật khẩu
+        [ObservableProperty]
+        private ObservableCollection<PasswordResetRequest> _pendingResetRequests = [];
+
+        [ObservableProperty]
+        private int _pendingResetCount;
+
+        [ObservableProperty]
+        private bool _hasPendingResets;
+
         public UserManagementPageModel(
-            IUserService<User> userService,
+            IUserService userService,
             IAuthenticationService authService,
             ModalErrorHandler errorHandler)
         {
@@ -106,6 +116,12 @@ namespace CampusActivitiesManager.PageModels
 
                 var users = await _userService.GetUsersListAsync();
                 UsersList = new ObservableCollection<User>(users);
+
+                // Tải yêu cầu reset mật khẩu
+                var pendingResets = await _userService.GetPendingPasswordResetRequestsAsync();
+                PendingResetRequests = new ObservableCollection<PasswordResetRequest>(pendingResets);
+                PendingResetCount = pendingResets.Count;
+                HasPendingResets = IsAdmin && PendingResetCount > 0;
 
                 UpdateStatistics();
                 ApplyFilter();
@@ -166,16 +182,211 @@ namespace CampusActivitiesManager.PageModels
             FilteredUsers = new ObservableCollection<User>(query);
         }
 
-        /// <summary>
-        /// Mở Modal phân quyền cho tài khoản được chọn (kèm Authorization Guard kiểm tra quyền Admin).
-        /// </summary>
+        // ==================== RESET MẬT KHẨU CHO NGƯỜI DÙNG ====================
+
+        [RelayCommand]
+        public async Task ResolveResetRequest(PasswordResetRequest request)
+        {
+            if (request == null) return;
+
+            if (!_authService.IsAdmin)
+            {
+                await Shell.Current.DisplayAlert("Quyền bị từ chối", "Chỉ Quản trị viên (Admin) mới có quyền reset mật khẩu!", "Đóng");
+                return;
+            }
+
+            bool confirm = await Shell.Current.DisplayAlert(
+                "Xác nhận Reset Mật khẩu 🔄",
+                $"Bạn có chắc chắn muốn đặt lại mật khẩu cho tài khoản '{request.FullName}' (@{request.Username}) về mật khẩu mặc định của vai trò {request.Role.GetDisplayName()} ({request.DefaultPasswordAssigned})?",
+                "Reset ngay",
+                "Hủy");
+
+            if (!confirm) return;
+
+            try
+            {
+                IsBusy = true;
+                var (success, message, defaultPw) = await _userService.ResolvePasswordResetAsync(request.Id, CurrentUserName);
+                if (success)
+                {
+                    PendingResetRequests.Remove(request);
+                    PendingResetCount = PendingResetRequests.Count;
+                    HasPendingResets = IsAdmin && PendingResetCount > 0;
+
+                    await AppShell.DisplayToastAsync($"Đã reset mật khẩu của {request.FullName} về: {defaultPw}");
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Lỗi", message, "Đóng");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        public async Task ResetPasswordForUser(User user)
+        {
+            if (user == null) return;
+
+            if (!_authService.IsAdmin)
+            {
+                await Shell.Current.DisplayAlert("Quyền bị từ chối", "Chỉ Quản trị viên (Admin) mới có quyền reset mật khẩu!", "Đóng");
+                return;
+            }
+
+            string defaultPw = user.Role.GetDefaultPassword();
+
+            bool confirm = await Shell.Current.DisplayAlert(
+                "Reset Mật khẩu về Mặc định 🔄",
+                $"Đặt lại mật khẩu cho '{user.FullName}' (@{user.Username}) về mật khẩu mặc định của vai trò {user.Role.GetDisplayName()}?\n\nMật khẩu mặc định: {defaultPw}",
+                "Xác nhận Reset",
+                "Hủy");
+
+            if (!confirm) return;
+
+            try
+            {
+                IsBusy = true;
+                var (success, message, newPw) = await _userService.ResetUserPasswordToDefaultAsync(user.Username, CurrentUserName);
+                if (success)
+                {
+                    var req = PendingResetRequests.FirstOrDefault(r => r.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase));
+                    if (req != null)
+                    {
+                        PendingResetRequests.Remove(req);
+                        PendingResetCount = PendingResetRequests.Count;
+                        HasPendingResets = IsAdmin && PendingResetCount > 0;
+                    }
+
+                    await AppShell.DisplayToastAsync($"Đã reset mật khẩu cho {user.FullName} về: {newPw}");
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Lỗi", message, "Đóng");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        // ==================== CỘNG / TRỪ ĐIỂM RÈN LUYỆN ====================
+
+        [RelayCommand]
+        public async Task AdjustPointsForUser(User user)
+        {
+            if (user == null) return;
+
+            if (!_authService.IsAdmin)
+            {
+                await Shell.Current.DisplayAlert("Quyền bị từ chối", "Chỉ Admin mới có quyền điều chỉnh điểm rèn luyện trực tiếp!", "Đóng");
+                return;
+            }
+
+            string action = await Shell.Current.DisplayActionSheet(
+                $"⚡ Quản lý Điểm Rèn Luyện: {user.FullName} (Hiện có: {user.TrainingPoints} ĐRL)",
+                "Hủy",
+                null,
+                "➕ Cộng +5 ĐRL (Khen thưởng)",
+                "➕ Cộng +10 ĐRL (Đoạt giải / Tích cực)",
+                "➖ Trừ -5 ĐRL (Điểm danh không hợp lệ)",
+                "➖ Trừ -10 ĐRL (Vi phạm quy chế)",
+                "✍️ Nhập số điểm tùy chỉnh (+/-)");
+
+            if (string.IsNullOrEmpty(action) || action == "Hủy") return;
+
+            int delta = 0;
+            string defaultReason = string.Empty;
+
+            switch (action)
+            {
+                case "➕ Cộng +5 ĐRL (Khen thưởng)":
+                    delta = 5;
+                    defaultReason = "Khen thưởng cán bộ / hoạt động tích cực";
+                    break;
+                case "➕ Cộng +10 ĐRL (Đoạt giải / Tích cực)":
+                    delta = 10;
+                    defaultReason = "Đoạt giải thưởng / Đóng góp xuất sắc";
+                    break;
+                case "➖ Trừ -5 ĐRL (Điểm danh không hợp lệ)":
+                    delta = -5;
+                    defaultReason = "Minh chứng điểm danh không hợp lệ";
+                    break;
+                case "➖ Trừ -10 ĐRL (Vi phạm quy chế)":
+                    delta = -10;
+                    defaultReason = "Vi phạm nội quy trường / vắng không phép";
+                    break;
+                case "✍️ Nhập số điểm tùy chỉnh (+/-)":
+                    string deltaStr = await Shell.Current.DisplayPromptAsync(
+                        "Nhập số điểm cần điều chỉnh",
+                        "Nhập số điểm (ví dụ: 5 để cộng 5, hoặc -5 để trừ 5):",
+                        "Tiếp tục",
+                        "Hủy",
+                        keyboard: Keyboard.Numeric);
+                    if (string.IsNullOrWhiteSpace(deltaStr) || !int.TryParse(deltaStr.Trim(), out delta))
+                    {
+                        return;
+                    }
+                    break;
+            }
+
+            string reason = await Shell.Current.DisplayPromptAsync(
+                "Lý do điều chỉnh điểm",
+                "Nhập lý do lưu vào biên bản kiểm toán ĐRL:",
+                "Xác nhận",
+                "Bỏ qua",
+                initialValue: defaultReason);
+
+            try
+            {
+                IsBusy = true;
+                var (success, msg) = await _userService.AdjustTrainingPointsWithAuditAsync(
+                    user.Username,
+                    delta,
+                    reason,
+                    _authService.CurrentUser?.Username ?? "admin",
+                    CurrentUserName);
+
+                if (success)
+                {
+                    user.TrainingPoints = Math.Max(0, user.TrainingPoints + delta);
+                    await AppShell.DisplayToastAsync(msg);
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Lỗi", msg, "Đóng");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        // ==================== PHÂN QUYỀN ====================
+
         [RelayCommand]
         public async Task SelectUserForRoleAssignment(User user)
         {
             if (user == null)
                 return;
 
-            // Authorization Guard: Nếu không phải Admin, chặn hành động và hiển thị cảnh báo
             if (!_authService.IsAdmin)
             {
                 if (Shell.Current != null)
@@ -208,9 +419,6 @@ namespace CampusActivitiesManager.PageModels
             }
         }
 
-        /// <summary>
-        /// Lưu vai trò phân quyền mới vào SQLite Database (Trọng tâm AC 05.3.1).
-        /// </summary>
         [RelayCommand]
         public async Task SaveRoleAssignment()
         {
@@ -229,7 +437,6 @@ namespace CampusActivitiesManager.PageModels
                 {
                     SelectedUser.Role = targetRole;
 
-                    // Nếu Admin tự phân quyền lại chính mình, đồng bộ phiên làm việc tức thì
                     if (_authService.CurrentUser?.Id == userId)
                     {
                         await _authService.RefreshCurrentUserAsync();
@@ -261,9 +468,6 @@ namespace CampusActivitiesManager.PageModels
             }
         }
 
-        /// <summary>
-        /// Menu tác vụ nhanh DisplayActionSheet cho phép đổi quyền trực tiếp từ bảng chọn.
-        /// </summary>
         [RelayCommand]
         public async Task QuickChangeRoleActionSheet(User user)
         {
@@ -290,8 +494,10 @@ namespace CampusActivitiesManager.PageModels
                 "Hủy",
                 null,
                 "Admin (Quản trị viên)",
-                "Manager (Quản lý hoạt động)",
-                "User (Sinh viên / Thành viên)",
+                "Manager (Quản lý sự kiện)",
+                "Lecturer (Giảng viên / Cố vấn học tập)",
+                "Secretary (Bí thư chi đoàn)",
+                "User (Sinh viên / Học sinh)",
                 "Guest (Khách vãng lai)");
 
             if (string.IsNullOrEmpty(action) || action == "Hủy")
@@ -300,8 +506,10 @@ namespace CampusActivitiesManager.PageModels
             Role chosenRole = action switch
             {
                 "Admin (Quản trị viên)" => Role.Admin,
-                "Manager (Quản lý hoạt động)" => Role.Manager,
-                "User (Sinh viên / Thành viên)" => Role.User,
+                "Manager (Quản lý sự kiện)" => Role.Manager,
+                "Lecturer (Giảng viên / Cố vấn học tập)" => Role.Lecturer,
+                "Secretary (Bí thư chi đoàn)" => Role.Secretary,
+                "User (Sinh viên / Học sinh)" => Role.User,
                 "Guest (Khách vãng lai)" => Role.Guest,
                 _ => user.Role
             };
@@ -328,9 +536,6 @@ namespace CampusActivitiesManager.PageModels
             }
         }
 
-        /// <summary>
-        /// Xóa người dùng (Ngăn chặn Admin tự xóa chính mình qua canExecute / validation).
-        /// </summary>
         [RelayCommand]
         public async Task DeleteUser(User user)
         {
@@ -346,7 +551,6 @@ namespace CampusActivitiesManager.PageModels
                 return;
             }
 
-            // Ngăn chặn Admin tự xóa chính mình
             if (_authService.CurrentUser?.Id == user.Id)
             {
                 if (Shell.Current != null)
@@ -381,9 +585,6 @@ namespace CampusActivitiesManager.PageModels
             }
         }
 
-        /// <summary>
-        /// Khóa hoặc Mở khóa tài khoản người dùng.
-        /// </summary>
         [RelayCommand]
         public async Task ToggleUserStatus(User user)
         {
@@ -412,14 +613,13 @@ namespace CampusActivitiesManager.PageModels
             if (success)
             {
                 user.IsActive = !user.IsActive;
+                UpdateStatistics();
+                ApplyFilter();
                 await AppShell.DisplayToastAsync(
                     user.IsActive ? $"Đã kích hoạt tài khoản {user.FullName}" : $"Đã khóa tài khoản {user.FullName}");
             }
         }
 
-        /// <summary>
-        /// Điều hướng sang trang tạo người dùng CreateUserPage.
-        /// </summary>
         [RelayCommand]
         public async Task NavigateToCreateUserPage()
         {
@@ -435,9 +635,6 @@ namespace CampusActivitiesManager.PageModels
             await Shell.Current.GoToAsync("createuser");
         }
 
-        /// <summary>
-        /// Điều hướng sang trang chỉnh sửa phân quyền EditUserRolePage qua Shell và QueryProperty.
-        /// </summary>
         [RelayCommand]
         public async Task NavigateToEditRolePage(User user)
         {
@@ -455,15 +652,21 @@ namespace CampusActivitiesManager.PageModels
 
             await Shell.Current.GoToAsync($"editrole?UserId={user.Id}");
         }
+
+        [RelayCommand]
+        public void ToggleMenu()
+        {
+            if (Shell.Current != null)
+            {
+                Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
+            }
+        }
     }
 
-    /// <summary>
-    /// Alias UserManagementViewModel tương thích với định danh trong Task.md
-    /// </summary>
     public class UserManagementViewModel : UserManagementPageModel
     {
         public UserManagementViewModel(
-            IUserService<User> userService,
+            IUserService userService,
             IAuthenticationService authService,
             ModalErrorHandler errorHandler)
             : base(userService, authService, errorHandler)

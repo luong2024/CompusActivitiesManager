@@ -1,5 +1,4 @@
 using CampusActivitiesManager.PageModels;
-using Microsoft.Maui.Controls;
 
 namespace CampusActivitiesManager.Pages
 {

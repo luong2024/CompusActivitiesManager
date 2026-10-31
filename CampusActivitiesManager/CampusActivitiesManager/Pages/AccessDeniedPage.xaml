@@ -11,8 +11,9 @@
                 Stroke="{AppThemeBinding Light=#FECACA, Dark=#7F1D1D}"
                 StrokeThickness="1"
                 BackgroundColor="{AppThemeBinding Light=White, Dark=#1E293B}"
-                Padding="32"
-                WidthRequest="420"
+                Padding="24"
+                MaximumWidthRequest="420"
+                Margin="16"
                 HorizontalOptions="Center">
 
             <VerticalStackLayout Spacing="20" HorizontalOptions="Center">

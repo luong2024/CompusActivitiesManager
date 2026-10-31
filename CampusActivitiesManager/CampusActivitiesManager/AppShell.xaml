@@ -6,35 +6,77 @@
     xmlns:sf="clr-namespace:Syncfusion.Maui.Toolkit.SegmentedControl;assembly=Syncfusion.Maui.Toolkit"
     xmlns:pages="clr-namespace:CampusActivitiesManager.Pages"
     Shell.FlyoutBehavior="Flyout"
+    Shell.FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
     Title="Campus Activities Manager">
 
-    <!-- 1. Màn hình Cổng Sinh Viên (Student Dashboard) - MÀN HÌNH MẶC ĐỊNH MỞ ĐẦU -->
-    <ShellContent
-        Title="Cổng Sinh Viên"
-        Icon="{StaticResource IconDashboard}"
-        ContentTemplate="{DataTemplate pages:MainPage}"
-        Route="main" />
+    <Shell.FlyoutHeader>
+        <Border Background="{StaticResource PrimaryGradientBrush}" Padding="20,24" StrokeThickness="0">
+            <HorizontalStackLayout Spacing="14" VerticalOptions="Center">
+                <Border x:Name="FlyoutAvatarBorder" WidthRequest="46" HeightRequest="46" StrokeShape="RoundRectangle 23" BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0" Padding="0">
+                    <Label x:Name="FlyoutAvatarText" Text="🎓" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{StaticResource White}"/>
+                </Border>
+                <VerticalStackLayout VerticalOptions="Center" Spacing="2">
+                    <Label x:Name="FlyoutUserName" Text="Campus Hub" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource White}"/>
+                    <Label x:Name="FlyoutUserRole" Text="Quản lý Hoạt động Sinh viên" FontSize="12" TextColor="{StaticResource HeaderSubtitleColor}"/>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </Border>
+    </Shell.FlyoutHeader>
 
-    <!-- S? ki?n -->
+    <!-- Màn hình Đăng nhập (Login) - Ẩn khỏi Flyout & Không hiện TabBar -->
     <ShellContent
-        Title="S? ki?n"
-        Icon="{StaticResource IconDashboard}"
-        ContentTemplate="{DataTemplate pages:EventListPage}"
-        Route="events" />
+        Route="login"
+        FlyoutItemIsVisible="False"
+        Shell.TabBarIsVisible="False"
+        Shell.FlyoutBehavior="Disabled"
+        ContentTemplate="{DataTemplate pages:LoginPage}" />
 
-    <!-- 2. Màn hình Quản lý Tài khoản (Admin / AC 1.1) -->
-    <ShellContent
-        Title="Quản lý Tài khoản"
-        Icon="{StaticResource IconUsers}"
-        ContentTemplate="{DataTemplate pages:UserManagementPage}"
-        Route="users" />
+    <!-- 🌟 Commercial Bottom TabBar (Trang chủ, Sự kiện, Quét QR, Lớp học, Cá nhân) -->
+    <TabBar x:Name="AppTabBar">
+        <!-- 1. Trang chủ -->
+        <Tab Title="Trang chủ" Icon="{StaticResource IconDashboard}" Route="homeTab">
+            <ShellContent Route="main" ContentTemplate="{DataTemplate pages:MainPage}" />
+        </Tab>
 
-    <!-- 3. Màn hình Đăng nhập (Login) -->
-    <ShellContent
-        Title="Tài khoản &amp; Đăng nhập"
-        Icon="{StaticResource IconAccount}"
-        ContentTemplate="{DataTemplate pages:LoginPage}"
-        Route="login" />
+        <!-- 2. Sự kiện -->
+        <Tab Title="Sự kiện" Icon="{StaticResource IconCalendar}" Route="eventsTab">
+            <ShellContent Route="events" ContentTemplate="{DataTemplate pages:EventManagementPage}" />
+        </Tab>
+
+        <!-- 3. Quét QR -->
+        <Tab Title="Quét QR" Icon="{StaticResource IconDashboard}" Route="qrTab">
+            <ShellContent Route="qrscan" ContentTemplate="{DataTemplate pages:QrScannerPage}" />
+        </Tab>
+
+        <!-- 4. Lớp học -->
+        <Tab Title="Lớp học" Icon="{StaticResource IconUsers}" Route="classTab">
+            <ShellContent Route="classhub" ContentTemplate="{DataTemplate pages:ClassHubPage}" />
+        </Tab>
+
+        <!-- 5. Cá nhân -->
+        <Tab Title="Cá nhân" Icon="{StaticResource IconAccount}" Route="profileTab">
+            <ShellContent Route="profile" ContentTemplate="{DataTemplate pages:ProfilePage}" />
+        </Tab>
+    </TabBar>
+
+    <!-- Danh mục điều hướng trong thanh Menu (Flyout Menu Items) -->
+    <MenuItem Text="🏠 Trang chủ" Clicked="OnNavigateHomeClicked" />
+    <MenuItem Text="📅 Sự kiện &amp; Hoạt động" Clicked="OnNavigateEventsClicked" />
+    <MenuItem Text="📷 Quét mã QR sự kiện" Clicked="OnNavigateQrClicked" />
+    <MenuItem Text="🎓 Quản lý Lớp học" Clicked="OnNavigateClassClicked" />
+    <MenuItem Text="👤 Hồ sơ cá nhân" Clicked="OnNavigateProfileClicked" />
+
+    <!-- Admin & Management Special Flyout Items -->
+    <FlyoutItem x:Name="FlyoutUsers" Title="👥 Quản lý Người dùng (Admin)" Icon="{StaticResource IconUsers}">
+        <ShellContent Route="users" ContentTemplate="{DataTemplate pages:UserManagementPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="FlyoutReports" Title="📊 Báo cáo &amp; Điểm danh" Icon="{StaticResource IconProjects}">
+        <ShellContent Route="attendancereport" ContentTemplate="{DataTemplate pages:EventAttendanceReportPage}" />
+    </FlyoutItem>
+
+    <!-- Đăng xuất (Logout) MenuItem -->
+    <MenuItem Text="🚪 Đăng xuất khỏi hệ thống" Clicked="OnLogoutMenuItemClicked" />
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">
