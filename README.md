@@ -1,12 +1,21 @@
 # Campus Activity Manager 🎓✨
+> Ứng dụng Quản lý Hoạt động Ngoại khóa, Sự kiện & Điểm danh Sinh viên xây dựng bằng **.NET 9 MAUI** (Android APK & Windows Desktop) trên **Kiến trúc Serverless Cloud-Native** kết nối trực tiếp **Firebase Cloud Services** (Cloud Firestore & Firebase Authentication).
+> 
+> **Tác giả & Tech Lead**: **Nguyễn Đức Mạnh**
 
-> Ứng dụng Quản lý Hoạt động & Điểm danh Ngoại khóa Sinh viên xây dựng bằng **.NET 9 MAUI** (Windows & Android APK), hoạt động hoàn toàn tự chủ thông qua hệ thống **Services nội bộ** độc lập, không phụ thuộc vào bất kỳ máy chủ bên ngoài hay cấu hình mạng nào.
+---
+
+## 📋 Tài Liệu Dự Án Chuẩn Hóa
+- 📖 [**Kế Hoạch Dự Án & 38 User Stories (Plan.md)**](file:///c:/Users/Admin/source/repos/CompusActivitiesManager/Plan.md): Toàn bộ Product Backlog chuẩn hóa 100% theo mã nguồn thực tế, 4 Sprints và ma trận phân công trách nhiệm.
+- 📐 [**Đặc Tả Kỹ Thuật Nghiệp Vụ (BA.md)**](file:///c:/Users/Admin/source/repos/CompusActivitiesManager/BA.md): Kịch bản kiểm thử hành vi BDD Gherkin, cấu trúc `ApiResponse<T>`, quy chuẩn PBKDF2-SHA256 và OAuth2 Service Account.
+- 🎓 [**Sổ Tay Phản Biện & Bảo Vệ Đồ Án**](file:///C:/Users/Admin/.gemini/antigravity/brain/c9b1bcd2-6c19-4dd9-9e98-3645ef844cca/so_tay_bao_ve_du_an_va_phan_bien_ai.md): Bộ câu hỏi và trả lời phỏng vấn kỹ thuật đồ án dành cho sinh viên **Nguyễn Đức Mạnh**.
+- 📜 [**Quy Tắc Phát Triển & DoD (rule.md)**](file:///c:/Users/Admin/source/repos/CompusActivitiesManager/rule.md): Tiêu chuẩn Definition of Done (DoD1 - DoD6), kiến trúc MVVM, bảng màu Xanh Dương thương hiệu `#2563EB`.
 
 ---
 
 ## ⚡ Hướng Dẫn Chạy Nhanh Cho Người Mới (Quick Start)
 
-Dự án được thiết kế **100% Native .NET MAUI thuần (All-in-One)**:  
+Dự án được thiết kế **100% Native .NET MAUI thuần (All-in-One)** kết nối trực tiếp Firebase Cloud:  
 👉 **Chỉ dùng đúng duy nhất thư mục dự án `.NET MAUI` (`CampusActivitiesManager`) là chạy mượt mà tất cả các chức năng** trên cả máy tính Windows lẫn thiết bị/máy ảo Android (APK).
 
 ### Yêu Cầu Môi Trường
@@ -22,6 +31,7 @@ Dự án được thiết kế **100% Native .NET MAUI thuần (All-in-One)**:
 Ở thư mục gốc của dự án:
 - **`run-desktop.bat`**: Nhấp đúp chuột để build và chạy ứng dụng Desktop Windows.
 - **`run-android.bat`**: Nhấp đúp chuột để build và deploy chạy trên thiết bị / Android Emulator.
+- **`run-uitests.bat`**: Chạy toàn bộ 15 kịch bản kiểm thử tự động Android UI Test với Appium.
 
 ### 👉 Cách 2: Mở bằng Visual Studio 2022
 1. Mở file giải pháp **`CampusActivitiesManager.sln`**.
@@ -50,9 +60,9 @@ Hệ thống tích hợp sẵn các tài khoản thử nghiệm với đầy đ�
 
 | Vai trò | Tên đăng nhập | Mật khẩu | Chức năng chính trong App |
 |---|---|---|---|
-| **Quản trị viên (Admin)** | `admin` *(hoặc `admin@campus.edu.vn`)* | `Admin@123456` | Toàn quyền: Duyệt / Từ chối hoạt động từ Manager, Quản lý tài khoản người dùng, Thống kê điểm danh |
-| **Quản lý sự kiện (Manager)** | `manager` *(hoặc `manager@campus.edu.vn`)* | `Manager@123456` | Tạo sự kiện kèm ảnh/video (chờ Admin duyệt), Quản trị hoạt động, Xem báo cáo điểm danh |
-| **Sinh viên (Student)** | `B20DCCN001` *(hoặc `cuong.na@campus.edu.vn`)* | `Student@123456` | Xem các hoạt động đã được Admin duyệt trên Trang chủ, Quét mã QR, Điểm danh ảnh, Xem lịch sử |
+| **Quản trị viên (Admin)** | `admin` *(hoặc `admin@campus.edu.vn`)* | `Admin@123456` | Toàn quyền: Quản trị sự kiện, Quản lý tài khoản người dùng, Khóa/Mở khóa tài khoản, Thống kê điểm danh |
+| **Quản lý sự kiện (Manager)** | `manager` *(hoặc `manager@campus.edu.vn`)* | `Manager@123456` | Tạo sự kiện, Quản trị hoạt động, Giám sát check-in thời gian thực, Xuất báo cáo CSV UTF-8 |
+| **Sinh viên (Student)** | `B20DCCN001` *(hoặc `manh.nd@campus.edu.vn`)* | `Student@123456` | Xem sự kiện trang chủ, Quét mã QR Camera thực tế (ZXing), Điểm danh ảnh minh chứng, Sổ cái Điểm Rèn Luyện |
 
 *(Bạn cũng có thể tự do nhấn **Đăng ký (Register)** trên màn hình Login để tạo tài khoản sinh viên mới).*
 
@@ -66,11 +76,19 @@ CompusActivitiesManager/
 │   └── CampusActivitiesManager/
 │       ├── Pages/                        # Giao diện XAML (Trang chủ, Đăng nhập, Sự kiện, Quét QR, Điểm danh ảnh...)
 │       ├── PageModels/                   # ViewModels xử lý logic theo mô hình MVVM
-│       ├── Services/                     # Hệ thống Service nội bộ thuần MAUI (Auth, Events, Attendance, Users, QR)
-│       ├── Models/                       # Đối tượng dữ liệu nghiệp vụ (User, Event, Attendance, Category...)
-│       ├── Data/                         # SQLite DataStore & Repositories lưu trữ dữ liệu bền vững
+│       ├── BusinessLogic/
+│       │   ├── Interfaces/               # Interfaces nghiệp vụ (IUserService, IEventService, IAttendanceService, IQrCodeService, IFirebaseSyncService)
+│       │   └── Services/                 # Hiện thực dịch vụ: kết nối Firebase Cloud Firestore, Auth, ZXing, PBKDF2
+│       ├── Models/                       # Đối tượng dữ liệu nghiệp vụ (User, CampusEvent, AttendanceRecord, Category...)
+│       ├── Data/                         # Cấu hình FirebaseConfig, CategoryRepository, ProjectRepository
 │       └── Resources/                    # Bảng màu Xanh Dương chuẩn Brand, Style, Fonts, Icons
-├── CampusActivitiesManager.sln           # File giải pháp Solution (Chỉ chứa duy nhất dự án MAUI)
+├── CampusActivitiesManagerTest/          # Bộ kiểm thử Unit Test (80 test methods)
+├── UITests.Android/                      # Bộ kiểm thử tự động Android UI Test với Appium (15 kịch bản E2E)
+├── CampusActivitiesManager.sln           # File giải pháp Solution .NET 9
+├── Plan.md                               # Kế hoạch dự án & 38 User Stories chuẩn hóa
+├── BA.md                                 # Đặc tả kỹ thuật & kịch bản BDD Gherkin
+├── rule.md                               # Quy tắc phát triển & tiêu chuẩn DoD
 ├── run-desktop.bat                       # Script 1-click chạy Desktop Windows
-└── run-android.bat                       # Script 1-click chạy Android APK
+├── run-android.bat                       # Script 1-click chạy Android APK
+└── run-uitests.bat                       # Script chạy Appium UI Tests
 ```
