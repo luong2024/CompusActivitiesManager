@@ -1,3 +1,4 @@
+using CampusActivitiesManager.Utilities;
 #nullable disable
 using System.Collections.ObjectModel;
 using CampusActivitiesManager.BusinessLogic.Services;
