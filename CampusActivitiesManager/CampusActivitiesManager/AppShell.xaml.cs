@@ -1,6 +1,6 @@
+using CampusActivitiesManager.BusinessLogic.Services;
 using CampusActivitiesManager.Models;
 using CampusActivitiesManager.Pages;
-using CampusActivitiesManager.Services;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
 using Font = Microsoft.Maui.Font;
@@ -36,7 +36,118 @@ namespace CampusActivitiesManager
                     {
                         MainThread.BeginInvokeOnMainThread(() => UpdateMenuVisibility());
                     };
+
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        // 1. Thử khôi phục phiên nếu app vừa được mở lại từ trạng thái nền (Background)
+                        if (authService.CurrentUser == null)
+                        {
+                            await authService.TryRestoreSessionAsync();
+                            if (authService.CurrentUser != null)
+                            {
+                                UpdateMenuVisibility();
+                            }
+                        }
+
+                        // 2. Nếu đã đăng nhập thành công mà đang ở màn hình login thì chuyển vào trang chủ
+                        if (authService.CurrentUser != null)
+                        {
+                            if (CurrentState?.Location?.OriginalString?.Contains("login") == true)
+                            {
+                                await GoToAsync("//homeTab/main");
+                            }
+                        }
+                        else
+                        {
+                            // 3. Nếu thực sự chưa đăng nhập thì mới chuyển về login
+                            if (CurrentState?.Location?.OriginalString?.Contains("login") != true &&
+                                CurrentState?.Location?.OriginalString?.Contains("register") != true)
+                            {
+                                await GoToAsync("//login");
+                            }
+                        }
+                    });
                 }
+
+                // Tự động đồng bộ hóa nền dữ liệu từ Firebase Cloud Database khi khởi động
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var eventService = Handler?.MauiContext?.Services.GetService<IEventService>();
+                        if (eventService != null)
+                        {
+                            await eventService.SyncWithCloudAsync();
+                        }
+
+                        var userService = Handler?.MauiContext?.Services.GetService<IUserService>();
+                        if (userService != null)
+                        {
+                            await userService.GetUsersListAsync();
+                            await userService.GetClassesAsync();
+                            await userService.GetPendingPasswordResetRequestsAsync();
+                        }
+                    }
+                    catch { }
+                });
+            }
+        }
+
+        protected override void OnNavigating(ShellNavigatingEventArgs args)
+        {
+            base.OnNavigating(args);
+
+            var authService = Handler?.MauiContext?.Services.GetService<IAuthenticationService>();
+            if (authService != null && authService.CurrentUser == null)
+            {
+                // Thử khôi phục session nhanh nếu tồn tại session đã lưu
+                var savedUser = Preferences.Default.Get("auth_active_user", string.Empty);
+                if (!string.IsNullOrWhiteSpace(savedUser))
+                {
+                    try
+                    {
+                        if (authService.TryRestoreSessionAsync().GetAwaiter().GetResult() && authService.CurrentUser != null)
+                        {
+                            UpdateMenuVisibility();
+                            return;
+                        }
+                    }
+                    catch { }
+                }
+
+                var target = args.Target.Location.OriginalString;
+                // Cho phép di chuyển đến trang login và register khi chưa xác thực
+                if (!target.Contains("login", StringComparison.OrdinalIgnoreCase) && 
+                    !target.Contains("register", StringComparison.OrdinalIgnoreCase))
+                {
+                    args.Cancel();
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        await GoToAsync("//login");
+                    });
+                }
+
+                // Tự động đồng bộ hóa nền dữ liệu từ Firebase Cloud Database khi khởi động
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var eventService = Handler?.MauiContext?.Services.GetService<IEventService>();
+                        if (eventService != null)
+                        {
+                            await eventService.SyncWithCloudAsync();
+                        }
+
+                        var userService = Handler?.MauiContext?.Services.GetService<IUserService>();
+                        if (userService != null)
+                        {
+                            await userService.GetUsersListAsync();
+                            await userService.GetClassesAsync();
+                            await userService.GetPendingPasswordResetRequestsAsync();
+                        }
+                    }
+                    catch { }
+                });
             }
         }
 
@@ -49,15 +160,25 @@ namespace CampusActivitiesManager
             bool isAdmin = authService.IsAdmin;
             bool isManagerOrAdmin = isAdmin || (authService.CurrentUser != null && (authService.CurrentUser.Role == Role.Manager || authService.CurrentUser.Role == Role.Admin));
 
-            NavLogin.IsVisible = true;
-            NavStudentDashboard.IsVisible = isLoggedIn;
-            NavProfile.IsVisible = isLoggedIn;
-            NavUsers.IsVisible = isAdmin;
-            NavEvents.IsVisible = isManagerOrAdmin;
-            NavQrScanner.IsVisible = isLoggedIn;
-            NavPhotoAttendance.IsVisible = isLoggedIn;
-            NavAttendanceHistory.IsVisible = isLoggedIn;
-            NavAttendanceReport.IsVisible = isManagerOrAdmin;
+            if (FlyoutUsers != null)
+                FlyoutUsers.IsVisible = isAdmin;
+
+            if (FlyoutReports != null)
+                FlyoutReports.IsVisible = isManagerOrAdmin;
+
+            var user = authService.CurrentUser;
+            if (user != null)
+            {
+                if (FlyoutUserName != null) FlyoutUserName.Text = user.FullName;
+                if (FlyoutUserRole != null) FlyoutUserRole.Text = $"{user.RoleName} • {user.StudentCode}";
+                if (FlyoutAvatarText != null) FlyoutAvatarText.Text = user.Initials;
+            }
+            else
+            {
+                if (FlyoutUserName != null) FlyoutUserName.Text = "Campus Hub";
+                if (FlyoutUserRole != null) FlyoutUserRole.Text = "Quản lý Hoạt động Sinh viên";
+                if (FlyoutAvatarText != null) FlyoutAvatarText.Text = "🎓";
+            }
         }
 
         private void RegisterRoutes()
@@ -77,6 +198,13 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute(nameof(PhotoAttendancePage), typeof(PhotoAttendancePage));
             Routing.RegisterRoute(nameof(AttendanceHistoryPage), typeof(AttendanceHistoryPage));
             Routing.RegisterRoute(nameof(EventAttendanceReportPage), typeof(EventAttendanceReportPage));
+            Routing.RegisterRoute(nameof(EventFormPage), typeof(EventFormPage));
+            Routing.RegisterRoute(nameof(EventListPage), typeof(EventListPage));
+            Routing.RegisterRoute(nameof(EventDetailPage), typeof(EventDetailPage));
+            Routing.RegisterRoute(nameof(ClassHubPage), typeof(ClassHubPage));
+            Routing.RegisterRoute(nameof(RegisterPage), typeof(RegisterPage));
+            Routing.RegisterRoute(nameof(AccountListPage), typeof(AccountListPage));
+            Routing.RegisterRoute(nameof(ManageCategoriesPage), typeof(ManageCategoriesPage));
 
             // URL alias routes for GoToAsync calls
             Routing.RegisterRoute("createuser", typeof(CreateUserPage));
@@ -90,6 +218,52 @@ namespace CampusActivitiesManager
             Routing.RegisterRoute("photoattendance", typeof(PhotoAttendancePage));
             Routing.RegisterRoute("attendancehistory", typeof(AttendanceHistoryPage));
             Routing.RegisterRoute("attendancereport", typeof(EventAttendanceReportPage));
+            Routing.RegisterRoute("eventform", typeof(EventFormPage));
+            Routing.RegisterRoute("eventdetail", typeof(EventDetailPage));
+            Routing.RegisterRoute("classhub", typeof(ClassHubPage));
+            Routing.RegisterRoute("register", typeof(RegisterPage));
+            Routing.RegisterRoute("accountlist", typeof(AccountListPage));
+            Routing.RegisterRoute("managecategories", typeof(ManageCategoriesPage));
+        }
+
+        private async void OnNavigateHomeClicked(object sender, EventArgs e)
+        {
+            FlyoutIsPresented = false;
+            await GoToAsync("//homeTab/main");
+        }
+
+        private async void OnNavigateEventsClicked(object sender, EventArgs e)
+        {
+            FlyoutIsPresented = false;
+            await GoToAsync("//eventsTab/events");
+        }
+
+        private async void OnNavigateQrClicked(object sender, EventArgs e)
+        {
+            FlyoutIsPresented = false;
+            await GoToAsync("//qrTab/qrscan");
+        }
+
+        private async void OnNavigateClassClicked(object sender, EventArgs e)
+        {
+            FlyoutIsPresented = false;
+            await GoToAsync("//classTab/classhub");
+        }
+
+        private async void OnNavigateProfileClicked(object sender, EventArgs e)
+        {
+            FlyoutIsPresented = false;
+            await GoToAsync("//profileTab/profile");
+        }
+
+        private async void OnLogoutMenuItemClicked(object sender, EventArgs e)
+        {
+            bool confirm = await DisplayAlert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?", "Đăng xuất", "Hủy");
+            if (!confirm) return;
+
+            var authService = Handler?.MauiContext?.Services.GetService<IAuthenticationService>();
+            authService?.Logout();
+            await GoToAsync("//login");
         }
 
         public static async Task NavigateWithGuardAsync(string route, Role requiredRole, IAuthenticationService authService)
@@ -120,7 +294,6 @@ namespace CampusActivitiesManager
             };
 
             var snackbar = Snackbar.Make(message, visualOptions: snackbarOptions);
-
             await snackbar.Show(cancellationTokenSource.Token);
         }
 
@@ -133,7 +306,6 @@ namespace CampusActivitiesManager
             }
 
             var toast = Toast.Make(message, textSize: 18);
-
             var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             await toast.Show(cts.Token);
         }

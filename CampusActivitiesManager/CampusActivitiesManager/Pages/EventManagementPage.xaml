@@ -7,7 +7,8 @@
              x:DataType="pageModels:EventManagementPageModel"
              x:Class="CampusActivitiesManager.Pages.EventManagementPage"
              x:Name="ThisPage"
-             Title="Quản lý Sự kiện">
+             Title="Quản lý Sự kiện"
+             Shell.NavBarIsVisible="False">
 
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior
@@ -16,17 +17,14 @@
             Command="{Binding AppearingCommand}" />
     </ContentPage.Behaviors>
 
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Làm mới" Command="{Binding RefreshCommand}" />
-        <ToolbarItem Text="+ Thêm mới" Command="{Binding OpenCreateModalCommand}" />
-    </ContentPage.ToolbarItems>
+
 
     <Grid>
         <!-- Main Event List: CollectionView with Header -->
         <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
             <CollectionView ItemsSource="{Binding FilteredEvents}"
                             SelectionMode="None"
-                            ItemSizingStrategy="MeasureFirstItem">
+                            >
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
                 </CollectionView.ItemsLayout>
@@ -35,15 +33,29 @@
                     <VerticalStackLayout Spacing="16" Padding="{StaticResource LayoutPadding}">
 
                         <!-- Top Title & Role info -->
-                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                            <VerticalStackLayout Grid.Column="0">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                            <Border Grid.Column="0"
+                                    WidthRequest="40" HeightRequest="40"
+                                    StrokeShape="RoundRectangle 10"
+                                    Background="{AppThemeBinding Light=#EFF6FF, Dark={StaticResource DarkSecondaryBackground}}"
+                                    Stroke="{AppThemeBinding Light=#BFDBFE, Dark={StaticResource Gray700}}"
+                                    StrokeThickness="1"
+                                    VerticalOptions="Center"
+                                    Padding="0">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ToggleMenuCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="☰" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource Primary}" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1">
                                 <Label Text="Quản lý &amp; Tổ chức Sự kiện" Style="{StaticResource Title2}" />
-                                <Label Text="Khởi tạo, phân loại danh mục và theo dõi các hoạt động sinh viên" 
+                                <Label Text="Khởi tạo, duyệt bài, phân loại danh mục và theo dõi các hoạt động sinh viên" 
                                        Style="{StaticResource Caption1}" 
                                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
                             </VerticalStackLayout>
 
-                            <Border Grid.Column="1" StrokeShape="RoundRectangle 12" Stroke="Transparent" 
+                            <Border Grid.Column="2" StrokeShape="RoundRectangle 12" Stroke="Transparent" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkSecondaryBackground}}" 
                                     Padding="12,6">
                                 <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
@@ -55,27 +67,27 @@
                             </Border>
                         </Grid>
 
-                        <!-- Non-Manager Warning Banner -->
-                        <Border StrokeShape="RoundRectangle 10"
-                                Stroke="{StaticResource WarningColor}"
+                        <!-- Student Discovery Banner -->
+                        <Border StrokeShape="RoundRectangle 14"
+                                Stroke="#BFDBFE"
                                 StrokeThickness="1"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource WarningBgLight}, Dark={StaticResource WarningBgDark}}"
+                                BackgroundColor="{AppThemeBinding Light=#EFF6FF, Dark={StaticResource DarkSecondaryBackground}}"
                                 Padding="14,10"
                                 IsVisible="{Binding IsManagerOrAdmin, Converter={toolkit:InvertedBoolConverter}}">
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
-                                <Label Text="⚠️" FontSize="20" Grid.Column="0" VerticalOptions="Center" />
-                                <VerticalStackLayout Grid.Column="1">
-                                    <Label Text="Chế độ chỉ xem (View-Only)" FontAttributes="Bold" TextColor="{StaticResource WarningTextLight}" FontSize="14" />
-                                    <Label Text="Bạn chỉ có thể xem danh sách sự kiện. Quyền tạo mới và sửa đổi dành cho Admin/Manager."
-                                           TextColor="{AppThemeBinding Light={StaticResource WarningTextLight}, Dark={StaticResource WarningTextDark}}" FontSize="12" />
+                                <Label Text="💡" FontSize="20" Grid.Column="0" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <Label Text="Khám Phá Hoạt Động &amp; Rèn Luyện Kỹ Năng" FontAttributes="Bold" TextColor="#1E40AF" FontSize="13" />
+                                    <Label Text="Chạm vào bất kỳ hoạt động nào để xem thể lệ chi tiết, tích lũy điểm ĐRL và đăng ký tham gia."
+                                           TextColor="{AppThemeBinding Light=#2563EB, Dark=#93C5FD}" FontSize="11.5" />
                                 </VerticalStackLayout>
                             </Grid>
                         </Border>
 
-                        <!-- 4 Stat Cards -->
-                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
+                        <!-- 4 Stat Cards (2x2 Responsive Grid) -->
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
                             <!-- Total Events -->
-                            <Border Grid.Column="0" StrokeShape="RoundRectangle 14" 
+                            <Border Grid.Row="0" Grid.Column="0" StrokeShape="RoundRectangle 14" 
                                     Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
                                     StrokeThickness="1" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource LightSecondaryBackground}, Dark={StaticResource DarkSecondaryBackground}}" 
@@ -88,7 +100,7 @@
                             </Border>
 
                             <!-- Academic -->
-                            <Border Grid.Column="1" StrokeShape="RoundRectangle 14" 
+                            <Border Grid.Row="0" Grid.Column="1" StrokeShape="RoundRectangle 14" 
                                     Stroke="{AppThemeBinding Light={StaticResource InfoBorderLight}, Dark={StaticResource InfoBorderDark}}" 
                                     StrokeThickness="1" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource InfoBgLight}, Dark={StaticResource InfoBgDark}}" 
@@ -101,7 +113,7 @@
                             </Border>
 
                             <!-- Sports -->
-                            <Border Grid.Column="2" StrokeShape="RoundRectangle 14" 
+                            <Border Grid.Row="1" Grid.Column="0" StrokeShape="RoundRectangle 14" 
                                     Stroke="{AppThemeBinding Light={StaticResource SuccessBorderLight}, Dark={StaticResource SuccessBorderDark}}" 
                                     StrokeThickness="1" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBgLight}, Dark={StaticResource SuccessBgDark}}" 
@@ -114,7 +126,7 @@
                             </Border>
 
                             <!-- Volunteer -->
-                            <Border Grid.Column="3" StrokeShape="RoundRectangle 14" 
+                            <Border Grid.Row="1" Grid.Column="1" StrokeShape="RoundRectangle 14" 
                                     Stroke="{AppThemeBinding Light={StaticResource ErrorBorderLight}, Dark={StaticResource ErrorBorderDark}}" 
                                     StrokeThickness="1" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}" 
@@ -135,7 +147,8 @@
                                     Padding="12,2">
                                 <Grid ColumnDefinitions="Auto,*">
                                     <Label Text="🔍" FontSize="14" VerticalOptions="Center" Grid.Column="0" Margin="0,0,8,0" />
-                                    <Entry Grid.Column="1" 
+                                    <Entry AutomationId="txtSearchEvent"
+                                           Grid.Column="1" 
                                            Placeholder="Tìm kiếm sự kiện theo tên, địa điểm, nội dung..." 
                                            Text="{Binding SearchText}"
                                            FontSize="13"
@@ -144,10 +157,11 @@
                                 </Grid>
                             </Border>
 
-                            <Button Grid.Column="1" 
+                            <Button AutomationId="btnCreateEvent"
+                                    Grid.Column="1" 
                                     Text="+ Thêm Sự Kiện" 
                                     Command="{Binding OpenCreateModalCommand}" 
-                                    IsVisible="{Binding IsManagerOrAdmin}"
+                                    IsVisible="{Binding CanCreateEvent}"
                                     Style="{StaticResource PrimaryButton}" 
                                     HeightRequest="44" 
                                     CornerRadius="12"
@@ -156,14 +170,54 @@
                                     Padding="16,0" />
                         </Grid>
 
-                        <!-- Category Filter Chips (US15 & US34) -->
+                        <!-- Category Filter Chips (US15, US28 & US38) -->
                         <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
                             <HorizontalStackLayout Spacing="8">
+                                <!-- All Events Filter Chip -->
                                 <Border StrokeShape="RoundRectangle 20" Stroke="Transparent" Padding="14,8"
                                         BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Primary}}">
                                     <Label Text="Tất cả sự kiện" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource White}" />
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding FilterCategoryCommand}" CommandParameter="Tất cả" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <!-- Participating Filter Chip (US38 / Commercial requirement) -->
+                                <Border StrokeShape="RoundRectangle 20" Stroke="#C7D2FE" StrokeThickness="1" Padding="12,8" BackgroundColor="#EEF2FF">
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label Text="🎯 Đang tham gia" FontSize="12" FontAttributes="Bold" TextColor="#4F46E5" VerticalOptions="Center" />
+                                        <Border StrokeShape="RoundRectangle 8" BackgroundColor="#4F46E5" Padding="5,1" StrokeThickness="0" VerticalOptions="Center">
+                                            <Label Text="{Binding ParticipatingCount}" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding FilterCategoryCommand}" CommandParameter="Đang tham gia" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <!-- Pending Approval Filter Chip (Admin / Manager) -->
+                                <Border StrokeShape="RoundRectangle 20" Stroke="#FCD34D" StrokeThickness="1" Padding="12,8" BackgroundColor="#FEF3C7">
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label Text="⏳ Chờ duyệt" FontSize="12" FontAttributes="Bold" TextColor="#D97706" VerticalOptions="Center" />
+                                        <Border StrokeShape="RoundRectangle 8" BackgroundColor="#F59E0B" Padding="5,1" StrokeThickness="0" VerticalOptions="Center">
+                                            <Label Text="{Binding PendingCount}" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding FilterCategoryCommand}" CommandParameter="Chờ duyệt" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <!-- Approved Events Filter Chip -->
+                                <Border StrokeShape="RoundRectangle 20" Stroke="#A7F3D0" StrokeThickness="1" Padding="12,8" BackgroundColor="#ECFDF5">
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label Text="✅ Đã duyệt" FontSize="12" FontAttributes="Bold" TextColor="#059669" VerticalOptions="Center" />
+                                        <Border StrokeShape="RoundRectangle 8" BackgroundColor="#10B981" Padding="5,1" StrokeThickness="0" VerticalOptions="Center">
+                                            <Label Text="{Binding ApprovedCount}" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource White}" />
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding FilterCategoryCommand}" CommandParameter="Đã duyệt" />
                                     </Border.GestureRecognizers>
                                 </Border>
 
@@ -224,71 +278,78 @@
                                     StrokeThickness="1" 
                                     BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}" 
                                     Padding="16">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEventDetailCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
                                 <VerticalStackLayout Spacing="10">
 
-                                    <!-- Top Row: Icon + Name + Tags -->
-                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                    <!-- Top Row: Icon + Title & Tags (Zero Horizontal Overflow) -->
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Start">
                                         <!-- Event Icon Box -->
-                                        <Border Grid.Column="0" WidthRequest="48" HeightRequest="48" StrokeShape="RoundRectangle 12" 
+                                        <Border Grid.Column="0" WidthRequest="46" HeightRequest="46" StrokeShape="RoundRectangle 12" 
                                                 BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
-                                                StrokeThickness="0" Padding="0">
+                                                StrokeThickness="0" Padding="0" VerticalOptions="Start">
                                             <Label Text="{Binding Icon}" FontSize="24" HorizontalOptions="Center" VerticalOptions="Center" />
                                         </Border>
 
-                                        <!-- Title and Category/Status Tags -->
-                                        <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                        <!-- Title and Tags in a clean vertical flow -->
+                                        <VerticalStackLayout Grid.Column="1" Spacing="5" VerticalOptions="Center">
                                             <Label Text="{Binding Name}" FontSize="15" FontAttributes="Bold" 
-                                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
+                                                   LineBreakMode="TailTruncation" MaxLines="2" />
                                             
-                                            <!-- Category & Status Tags (US15 / T15.1) -->
-                                            <HorizontalStackLayout Spacing="8">
-                                                <!-- Category Pill Tag -->
-                                                <Border StrokeShape="RoundRectangle 12" 
-                                                        Stroke="{Binding CategoryTagBorderColor}" 
-                                                        StrokeThickness="1" 
-                                                        BackgroundColor="{Binding CategoryTagBg}" 
-                                                        Padding="8,3">
-                                                    <Label Text="{Binding CategoryTitle}" FontSize="11" FontAttributes="Bold" TextColor="{Binding CategoryTagTextColor}" />
-                                                </Border>
+                                            <!-- Category, Status, Approval & Attendance Tags -->
+                                            <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                                                <HorizontalStackLayout Spacing="6">
+                                                    <!-- Category Pill Tag -->
+                                                    <Border StrokeShape="RoundRectangle 12" 
+                                                            Stroke="{Binding CategoryTagBorderColor}" 
+                                                            StrokeThickness="1" 
+                                                            BackgroundColor="{Binding CategoryTagBg}" 
+                                                            Padding="8,3">
+                                                        <Label Text="{Binding CategoryTitle}" FontSize="11" FontAttributes="Bold" TextColor="{Binding CategoryTagTextColor}" />
+                                                    </Border>
 
-                                                <!-- Status Pill Tag -->
-                                                <Border StrokeShape="RoundRectangle 12" 
-                                                        StrokeThickness="0" 
-                                                        BackgroundColor="{Binding StatusBg}" 
-                                                        Padding="8,3">
-                                                    <Label Text="{Binding Status}" FontSize="11" FontAttributes="Bold" TextColor="{Binding StatusColor}" />
-                                                </Border>
-                                            </HorizontalStackLayout>
+                                                    <!-- Status Pill Tag -->
+                                                    <Border StrokeShape="RoundRectangle 12" 
+                                                            StrokeThickness="0" 
+                                                            BackgroundColor="{Binding StatusBg}" 
+                                                            Padding="8,3">
+                                                        <Label Text="{Binding Status}" FontSize="11" FontAttributes="Bold" TextColor="{Binding StatusColor}" />
+                                                    </Border>
+
+                                                    <!-- Approval Status Tag (US 28) -->
+                                                    <Border StrokeShape="RoundRectangle 12" 
+                                                            StrokeThickness="0" 
+                                                            BackgroundColor="{Binding ApprovalBadgeBg}" 
+                                                            Padding="8,3">
+                                                        <Label Text="{Binding ApprovalStatusDisplay}" FontSize="11" FontAttributes="Bold" TextColor="{Binding ApprovalBadgeTextColor}" />
+                                                    </Border>
+
+                                                    <!-- Attendance Status Tag (US 38) -->
+                                                    <Border StrokeShape="RoundRectangle 12" 
+                                                            StrokeThickness="0" 
+                                                            BackgroundColor="{Binding AttendanceStatusBg}" 
+                                                            Padding="8,3">
+                                                        <Label Text="{Binding AttendanceStatusBadge}" FontSize="11" FontAttributes="Bold" TextColor="{Binding AttendanceStatusTextColor}" />
+                                                    </Border>
+
+                                                    <!-- Video Indicator Tag -->
+                                                    <Border StrokeShape="RoundRectangle 12" 
+                                                            StrokeThickness="0" 
+                                                            BackgroundColor="#EFF6FF" 
+                                                            IsVisible="{Binding HasVideo}"
+                                                            Padding="6,3">
+                                                        <Label Text="🎬 Video" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                                    </Border>
+                                                </HorizontalStackLayout>
+                                            </ScrollView>
                                         </VerticalStackLayout>
-
-                                        <!-- Action Buttons: Edit and Delete -->
-                                        <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
-                                            <!-- Edit Button -->
-                                            <Button Text="✏️ Sửa" 
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEditModalCommand, x:DataType=pageModels:EventManagementPageModel}" 
-                                                    CommandParameter="{Binding .}"
-                                                    HeightRequest="36" 
-                                                    CornerRadius="8" 
-                                                    FontSize="12" 
-                                                    Padding="10,0"
-                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
-                                                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" />
-
-                                            <!-- Delete Button -->
-                                            <Button Text="🗑️" 
-                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=DeleteEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
-                                                    CommandParameter="{Binding .}"
-                                                    HeightRequest="36" 
-                                                    CornerRadius="8" 
-                                                    FontSize="12" 
-                                                    Padding="8,0"
-                                                    BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}" 
-                                                    TextColor="{StaticResource ErrorDark}" />
-                                        </HorizontalStackLayout>
                                     </Grid>
 
                                     <!-- Description -->
-                                    <Label Text="{Binding Description}" FontSize="13" 
+                                    <Label Text="{Binding Description}" FontSize="12.5" 
                                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" 
                                            LineBreakMode="TailTruncation" MaxLines="2" />
 
@@ -296,13 +357,97 @@
                                     <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" />
                                     
                                     <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                                        <Label Grid.Column="0" Text="{Binding TimeLocationDisplay}" FontSize="12" 
+                                        <Label Grid.Column="0" Text="{Binding TimeLocationDisplay}" FontSize="11.5" 
                                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" 
-                                               VerticalOptions="Center" />
-                                        <Label Grid.Column="1" Text="{Binding ParticipantsDisplay}" FontSize="12" FontAttributes="Bold" 
+                                               VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                        <Label Grid.Column="1" Text="{Binding ParticipantsDisplay}" FontSize="11.5" FontAttributes="Bold" 
                                                TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" 
                                                VerticalOptions="Center" />
                                     </Grid>
+
+                                    <!-- Pending Notice for Creator / Manager -->
+                                    <Border IsVisible="{Binding IsPendingApproval}"
+                                            BackgroundColor="#FEF3C7" Stroke="#FCD34D" StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 8" Padding="10,6">
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Label Text="⏳" FontSize="13" VerticalOptions="Center" />
+                                            <Label Text="Đang chờ Admin phê duyệt trước khi công khai"
+                                                   FontSize="11.5" FontAttributes="Bold" TextColor="#B45309" VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                    </Border>
+
+                                    <!-- Action Section 1: Admin Approval Buttons (Visible ONLY if Admin AND event is Pending) -->
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8" 
+                                          IsVisible="{Binding CanAdminApprove}">
+                                        <Button Grid.Column="0" Text="✅ Duyệt" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ApproveEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                CommandParameter="{Binding .}"
+                                                HeightRequest="36" 
+                                                CornerRadius="10" 
+                                                FontSize="12" 
+                                                FontAttributes="Bold"
+                                                BackgroundColor="{StaticResource SuccessBgLight}" 
+                                                TextColor="{StaticResource SuccessDark}" />
+
+                                        <Button Grid.Column="1" Text="🗑️ Từ chối &amp; Xóa" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=RejectEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                CommandParameter="{Binding .}"
+                                                HeightRequest="36" 
+                                                CornerRadius="10" 
+                                                FontSize="12" 
+                                                FontAttributes="Bold"
+                                                BackgroundColor="{StaticResource ErrorBgLight}" 
+                                                TextColor="{StaticResource ErrorDark}" />
+                                    </Grid>
+
+                                    <!-- Action Section 2: Details & Manager Tools (Clean 2-Tier Layout) -->
+                                    <VerticalStackLayout Spacing="8">
+                                        <!-- Primary Action Button: View Details & Register -->
+                                        <Button Text="🔍 Xem Chi Tiết &amp; Đăng Ký Tham Gia" 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEventDetailCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                CommandParameter="{Binding .}"
+                                                HeightRequest="40" CornerRadius="10" FontSize="12.5" FontAttributes="Bold"
+                                                Background="{StaticResource PrimaryGradientBrush}" TextColor="{StaticResource White}">
+                                            <Button.Shadow>
+                                                <Shadow Brush="{StaticResource Primary}" Offset="0,2" Radius="6" Opacity="0.2" />
+                                            </Button.Shadow>
+                                        </Button>
+
+                                        <!-- Manager & Admin Toolbar (Only visible to Event Managers/Admins) -->
+                                        <Grid ColumnDefinitions="*,*,Auto,Auto" ColumnSpacing="8" IsVisible="{Binding CanUserManage}">
+                                            <!-- Attendance Report Button -->
+                                            <Button Grid.Column="0" Text="📊 Điểm danh" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=ViewAttendanceReportCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="36" CornerRadius="8" FontSize="11.5" FontAttributes="Bold"
+                                                    BackgroundColor="#F0FDF4" TextColor="#15803D" Padding="6,0" />
+
+                                            <!-- Video Button -->
+                                            <Button Grid.Column="1" Text="▶ Video" 
+                                                    IsVisible="{Binding HasVideo}"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenVideoCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="36" CornerRadius="8" FontSize="11.5" FontAttributes="Bold"
+                                                    BackgroundColor="#FEE2E2" TextColor="#DC2626" Padding="6,0" />
+
+                                            <!-- Edit Button -->
+                                            <Button Grid.Column="2" Text="✏️ Sửa" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=OpenEditModalCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="36" CornerRadius="8" FontSize="11.5" FontAttributes="Bold"
+                                                    Padding="12,0"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
+                                                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource InfoTextDark}}" />
+
+                                            <!-- Delete Button -->
+                                            <Button Grid.Column="3" Text="🗑️" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:EventManagementPageModel}}, Path=DeleteEventCommand, x:DataType=pageModels:EventManagementPageModel}" 
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="36" CornerRadius="8" FontSize="12" Padding="12,0"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBgLight}, Dark={StaticResource ErrorBgDark}}" 
+                                                    TextColor="{StaticResource ErrorDark}" />
+                                        </Grid>
+                                    </VerticalStackLayout>
 
                                 </VerticalStackLayout>
                             </Border>
@@ -315,12 +460,25 @@
                     <VerticalStackLayout Spacing="12" Padding="40" HorizontalOptions="Center" VerticalOptions="Center">
                         <Label Text="🎪" FontSize="48" HorizontalOptions="Center" />
                         <Label Text="Không tìm thấy sự kiện nào" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" 
-                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
                         <Label Text="Thử tìm kiếm với từ khóa khác hoặc bấm '+ Thêm Sự Kiện' để tạo sự kiện mới." 
                                FontSize="13" HorizontalOptions="Center" HorizontalTextAlignment="Center"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                        <Button Text="🔄 Đặt lại bộ lọc &amp; Tải lại"
+                                Command="{Binding ResetFilterCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                HeightRequest="38"
+                                FontSize="12"
+                                CornerRadius="8"
+                                HorizontalOptions="Center"
+                                Margin="0,8,0,0" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
+
+                <!-- Bottom Clearance Footer for TabBar -->
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="100" Color="Transparent" />
+                </CollectionView.Footer>
 
             </CollectionView>
         </RefreshView>
@@ -335,129 +493,242 @@
         <!-- ============================================== -->
         <Grid BackgroundColor="{StaticResource TranslucentBlack}" 
               IsVisible="{Binding IsModalVisible}"
-              HorizontalOptions="Fill" VerticalOptions="Fill">
+              HorizontalOptions="Fill" VerticalOptions="Fill"
+              Padding="16,24">
 
-            <Border WidthRequest="480" 
-                    MaximumWidthRequest="540"
+            <Border MaximumWidthRequest="520" 
+                    MaximumHeightRequest="640"
                     StrokeShape="RoundRectangle 20" 
                     Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
                     StrokeThickness="1" 
                     BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}" 
-                    Padding="24"
+                    Padding="20"
                     HorizontalOptions="Center" VerticalOptions="Center"
                     Shadow="{StaticResource CommonElevation2}">
 
-                <ScrollView MaximumHeightRequest="600">
-                    <VerticalStackLayout Spacing="16">
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
 
-                        <!-- Modal Header -->
-                        <Grid ColumnDefinitions="*,Auto">
-                            <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                <Label Text="{Binding ModalTitle}" Style="{StaticResource Title2}" />
-                                <Label Text="Nhập thông tin sự kiện để công bố trên Cổng Sinh Viên" 
-                                       FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
-                            </VerticalStackLayout>
-
-                            <Button Grid.Column="1" Text="✕" Command="{Binding CloseModalCommand}" 
-                                    WidthRequest="32" HeightRequest="32" CornerRadius="16" 
-                                    BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
-                                    TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
-                                    Padding="0" FontSize="14" />
-                        </Grid>
-
-                        <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" />
-
-                        <!-- Form Field: Tên sự kiện -->
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Tên sự kiện *" FontSize="13" FontAttributes="Bold" 
-                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
-                            <Border StrokeShape="RoundRectangle 10" 
-                                    Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
-                                    Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
-                                <Entry Text="{Binding FormName}" Placeholder="Ví dụ: Hội Thảo AI 2026, Giải Bóng Đá..." FontSize="13" HeightRequest="42" />
-                            </Border>
+                    <!-- Fixed Modal Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label Text="{Binding ModalTitle}" Style="{StaticResource Title2}" />
+                            <Label Text="Nhập thông tin sự kiện để công bố trên Cổng Sinh Viên" 
+                                   FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
                         </VerticalStackLayout>
 
-                        <!-- Form Field: Danh mục sự kiện -->
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Danh mục sự kiện *" FontSize="13" FontAttributes="Bold" 
-                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
-                            <Border StrokeShape="RoundRectangle 10" 
-                                    Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
-                                    Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
-                                <Picker ItemsSource="{Binding CategoryNames}" 
-                                        SelectedIndex="{Binding SelectedCategoryIndex}" 
-                                        Title="Chọn danh mục" 
-                                        FontSize="13" 
-                                        HeightRequest="42" />
-                            </Border>
-                        </VerticalStackLayout>
+                        <Button Grid.Column="1" Text="✕" Command="{Binding CloseModalCommand}" 
+                                WidthRequest="32" HeightRequest="32" CornerRadius="16" 
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
+                                Padding="0" FontSize="14" />
+                    </Grid>
 
-                        <!-- Form Field: Biểu tượng (Icon) & Gợi ý -->
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Biểu tượng (Icon / Emoji)" FontSize="13" FontAttributes="Bold" 
-                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                <Border Grid.Column="0" StrokeShape="RoundRectangle 10" 
-                                        Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
-                                        Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
-                                    <Entry Text="{Binding FormIcon}" Placeholder="Ví dụ: 📅, 💻, ⚽..." FontSize="14" HeightRequest="42" />
-                                </Border>
-                                <HorizontalStackLayout Grid.Column="1" Spacing="6">
-                                    <Button Text="💻" Command="{Binding QuickPickIconCommand}" CommandParameter="💻" WidthRequest="38" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
-                                    <Button Text="⚽" Command="{Binding QuickPickIconCommand}" CommandParameter="⚽" WidthRequest="38" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
-                                    <Button Text="🌿" Command="{Binding QuickPickIconCommand}" CommandParameter="🌿" WidthRequest="38" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
-                                    <Button Text="🗣️" Command="{Binding QuickPickIconCommand}" CommandParameter="🗣️" WidthRequest="38" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
-                                    <Button Text="🎸" Command="{Binding QuickPickIconCommand}" CommandParameter="🎸" WidthRequest="38" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                    <!-- Scrollable Form Fields -->
+                    <ScrollView Grid.Row="1" MaximumHeightRequest="440" VerticalScrollBarVisibility="Always">
+                        <VerticalStackLayout Spacing="14" Padding="0,2,0,6">
+
+                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" />
+
+                            <!-- Approval Process Notice -->
+                            <Border StrokeShape="RoundRectangle 10" BackgroundColor="#EFF6FF" Stroke="#BFDBFE" StrokeThickness="1" Padding="12,10">
+                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                    <Label Text="🛡️" FontSize="16" VerticalOptions="Center" />
+                                    <Label Text="Lưu ý: Mọi hoạt động do Quản lý sự kiện tạo sẽ ở trạng thái 'Chờ duyệt' và cần Admin phê duyệt mới được xuất hiện trên Cổng sinh viên &amp; Trang chủ."
+                                           FontSize="11" TextColor="#1E40AF" LineBreakMode="WordWrap" VerticalOptions="Center" HorizontalOptions="FillAndExpand" />
                                 </HorizontalStackLayout>
+                            </Border>
+
+                            <!-- Form Field: Tên sự kiện -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Tên sự kiện *" FontSize="13" FontAttributes="Bold" 
+                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                <Border StrokeShape="RoundRectangle 10" 
+                                        Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                        Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                    <Entry Text="{Binding FormName}" Placeholder="Ví dụ: Hội Thảo AI 2026, Giải Bóng Đá..." FontSize="13" HeightRequest="42" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Form Field: Danh mục sự kiện -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Danh mục sự kiện *" FontSize="13" FontAttributes="Bold" 
+                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                <Border StrokeShape="RoundRectangle 10" 
+                                        Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                        Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                    <Picker ItemsSource="{Binding CategoryNames}" 
+                                            SelectedIndex="{Binding SelectedCategoryIndex}" 
+                                            Title="Chọn danh mục" 
+                                            FontSize="13" 
+                                            HeightRequest="42" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Form Field: Biểu tượng (Icon) & Gợi ý -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Biểu tượng (Icon / Emoji)" FontSize="13" FontAttributes="Bold" 
+                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Border Grid.Column="0" StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormIcon}" Placeholder="Ví dụ: 📅, 💻, ⚽..." FontSize="14" HeightRequest="42" />
+                                    </Border>
+                                    <ScrollView Grid.Column="1" Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                                        <HorizontalStackLayout Spacing="6">
+                                            <Button Text="💻" Command="{Binding QuickPickIconCommand}" CommandParameter="💻" WidthRequest="36" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                                            <Button Text="⚽" Command="{Binding QuickPickIconCommand}" CommandParameter="⚽" WidthRequest="36" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                                            <Button Text="🌿" Command="{Binding QuickPickIconCommand}" CommandParameter="🌿" WidthRequest="36" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                                            <Button Text="🗣️" Command="{Binding QuickPickIconCommand}" CommandParameter="🗣️" WidthRequest="36" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                                            <Button Text="🎸" Command="{Binding QuickPickIconCommand}" CommandParameter="🎸" WidthRequest="36" HeightRequest="38" Padding="0" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" />
+                                        </HorizontalStackLayout>
+                                    </ScrollView>
+                                </Grid>
+                            </VerticalStackLayout>
+
+                            <!-- Form Field: Địa điểm & Số lượng sinh viên tối đa -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                    <Label Text="Địa điểm tổ chức" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormLocation}" Placeholder="Hội trường A2, Sân bóng..." FontSize="13" HeightRequest="42" />
+                                    </Border>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="Số lượng tối đa" FontSize="13" FontAttributes="Bold" 
+                                               TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                        <HorizontalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                            <CheckBox IsChecked="{Binding IsUnlimitedCapacity}" VerticalOptions="Center" />
+                                            <Label Text="Không giới hạn" FontSize="11" VerticalOptions="Center" TextColor="{StaticResource Primary}" />
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormMaxParticipants}" Keyboard="Numeric" Placeholder="150 (Nhập 0 nếu không giới hạn)" FontSize="13" HeightRequest="42" />
+                                    </Border>
+                                </VerticalStackLayout>
                             </Grid>
-                        </VerticalStackLayout>
 
-                        <!-- Form Field: Địa điểm & Số lượng sinh viên tối đa -->
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                            <VerticalStackLayout Grid.Column="0" Spacing="6">
-                                <Label Text="Địa điểm tổ chức" FontSize="13" FontAttributes="Bold" 
-                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                            <!-- Form Field: Thời gian diễn ra (Ngày bắt đầu & Ngày kết thúc) -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                    <Label Text="Ngày bắt đầu" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormStartDate}" Placeholder="dd/MM/yyyy" FontSize="13" HeightRequest="42" />
+                                    </Border>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                    <Label Text="Ngày kết thúc" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormEndDate}" Placeholder="dd/MM/yyyy" FontSize="13" HeightRequest="42" />
+                                    </Border>
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <!-- Form Field: Khung giờ điểm danh & tổ chức (Giờ bắt đầu & Giờ kết thúc) -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                    <Label Text="Giờ bắt đầu (HH:mm) *" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
                                 <Border StrokeShape="RoundRectangle 10" 
                                         Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
                                         Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
-                                    <Entry Text="{Binding FormLocation}" Placeholder="Hội trường A2, Sân bóng..." FontSize="13" HeightRequest="42" />
+                                    <Entry Text="{Binding FormStartTime}" Placeholder="08:00" FontSize="13" HeightRequest="42" />
                                 </Border>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Grid.Column="1" Spacing="6">
-                                <Label Text="Số lượng tối đa" FontSize="13" FontAttributes="Bold" 
+                                <Label Text="Giờ kết thúc (HH:mm) *" FontSize="13" FontAttributes="Bold" 
                                        TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
                                 <Border StrokeShape="RoundRectangle 10" 
                                         Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
                                         Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
-                                    <Entry Text="{Binding FormMaxParticipants}" Keyboard="Numeric" Placeholder="150" FontSize="13" HeightRequest="42" />
+                                    <Entry Text="{Binding FormEndTime}" Placeholder="11:30" FontSize="13" HeightRequest="42" />
                                 </Border>
                             </VerticalStackLayout>
                         </Grid>
 
-                        <!-- Form Field: Thời gian diễn ra -->
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                            <VerticalStackLayout Grid.Column="0" Spacing="6">
-                                <Label Text="Ngày bắt đầu" FontSize="13" FontAttributes="Bold" 
-                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
-                                <Border StrokeShape="RoundRectangle 10" 
-                                        Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
-                                        Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
-                                    <Entry Text="{Binding FormStartDate}" Placeholder="dd/MM/yyyy" FontSize="13" HeightRequest="42" />
-                                </Border>
-                            </VerticalStackLayout>
+                            <!-- Form Field: Thiết lập Điểm Rèn Luyện (ĐRL) -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                    <Label Text="⭐ Điểm thưởng (+ĐRL) *" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light=#16A34A, Dark=#4ADE80}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light=#86EFAC, Dark=#166534}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormPointsReward}" Keyboard="Numeric" Placeholder="10" FontSize="13" HeightRequest="42" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#16A34A, Dark=#4ADE80}" />
+                                    </Border>
+                                </VerticalStackLayout>
 
-                            <VerticalStackLayout Grid.Column="1" Spacing="6">
-                                <Label Text="Ngày kết thúc" FontSize="13" FontAttributes="Bold" 
-                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
-                                <Border StrokeShape="RoundRectangle 10" 
-                                        Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                    <Label Text="⚠️ Điểm phạt nếu vắng (-ĐRL)" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light=#FCA5A5, Dark=#991B1B}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormPointsPenalty}" Keyboard="Numeric" Placeholder="5" FontSize="13" HeightRequest="42" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <!-- Form Field: Phạm vi tham gia & Hình thức đăng ký -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                    <Label Text="Phạm vi tham gia" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Picker SelectedItem="{Binding FormScope}" FontSize="13" HeightRequest="42">
+                                            <Picker.ItemsSource>
+                                                <x:Array Type="{x:Type x:String}">
+                                                    <x:String>Public</x:String>
+                                                    <x:String>ClassOnly</x:String>
+                                                </x:Array>
+                                            </Picker.ItemsSource>
+                                        </Picker>
+                                    </Border>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                    <Label Text="Hình thức duyệt đơn" FontSize="13" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                    <Border StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Picker SelectedItem="{Binding FormRegistrationType}" FontSize="13" HeightRequest="42">
+                                            <Picker.ItemsSource>
+                                                <x:Array Type="{x:Type x:String}">
+                                                    <x:String>Auto</x:String>
+                                                    <x:String>ApprovalRequired</x:String>
+                                                </x:Array>
+                                            </Picker.ItemsSource>
+                                        </Picker>
+                                    </Border>
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <!-- Form Field: Lựa chọn lớp cụ thể khi Phạm vi là ClassOnly -->
+                            <VerticalStackLayout Spacing="6" IsVisible="{Binding IsClassOnlyScope}">
+                                <Label Text="Lớp tham gia (Chỉ lớp này mới được đăng ký) *" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                                <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Primary}" StrokeThickness="1"
                                         Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
-                                    <Entry Text="{Binding FormEndDate}" Placeholder="dd/MM/yyyy" FontSize="13" HeightRequest="42" />
+                                    <Picker ItemsSource="{Binding AvailableClasses}" SelectedItem="{Binding FormTargetClass}" FontSize="13" HeightRequest="42" />
                                 </Border>
                             </VerticalStackLayout>
-                        </Grid>
 
                         <!-- Form Field: Trạng thái sự kiện -->
                         <VerticalStackLayout Spacing="6">
@@ -478,6 +749,44 @@
                             </Border>
                         </VerticalStackLayout>
 
+                        <!-- Form Field: Hình ảnh & Video giới thiệu -->
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Phương tiện truyền thông (Hình ảnh / Video)" FontSize="13" FontAttributes="Bold" 
+                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+
+                            <!-- Photo Picker -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Ảnh bìa hoạt động (Link ảnh hoặc tải từ máy)" FontSize="12" 
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Border Grid.Column="0" StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormImageUrl}" Placeholder="https://... hoặc đường dẫn ảnh" FontSize="13" HeightRequest="42" />
+                                    </Border>
+                                    <Button Grid.Column="1" Text="📷 Chọn ảnh" Command="{Binding PickCoverPhotoCommand}" 
+                                            HeightRequest="42" CornerRadius="10" Style="{StaticResource PrimaryButton}" Padding="12,0" FontSize="12" />
+                                </Grid>
+                            </VerticalStackLayout>
+
+                            <!-- Video Picker -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Video giới thiệu hoạt động (YouTube, MP4 hoặc video từ máy)" FontSize="12" 
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Border Grid.Column="0" StrokeShape="RoundRectangle 10" 
+                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                        <Entry Text="{Binding FormVideoUrl}" Placeholder="https://youtube.com/... hoặc link mp4" FontSize="13" HeightRequest="42" />
+                                    </Border>
+                                    <Button Grid.Column="1" Text="🎬 Chọn video" Command="{Binding PickVideoCommand}" 
+                                            HeightRequest="42" CornerRadius="10" BackgroundColor="{StaticResource Secondary}" 
+                                            TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
+                                            Padding="12,0" FontSize="12" FontAttributes="Bold" />
+                                </Grid>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+
                         <!-- Form Field: Mô tả chi tiết -->
                         <VerticalStackLayout Spacing="6">
                             <Label Text="Mô tả sự kiện *" FontSize="13" FontAttributes="Bold" 
@@ -493,29 +802,31 @@
                             </Border>
                         </VerticalStackLayout>
 
-                        <!-- Buttons: Cancel & Save -->
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
-                            <Button Grid.Column="0" Text="Hủy bỏ" 
-                                    Command="{Binding CloseModalCommand}" 
-                                    HeightRequest="44" 
-                                    CornerRadius="12" 
-                                    BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
-                                    TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
-                                    FontAttributes="Bold" FontSize="14" />
-
-                            <Button Grid.Column="1" Text="💾 Lưu Sự Kiện" 
-                                    Command="{Binding SaveEventCommand}" 
-                                    IsEnabled="{Binding IsSaving, Converter={toolkit:InvertedBoolConverter}}"
-                                    Style="{StaticResource PrimaryButton}" 
-                                    HeightRequest="44" 
-                                    CornerRadius="12" 
-                                    FontAttributes="Bold" FontSize="14" />
-                        </Grid>
-
                     </VerticalStackLayout>
                 </ScrollView>
-            </Border>
-        </Grid>
+
+                <!-- Fixed Footer Action Buttons: Always visible, never cut off! -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,4,0,0">
+                    <Button Grid.Column="0" Text="Hủy bỏ" 
+                            Command="{Binding CloseModalCommand}" 
+                            HeightRequest="44" 
+                            CornerRadius="12" 
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource DarkCardBackground}}" 
+                            TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
+                            FontAttributes="Bold" FontSize="14" />
+
+                    <Button Grid.Column="1" Text="💾 Lưu Sự Kiện" 
+                            Command="{Binding SaveEventCommand}" 
+                            IsEnabled="{Binding IsSaving, Converter={toolkit:InvertedBoolConverter}}"
+                            Style="{StaticResource PrimaryButton}" 
+                            HeightRequest="44" 
+                            CornerRadius="12" 
+                            FontAttributes="Bold" FontSize="14" />
+                </Grid>
+
+            </Grid>
+        </Border>
+    </Grid>
 
     </Grid>
 

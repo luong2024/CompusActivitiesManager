@@ -1,85 +1,116 @@
-1. General Information
-Project: Campus Activity Manager (.NET MAUI & Backend Services)
-User Story: US35 – Account Management API (Develop an account management API: create, update, lock/unlock accounts)
-Task ID: T35.1 – Create Account + Update Account API
-Estimated Time: 10 hours
-Assignee: Nguyen Duc Manh
-Architecture & Tech Stack:
-Backend REST API integrated with Firebase (Firebase Authentication, Cloud Firestore / Realtime Database, Firebase Admin SDK)
-Multi-layer pattern: Controller – Service – Repository / Dependency Injection
-Service layer supporting data synchronization with .NET MAUI client applications
+# Business Analysis & Technical Specification (BA.md)
 
-2. Business Objectives
-Provide secure, standardized, and robust RESTful API endpoints enabling authorized users (e.g., Administrators/System Management) to create new accounts and update existing user profile details, ensuring seamless synchronization with Firebase Authentication and the application database.
+## 1. General Information
+- **Project**: Campus Activity Manager (.NET MAUI Mobile App & Firebase Cloud Services)
+- **User Story**: US35 – Account Management & Cloud Sync (Quản lý tài khoản người dùng: tạo mới, cập nhật hồ sơ, khóa/mở khóa tài khoản đồng bộ trên Firebase)
+- **Task ID**: T35.1 – Create Account & Update Profile Service / T35.2 – Get, Lock & Unlock Account Service
+- **Estimated Time**: 10 hours
+- **Assignee**: **Nguyen Duc Manh** (Tech Lead & Integration Developer)
+- **Architecture & Tech Stack**:
+  - **Mobile Client**: .NET MAUI 9.0 (C# / XAML) tuân thủ mô hình MVVM (Model - View - ViewModel) đa nền tảng (Android & Windows Desktop).
+  - **Cloud Backend & Database**: **Firebase Cloud Services** (Google Cloud Firestore & Firebase Authentication) hoạt động theo mô hình **Serverless Cloud Architecture** (không phụ thuộc máy chủ trung gian truyền thống).
+  - **Security & Cloud Sync**: Dịch vụ `FirebaseSyncService` tích hợp cơ chế Google OAuth2 Service Account RS256 JWT Token Exchange, mã hóa mật khẩu chuẩn RFC 2898 **PBKDF2-SHA256**, lưu trữ phiên làm việc an toàn qua `SecureStorage`.
+  - **Service Pattern**: Phân lớp rõ ràng `PageModel -> Service (UserService, AuthenticationService, FirebaseSyncService) -> Cloud Firestore`.
 
-3. Detailed Acceptance Criteria & Scenarios
-AC1: The API successfully creates an account when input data is valid
-Description: When a valid payload is supplied, the system creates the user identity in Firebase Authentication, stores user profile details in the database, and returns the newly generated account information.
-Gherkin Scenario:
-Gherkin
+---
+
+## 2. Business Objectives
+Cung cấp các hàm dịch vụ và giao diện chuẩn hóa cho phép Quản trị viên (Admin) và Ban tổ chức hệ thống:
+1. Tạo mới tài khoản sinh viên/cán bộ và tự động tạo danh tính trên Firebase Authentication kết hợp lưu hồ sơ chi tiết trên Cloud Firestore.
+2. Cập nhật thông tin hồ sơ (Họ tên, Số điện thoại, Avatar URL, Vai trò) và đồng bộ thời gian thực.
+3. Khóa (Lock) hoặc Mở khóa (Unlock) tài khoản: vô hiệu hóa quyền đăng nhập trên Firebase Auth (`disabled = true/false`) và cập nhật trạng thái `IsActive` trên Cloud Firestore.
+4. Bảo đảm toàn vẹn dữ liệu, phân cấp mã lỗi chuẩn RFC 7807 và bọc kết quả trong cấu trúc chuẩn `ApiResponse<T>`.
+
+---
+
+## 3. Detailed Acceptance Criteria & Scenarios
+
+### AC1: The Service successfully creates an account when input data is valid
+- **Description**: Khi dữ liệu đầu vào hợp lệ, hệ thống tạo bản ghi danh tính trên Firebase Authentication, tạo tài liệu người dùng tương ứng trong collection `users` trên Cloud Firestore và trả về thông tin tài khoản hoàn chỉnh kèm mã trạng thái `201 Created`.
+- **Gherkin Scenario**:
+```gherkin
 Scenario: Successfully create a new user account
   Given An authenticated administrator with valid administrative permissions
-  When A POST request is sent to `/api/v1/accounts` with the following body:
-    | email               | password      | fullName       | role    |
-    | student1@campus.edu | SecureP@ss123 | Nguyen Van A   | Student |
-  Then A new user record is created in Firebase Auth and the database
-  And The API responds with HTTP Status Code 201 Created
+  When An account creation request is triggered with:
+    | email               | password      | fullName       | role    | studentCode |
+    | student1@campus.edu | SecureP@ss123 | Nguyen Van A   | Student | B20DCCN001  |
+  Then A new user identity is provisioned in Firebase Auth
+  And A user profile document is stored in Cloud Firestore
+  And The service returns an ApiResponse with StatusCode 201 Created
   And The response body contains the new account ID, email, fullName, role, and createdAt timestamp
+```
 
-AC2: The API validates required fields when creating an account
-Description: The system performs request validation before executing business logic. If required fields are missing, invalid, or duplicated, the request is rejected with explicit validation error messages.
-Validation Rules:
-email: Mandatory, RFC 5322 standard format, must be unique across the system.
-password: Mandatory, minimum 8 characters, containing uppercase, lowercase, numeric, and special characters.
-fullName: Mandatory, non-empty, and cannot consist solely of whitespace.
-role: Mandatory, must match one of the predefined roles (Admin, Lecturer, Student).
-
-Gherkin Scenario:
-Gherkin
+### AC2: Validation of required fields when creating an account
+- **Description**: Hệ thống kiểm tra tính hợp lệ của dữ liệu trước khi xử lý. Nếu dữ liệu thiếu hoặc sai quy cách, hệ thống từ chối và trả về HTTP Status Code `400 Bad Request` hoặc `409 Conflict`.
+- **Validation Rules**:
+  - `email`: Bắt buộc, đúng định dạng RFC 5322 regex, không được trùng lặp trong hệ thống (trả về `409 Conflict` nếu đã tồn tại).
+  - `password`: Bắt buộc, tối thiểu 6-8 ký tự, có độ phức tạp an toàn.
+  - `fullName`: Bắt buộc, không được để trống hoặc chỉ chứa khoảng trắng.
+  - `role`: Bắt buộc, phải thuộc một trong các vai trò hợp lệ: `Admin`, `Manager`, `Student`.
+- **Gherkin Scenario**:
+```gherkin
 Scenario Outline: Fail account creation due to invalid input
   Given An account creation payload with invalid or missing <Field> value <Value>
-  When A POST request is sent to `/api/v1/accounts`
-  Then No new account is created
-  And The API responds with HTTP Status Code <HTTPCode>
-  And The response body contains the relevant error code and message for <Field>
+  When Account creation is requested
+  Then No new account is created in Firebase Auth or Cloud Firestore
+  And The service returns StatusCode <HTTPCode>
+  And The response body contains the relevant error message for <Field>
 
   Examples:
     | Field    | Value            | HTTPCode | Message                             |
     | email    | ""               | 400      | "Email is required"                 |
     | email    | "invalid-format" | 400      | "Invalid email format"              |
     | email    | "exist@knu.ac.kr"| 409      | "Email is already registered"       |
-    | password | "123"            | 400      | "Password must be at least 8 chars" |
+    | password | "123"            | 400      | "Password must be at least 6 chars" |
     | fullName | ""               | 400      | "Full name cannot be blank"         |
     | role     | "UnknownRole"    | 400      | "Invalid user role specified"       |
+```
 
-AC3: The API successfully updates existing account information
-Description: Allows authorized users/administrators to update profile metadata (e.g., Full Name, Phone Number, Avatar URL, Role) of an existing account identified by its accountId (or Firebase UID).
-Gherkin Scenario:
-Gherkin
+### AC3: The Service successfully updates existing account information
+- **Description**: Cho phép Admin hoặc chính chủ tài khoản cập nhật thông tin cá nhân (Họ tên, SĐT, Avatar URL, Vai trò) dựa trên `accountId` (hoặc Firebase UID). Dữ liệu được đồng bộ ngay lên Cloud Firestore và trả về mã `200 OK`.
+- **Gherkin Scenario**:
+```gherkin
 Scenario: Successfully update existing account details
-  Given An account with ID "acc_12345" exists in the database
-  When A PUT/PATCH request is sent to `/api/v1/accounts/acc_12345` with the following body:
-    | fullName     | phoneNumber | avatarUrl                     |
-    | Nguyen Duc M | 0987654321  | https://cdn.campus.edu/avt.png|
-  Then The account record is updated in the database and Firebase
-  And The API responds with HTTP Status Code 200 OK
-  And The response body contains the updated account details
+  Given An account with ID "acc_12345" exists in Cloud Firestore
+  When An update request is submitted with:
+    | fullName     | phoneNumber | avatarUrl                      |
+    | Nguyen Duc M | 0987654321  | https://cdn.campus.edu/avt.png |
+  Then The account record is updated in Cloud Firestore
+  And The service returns StatusCode 200 OK
+  And The response data contains the updated profile details
+```
 
-AC4: Updating non-existent accounts is not permitted
-Description: If a client attempts to update an account using a non-existent or invalid accountId, the system rejects the operation.
-Gherkin Scenario:
-Gherkin
+### AC4: Updating non-existent accounts is rejected
+- **Description**: Nếu cố gắng cập nhật một tài khoản không tồn tại trong hệ thống, hệ thống từ chối và trả về `404 Not Found`.
+- **Gherkin Scenario**:
+```gherkin
 Scenario: Reject account update when account does not exist
   Given No account exists with ID "acc_99999"
-  When A PUT/PATCH request is sent to `/api/v1/accounts/acc_99999`
+  When An update request is sent for "acc_99999"
   Then The update operation is aborted
-  And The API responds with HTTP Status Code 404 Not Found
-  And The response body returns the error message "Account with ID acc_99999 not found"
+  And The service returns StatusCode 404 Not Found
+  And The response message specifies "Account with ID acc_99999 not found"
+```
 
-AC5: The API returns accurate HTTP Status Codes and standard response formatting
-Description: All endpoints must adhere to RESTful standards and provide a consistent response envelope for both success and error responses.
-Standard Success Response:
-JSON
+### AC5: Lock & Unlock Account Workflow (T35.2)
+- **Description**: Khóa hoặc Mở khóa tài khoản người dùng:
+  - Khi Khóa: Đặt `disabled = true` trên Firebase Auth và `IsActive = false` trên Firestore, trả về `200 OK` kèm `Status = "Locked"`.
+  - Khi Mở khóa: Đặt `disabled = false` trên Firebase Auth và `IsActive = true` trên Firestore, trả về `200 OK` kèm `Status = "Active"`.
+  - Không cho phép Admin tự khóa tài khoản của chính mình.
+- **Gherkin Scenario**:
+```gherkin
+Scenario: Successfully lock an active account
+  Given An active user account "acc_001" exists in the system
+  And The current actor is an Administrator (not "acc_001")
+  When The administrator requests to lock "acc_001"
+  Then The account is disabled in Firebase Authentication
+  And The document in Cloud Firestore has IsActive set to false
+  And The service returns StatusCode 200 OK with Message "Account locked successfully"
+```
+
+### AC6: Standard Response Envelope (RFC 7807 Compliant)
+Tất cả các hàm dịch vụ trong dự án đều trả về chuẩn hóa qua đối tượng `ApiResponse<T>`:
+```json
 {
   "success": true,
   "statusCode": 200,
@@ -87,73 +118,17 @@ JSON
   "data": {
     "id": "acc_12345",
     "email": "student@campus.edu",
-    "fullName": "Nguyen Duc M",
+    "fullName": "Nguyen Duc Manh",
     "role": "Student",
-    "updatedAt": "2026-08-20T13:55:00Z"
+    "updatedAt": "2026-10-31T09:00:00Z"
   }
 }
+```
 
-Standard Error Response (RFC 7807 Problem Details compliant):
-JSON
-{
-  "success": false,
-  "statusCode": 400,
-  "error": "BAD_REQUEST",
-  "message": "Validation failed",
-  "errors": [
-    {
-      "field": "email",
-      "message": "Invalid email format"
-    }
-  ],
-  "timestamp": "2026-08-20T13:55:00Z"
-}
+---
 
-AC6: Firebase integration for sprint task execution
-Description: The implementation leverages Firebase services via Firebase Admin SDK / Firebase Auth REST API:
-Manages credentials and authentication state via Firebase Authentication (CreateUserAsync, UpdateUserAsync).
-Persists extended user attributes in Cloud Firestore / Realtime Database.
-Ensures transactional integrity between Firebase Authentication credentials and database entities.
-
-4. Technical API Specifications
-4.1. Create Account API
-Endpoint: POST /api/v1/accounts
-Headers: Authorization: Bearer <Token>, Content-Type: application/json
-Request Body:
-JSON
-{
-  "email": "student@knu.ac.kr",
-  "password": "SecurePassword@2026",
-  "fullName": "Nguyen Duc Manh",
-  "phoneNumber": "0912345678",
-  "role": "Student",
-  "studentCode": "B202600100"
-}
-
-Status Codes:
-201 Created: Account created successfully.
-400 Bad Request: Missing or invalid mandatory fields.
-401 Unauthorized: Missing or invalid authentication token.
-403 Forbidden: Insufficient permissions (Non-Admin caller).
-409 Conflict: Email already exists.
-
-4.2. Update Account API
-Endpoint: PUT /api/v1/accounts/{id} or PATCH /api/v1/accounts/{id}
-Headers: Authorization: Bearer <Token>, Content-Type: application/json
-Path Parameter: id (String - Unique Account identifier / Firebase UID)
-Request Body:
-JSON
-{
-  "fullName": "Nguyen Duc Manh",
-  "phoneNumber": "0987654321",
-  "avatarUrl": "https://storage.googleapis.com/.../avatar.png",
-  "role": "Student"
-}
-
-Status Codes:
-200 OK: Account updated successfully.
-400 Bad Request: Invalid payload parameters.
-401 Unauthorized: Authentication required or expired token.
-403 Forbidden: Unauthorized to modify the specified resource.
-404 Not Found: Target account ID does not exist.
-500 Internal Server Error: Unexpected database or Firebase communication failure.
+## 4. Technical Architecture: Serverless Cloud Sync
+Thay vì dựng một API Gateway/Web API trung gian cồng kềnh tốn kém tài nguyên server, dự án sử dụng **Serverless Cloud Sync Service (`FirebaseSyncService`)**:
+1. **Google OAuth2 Service Account Authentication**: Sử dụng Private Key và Client Email của Firebase Service Account để sinh JWT Assertion, ký bằng thuật toán `RS256` và gửi tới Google Token Endpoint (`https://oauth2.googleapis.com/token`) để lấy Access Token có hiệu lực 60 phút.
+2. **Cloud Firestore REST Protocol**: Thực hiện các thao tác tạo/sửa/đọc tài liệu trực tiếp qua endpoint Google Cloud Firestore (`https://firestore.googleapis.com/v1/projects/{projectId}/databases/(default)/documents/...`).
+3. **Local Cache & Offline Resilience**: Bộ đệm danh sách người dùng và sự kiện trong bộ nhớ hoặc SQLite cục bộ giúp ứng dụng phản hồi mượt mà ngay cả khi mạng chập chờn.

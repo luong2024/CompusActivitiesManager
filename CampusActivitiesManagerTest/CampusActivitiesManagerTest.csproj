@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
+    <PackageReference Include="NUnit.Analyzers" Version="4.7.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.80" />
+    <PackageReference Include="QRCoder" Version="1.8.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Linked source files for unit testing -->
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Models\Role.cs" Link="Linked\Role.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Models\User.cs" Link="Linked\User.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Models\ClassRoom.cs" Link="Linked\ClassRoom.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Models\AttendanceModels.cs" Link="Linked\AttendanceModels.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Models\AuthModels.cs" Link="Linked\AuthModels.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Models\CampusEvent.cs" Link="Linked\CampusEvent.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Models\Category.cs" Link="Linked\Category.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\Data\FirebaseConfig.cs" Link="Linked\FirebaseConfig.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\BusinessLogic\Interfaces\IFirebaseSyncService.cs" Link="Linked\IFirebaseSyncService.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\BusinessLogic\Services\FirebaseSyncService.cs" Link="Linked\FirebaseSyncService.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\BusinessLogic\Interfaces\IQrCodeService.cs" Link="Linked\IQrCodeService.cs" />
+    <Compile Include="..\CampusActivitiesManager\CampusActivitiesManager\BusinessLogic\Services\QrCodeService.cs" Link="Linked\QrCodeService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="NUnit.Framework" />
+    <Using Include="Microsoft.Maui.Controls" />
+  </ItemGroup>
+
+</Project>
