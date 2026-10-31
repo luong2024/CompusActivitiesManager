@@ -56,6 +56,12 @@ namespace CampusActivitiesManager.PageModels
         private bool _hasVideo;
 
         [ObservableProperty]
+        private bool _isVideoModalVisible;
+
+        [ObservableProperty]
+        private HtmlWebViewSource _embeddedVideoHtmlSource = new();
+
+        [ObservableProperty]
         private string _userRegistrationStatus = "Chưa đăng ký";
 
         [ObservableProperty]
@@ -318,19 +324,129 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
-        public async Task OpenVideoLinkAsync()
+        public void ShowVideoModal()
+        {
+            if (string.IsNullOrWhiteSpace(EventItem?.VideoUrl)) return;
+            PrepareEmbeddedVideo(EventItem.VideoUrl);
+            IsVideoModalVisible = true;
+        }
+
+        [RelayCommand]
+        public void CloseVideoModal()
+        {
+            IsVideoModalVisible = false;
+            EmbeddedVideoHtmlSource = new HtmlWebViewSource { Html = "<html><body style='background:#000;'></body></html>" };
+        }
+
+        [RelayCommand]
+        public async Task OpenVideoExternalAsync()
         {
             if (EventItem == null || string.IsNullOrWhiteSpace(EventItem.VideoUrl)) return;
+            await VideoLauncherHelper.OpenVideoAsync(EventItem.VideoUrl, EventItem.Name);
+        }
 
-            try
+        [RelayCommand]
+        public async Task CopyVideoUrlAsync()
+        {
+            if (!string.IsNullOrWhiteSpace(EventItem?.VideoUrl))
             {
-                var uri = new Uri(EventItem.VideoUrl);
-                await Launcher.Default.OpenAsync(uri);
+                await Clipboard.Default.SetTextAsync(EventItem.VideoUrl);
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Đã sao chép 📋", $"Đã sao chép liên kết vào bộ nhớ tạm:\n{EventItem.VideoUrl}", "Đóng");
+                }
             }
-            catch (Exception ex)
+        }
+
+        [RelayCommand]
+        public async Task OpenVideoLinkAsync()
+        {
+            if (EventItem == null || string.IsNullOrWhiteSpace(EventItem.VideoUrl))
             {
-                await Shell.Current.DisplayAlert("Thông báo", $"Không thể mở liên kết video: {ex.Message}", "Đóng");
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Thông báo", "Hoạt động này chưa có liên kết video.", "Đóng");
+                }
+                return;
             }
+
+            ShowVideoModal();
+        }
+
+        private void PrepareEmbeddedVideo(string url)
+        {
+            var trimmed = url.Trim();
+            string embedUrl = trimmed;
+
+            if (trimmed.Contains("youtube.com") || trimmed.Contains("youtu.be"))
+            {
+                string videoId = "";
+                if (trimmed.Contains("youtu.be/"))
+                {
+                    var parts = trimmed.Split("youtu.be/");
+                    if (parts.Length > 1) videoId = parts[1].Split('?')[0].Split('&')[0];
+                }
+                else if (trimmed.Contains("watch?v="))
+                {
+                    var parts = trimmed.Split("watch?v=");
+                    if (parts.Length > 1) videoId = parts[1].Split('&')[0];
+                }
+                else if (trimmed.Contains("shorts/"))
+                {
+                    var parts = trimmed.Split("shorts/");
+                    if (parts.Length > 1) videoId = parts[1].Split('?')[0];
+                }
+                else if (trimmed.Contains("embed/"))
+                {
+                    var parts = trimmed.Split("embed/");
+                    if (parts.Length > 1) videoId = parts[1].Split('?')[0];
+                }
+
+                if (!string.IsNullOrWhiteSpace(videoId))
+                {
+                    embedUrl = $"https://www.youtube.com/embed/{videoId}?autoplay=1&playsinline=1&rel=0";
+                    var html = $@"
+<!DOCTYPE html>
+<html>
+<head>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
+<style>
+* {{ margin: 0; padding: 0; box-sizing: border-box; }}
+body {{ background-color: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }}
+iframe {{ width: 100vw; height: 100vh; border: none; }}
+</style>
+</head>
+<body>
+<iframe src='{embedUrl}' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>
+</body>
+</html>";
+                    EmbeddedVideoHtmlSource = new HtmlWebViewSource { Html = html };
+                    return;
+                }
+            }
+
+            if (!trimmed.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !trimmed.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                trimmed = "https://" + trimmed;
+            }
+
+            var videoHtml = $@"
+<!DOCTYPE html>
+<html>
+<head>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
+<style>
+* {{ margin: 0; padding: 0; box-sizing: border-box; }}
+body {{ background-color: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }}
+video {{ width: 100%; height: 100%; object-fit: contain; }}
+</style>
+</head>
+<body>
+<video controls autoplay playsinline src='{trimmed}'></video>
+</body>
+</html>";
+            EmbeddedVideoHtmlSource = new HtmlWebViewSource { Html = videoHtml };
         }
 
         [RelayCommand]

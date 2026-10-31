@@ -47,6 +47,7 @@
 
 		<!-- Fix for Android Fast Deployment / RemoveDirFixed (XARDF7024) -->
 		<EmbedAssembliesIntoApk Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">true</EmbedAssembliesIntoApk>
+
 	</PropertyGroup>
 
 	<ItemGroup>

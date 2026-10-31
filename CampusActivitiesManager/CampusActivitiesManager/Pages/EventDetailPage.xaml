@@ -172,11 +172,28 @@
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
                         </Grid>
 
-                        <!-- Video Link Button if available -->
-                        <Button Text="🎬 Xem Video giới thiệu sự kiện" IsVisible="{Binding HasVideo}"
-                                BackgroundColor="#EFF6FF" TextColor="{StaticResource Primary}" FontAttributes="Bold"
-                                BorderColor="{StaticResource Primary}" BorderWidth="1" CornerRadius="10"
-                                Command="{Binding OpenVideoLinkCommand}" Margin="0,4,0,0" />
+                        <!-- Video Showcase Card with In-App Playback -->
+                        <Border IsVisible="{Binding HasVideo}"
+                                StrokeShape="RoundRectangle 14"
+                                Background="{StaticResource PrimaryGradientBrush}"
+                                StrokeThickness="0"
+                                Padding="16,12"
+                                Margin="0,6,0,0">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ShowVideoModalCommand}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                <Border Grid.Column="0" WidthRequest="40" HeightRequest="40" StrokeShape="RoundRectangle 10"
+                                        BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0">
+                                    <Label Text="▶️" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                    <Label Text="Xem Video Giới Thiệu Hoạt Động" FontSize="13.5" FontAttributes="Bold" TextColor="White" />
+                                    <Label Text="Bấm để phát video trực tiếp trong ứng dụng" FontSize="11" TextColor="#DBEAFE" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="➔" FontSize="16" FontAttributes="Bold" TextColor="White" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
                     </VerticalStackLayout>
                 </Border>
 
@@ -320,5 +337,86 @@
 
             </VerticalStackLayout>
         </ScrollView>
+    
+        <!-- ============================================== -->
+        <!-- THEATER IN-APP VIDEO PLAYER MODAL              -->
+        <!-- ============================================== -->
+        <Grid Grid.Row="0" Grid.RowSpan="2"
+              BackgroundColor="#CC000000"
+              IsVisible="{Binding IsVideoModalVisible}"
+              Padding="16"
+              HorizontalOptions="FillAndExpand"
+              VerticalOptions="FillAndExpand">
+
+            <Border StrokeShape="RoundRectangle 24"
+                    BackgroundColor="#0F172A"
+                    Stroke="#334155"
+                    StrokeThickness="1"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    MaximumWidthRequest="380"
+                    Padding="16">
+                <VerticalStackLayout Spacing="14">
+                    <!-- Modal Header -->
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Label Text="🎬" FontSize="20" VerticalOptions="Center" />
+                            <Label Text="Video Giới Thiệu" FontSize="16" FontAttributes="Bold" TextColor="White" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <Border Grid.Column="1" WidthRequest="32" HeightRequest="32" StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#334155" StrokeThickness="0">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CloseVideoModalCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="✕" FontSize="14" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                    </Grid>
+
+                    <!-- Embedded Video Player Screen -->
+                    <Border StrokeShape="RoundRectangle 16"
+                            BackgroundColor="#000000"
+                            Stroke="#1E293B"
+                            StrokeThickness="1"
+                            HeightRequest="220"
+                            HorizontalOptions="FillAndExpand">
+                        <WebView Source="{Binding EmbeddedVideoHtmlSource}"
+                                 HorizontalOptions="FillAndExpand"
+                                 VerticalOptions="FillAndExpand" />
+                    </Border>
+
+                    <!-- Event Name in Modal -->
+                    <Label Text="{Binding EventItem.Name}"
+                           FontSize="13.5" FontAttributes="Bold"
+                           TextColor="#E2E8F0"
+                           LineBreakMode="TailTruncation" MaxLines="2" />
+
+                    <!-- Quick Action Buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="🌐 Mở App Ngoài"
+                                Command="{Binding OpenVideoExternalCommand}"
+                                BackgroundColor="#1E293B"
+                                TextColor="#60A5FA"
+                                FontSize="12" FontAttributes="Bold"
+                                HeightRequest="40" CornerRadius="10" />
+
+                        <Button Grid.Column="1"
+                                Text="📋 Sao Chép Link"
+                                Command="{Binding CopyVideoUrlCommand}"
+                                BackgroundColor="#1E293B"
+                                TextColor="#34D399"
+                                FontSize="12" FontAttributes="Bold"
+                                HeightRequest="40" CornerRadius="10" />
+                    </Grid>
+
+                    <Button Text="Đóng"
+                            Command="{Binding CloseVideoModalCommand}"
+                            BackgroundColor="#3B82F6"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            HeightRequest="42" CornerRadius="12" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
     </Grid>
 </ContentPage>
