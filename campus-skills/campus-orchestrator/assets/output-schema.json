@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "campus agent result",
+  "type": "object",
+  "required": ["task_id", "role", "status", "summary", "ac_results", "artifacts", "open_questions"],
+  "properties": {
+    "task_id": { "type": "string", "examples": ["T36.1"] },
+    "role": { "enum": ["api", "ui", "integration", "qa", "reviewer"] },
+    "status": { "enum": ["done", "blocked", "needs_info"] },
+    "summary": { "type": "string", "description": "Tối đa 5 câu" },
+    "branch": { "type": "string" },
+    "ac_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ac", "pass", "evidence"],
+        "properties": {
+          "ac": { "type": "string" },
+          "pass": { "type": "boolean" },
+          "evidence": { "type": "string", "description": "Tên test, log, ảnh/recording" }
+        }
+      }
+    },
+    "artifacts": { "type": "array", "items": { "type": "string" } },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "open_questions": { "type": "array", "items": { "type": "string" } }
+  }
+}

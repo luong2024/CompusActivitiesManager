@@ -3,7 +3,7 @@ using CampusActivitiesManager.Models;
 
 namespace CampusActivitiesManager.Pages.Controls
 {
-    public partial class TaskView
+    public partial class TaskView : Border
     {
         public TaskView()
         {
