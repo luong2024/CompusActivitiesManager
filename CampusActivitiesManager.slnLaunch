@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "Campus Activity Manager (MAUI)",
+    "Projects": [
+      {
+        "Path": "CampusActivitiesManager\\CampusActivitiesManager\\CampusActivitiesManager.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

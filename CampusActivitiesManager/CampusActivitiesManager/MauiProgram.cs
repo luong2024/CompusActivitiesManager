@@ -1,6 +1,12 @@
+using ZXing.Net.Maui.Controls;
+using CampusActivitiesManager.BusinessLogic.Interfaces;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
+using CampusActivitiesManager.Data;
+using CampusActivitiesManager.PageModels;
+using CampusActivitiesManager.Pages;
+using CampusActivitiesManager.BusinessLogic.Services;
 
 namespace CampusActivitiesManager
 {
@@ -12,11 +18,34 @@ namespace CampusActivitiesManager
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .UseBarcodeReader()
                 .ConfigureSyncfusionToolkit()
                 .ConfigureMauiHandlers(handlers =>
                 {
 #if IOS || MACCATALYST
     				handlers.AddHandler<Microsoft.Maui.Controls.CollectionView, Microsoft.Maui.Controls.Handlers.Items2.CollectionViewHandler2>();
+#endif
+#if WINDOWS
+                    Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("Borderless", (handler, view) =>
+                    {
+                        handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        handler.PlatformView.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                        handler.PlatformView.Resources["TextControlBorderThemeThicknessFocused"] = new Microsoft.UI.Xaml.Thickness(0);
+                        handler.PlatformView.Resources["TextControlBorderThemeThickness"] = new Microsoft.UI.Xaml.Thickness(0);
+                    });
+                    Microsoft.Maui.Handlers.EditorHandler.Mapper.AppendToMapping("Borderless", (handler, view) =>
+                    {
+                        handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        handler.PlatformView.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                        handler.PlatformView.Resources["TextControlBorderThemeThicknessFocused"] = new Microsoft.UI.Xaml.Thickness(0);
+                        handler.PlatformView.Resources["TextControlBorderThemeThickness"] = new Microsoft.UI.Xaml.Thickness(0);
+                    });
+
+                    Microsoft.Maui.Handlers.PickerHandler.Mapper.AppendToMapping("Borderless", (handler, view) =>
+                    {
+                        handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        handler.PlatformView.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                    });
 #endif
                 })
                 .ConfigureFonts(fonts =>
@@ -37,29 +66,80 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<CategoryRepository>();
             builder.Services.AddSingleton<TagRepository>();
             builder.Services.AddSingleton<UserRepository>();
+            builder.Services.AddSingleton<AccountRepository>();
+            builder.Services.AddSingleton<AuthService>();
             builder.Services.AddSingleton<UserService>();
             builder.Services.AddSingleton<IUserService<User>, UserService>();
+            builder.Services.AddSingleton<IUserService, UserService>();
+            builder.Services.AddSingleton<IFirebaseSyncService, FirebaseSyncService>();
+            builder.Services.AddSingleton<IEventService, EventService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
+            builder.Services.AddSingleton<IAttendanceService, AttendanceService>();
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
 
+            // PageModels
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<ProjectListPageModel>();
             builder.Services.AddSingleton<ManageMetaPageModel>();
             builder.Services.AddSingleton<UserManagementPageModel>();
-            builder.Services.AddSingleton<UserManagementPage>();
+            builder.Services.AddTransient<EventManagementPageModel>();
+            builder.Services.AddTransient<LoginPageModel>();
+            builder.Services.AddTransient<ProfilePageModel>();
+            builder.Services.AddTransient<RegisterViewModel>();
+            builder.Services.AddTransient<CreateUserViewModel>();
+            builder.Services.AddTransient<EditUserRoleViewModel>();
+            builder.Services.AddTransient<AccessDeniedViewModel>();
+            builder.Services.AddTransient<ProjectDetailPageModel>();
+            builder.Services.AddTransient<TaskDetailPageModel>();
+            builder.Services.AddTransient<QrScannerViewModel>();
+            builder.Services.AddTransient<PhotoAttendanceViewModel>();
+            builder.Services.AddTransient<AttendanceHistoryViewModel>();
+            builder.Services.AddTransient<EventAttendanceReportViewModel>();
+            builder.Services.AddTransient<EventFormPageModel>();
+            builder.Services.AddTransient<EventListPageModel>();
+            builder.Services.AddTransient<EventDetailPageModel>();
+            builder.Services.AddTransient<ClassHubPageModel>();
+            builder.Services.AddTransient<AccountListPageModel>();
+            builder.Services.AddTransient<RegisterPageModel>();
+            builder.Services.AddTransient<ManageCategoriesPageModel>();
 
-            builder.Services.AddTransient<LoginViewModel>();
+            // Pages
+            builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<UserManagementPage>();
+            builder.Services.AddTransient<EventManagementPage>();
+            builder.Services.AddTransient<ProfilePage>();
             builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<ManageMetaPage>();
+            builder.Services.AddTransient<QrScannerPage>();
+            builder.Services.AddTransient<PhotoAttendancePage>();
+            builder.Services.AddTransient<AttendanceHistoryPage>();
+            builder.Services.AddTransient<EventAttendanceReportPage>();
+            builder.Services.AddTransient<EventFormPage>();
+            builder.Services.AddTransient<EventListPage>();
+            builder.Services.AddTransient<EventDetailPage>();
+            builder.Services.AddTransient<ClassHubPage>();
+            builder.Services.AddTransient<AccountListPage>();
+            builder.Services.AddTransient<ManageCategoriesPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
-
             builder.Services.AddTransientWithShellRoute<CreateUserPage, CreateUserViewModel>("createuser");
-            builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
-            builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
             builder.Services.AddTransientWithShellRoute<EditUserRolePage, EditUserRoleViewModel>("editrole");
             builder.Services.AddTransientWithShellRoute<AccessDeniedPage, AccessDeniedViewModel>("accessdenied");
-
+            builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
+            builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
+            builder.Services.AddTransientWithShellRoute<ManageMetaPage, ManageMetaPageModel>("meta");
+            builder.Services.AddTransientWithShellRoute<QrScannerPage, QrScannerViewModel>("qrscan");
+            builder.Services.AddTransientWithShellRoute<PhotoAttendancePage, PhotoAttendanceViewModel>("photoattendance");
+            builder.Services.AddTransientWithShellRoute<AttendanceHistoryPage, AttendanceHistoryViewModel>("attendancehistory");
+            builder.Services.AddTransientWithShellRoute<EventAttendanceReportPage, EventAttendanceReportViewModel>("attendancereport");
+            builder.Services.AddTransientWithShellRoute<EventListPage, EventListPageModel>("eventlist");
+            builder.Services.AddTransientWithShellRoute<EventDetailPage, EventDetailPageModel>("eventdetail");
+            builder.Services.AddTransientWithShellRoute<EventDetailPage, EventDetailPageModel>("eventdetails");
+            builder.Services.AddTransientWithShellRoute<ClassHubPage, ClassHubPageModel>("classhub");
+            builder.Services.AddTransientWithShellRoute<AccountListPage, AccountListPageModel>("accountlist");
+            builder.Services.AddTransientWithShellRoute<ManageCategoriesPage, ManageCategoriesPageModel>("managecategories");
             return builder.Build();
         }
     }

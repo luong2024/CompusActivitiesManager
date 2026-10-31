@@ -1,13 +1,13 @@
-﻿using CampusActivitiesManager.PageModels;
+using CampusActivitiesManager.PageModels;
 
-namespace CampusActivitiesManager.Pages;
-
-public partial class RegisterPage : ContentPage
+namespace CampusActivitiesManager.Pages
 {
-    public RegisterPage(RegisterViewModel viewModel)
+    public partial class RegisterPage : ContentPage
     {
-        InitializeComponent();
-        BindingContext = viewModel;
+        public RegisterPage(RegisterViewModel viewModel)
+        {
+            InitializeComponent();
+            BindingContext = viewModel;
+        }
     }
 }
-

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pagemodels="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
+             x:Class="CampusActivitiesManager.Pages.AttendanceHistoryPage"
+             x:DataType="pagemodels:AttendanceHistoryViewModel"
+             Title="Sổ Điểm Danh"
+             BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="20,20,20,100" Spacing="16">
+
+                <!-- 1. Training Points Summary Card -->
+                <Border StrokeShape="RoundRectangle 22"
+                        Background="{StaticResource PrimaryGradientBrush}"
+                        Padding="22"
+                        StrokeThickness="0">
+                    <VerticalStackLayout Spacing="14">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="TỔNG ĐIỂM RÈN LUYỆN"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       TextColor="#CBD5E1" />
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="{Binding TotalTrainingPoints}"
+                                           FontSize="32"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource White}" />
+                                    <Label Text="/ 100"
+                                           FontSize="18"
+                                           FontAttributes="Bold"
+                                           TextColor="#94A3B8"
+                                           VerticalOptions="End"
+                                           Margin="0,0,0,4" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+
+                            <!-- Rank Badge -->
+                            <Border Grid.Column="1"
+                                    StrokeShape="RoundRectangle 12"
+                                    Background="#22C55E"
+                                    Padding="12,6"
+                                    StrokeThickness="0"
+                                    VerticalOptions="Center">
+                                <Label Text="{Binding PointRank}"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource White}" />
+                            </Border>
+                        </Grid>
+
+                        <ProgressBar Progress="{Binding ProgressValue}"
+                                     ProgressColor="#34D399"
+                                     HeightRequest="8" />
+
+                        <Grid ColumnDefinitions="*,*">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="Sinh viên:" FontSize="11" TextColor="#CBD5E1" />
+                                <Label Text="{Binding StudentName}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource White}" LineBreakMode="TailTruncation" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" HorizontalOptions="End" Spacing="2">
+                                <Label Text="Sự kiện tham gia:" FontSize="11" TextColor="#CBD5E1" HorizontalOptions="End" />
+                                <Label Text="{Binding TotalAttendedEvents, StringFormat='{0} hoạt động'}" FontSize="13" FontAttributes="Bold" TextColor="#FDE047" HorizontalOptions="End" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 2. Filter Bar -->
+                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Tất cả"
+                                Command="{Binding FilterCommand}"
+                                CommandParameter="Tất cả"
+                                Background="{StaticResource Primary}"
+                                TextColor="{StaticResource White}"
+                                FontAttributes="Bold"
+                                HeightRequest="36"
+                                CornerRadius="10"
+                                Padding="16,0" />
+
+                        <Button Text="📷 Mã QR"
+                                Command="{Binding FilterCommand}"
+                                CommandParameter="Mã QR"
+                                Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                FontAttributes="Bold"
+                                HeightRequest="36"
+                                CornerRadius="10"
+                                Padding="14,0" />
+
+                        <Button Text="🖼️ Ảnh minh chứng"
+                                Command="{Binding FilterCommand}"
+                                CommandParameter="Ảnh minh chứng"
+                                Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                FontAttributes="Bold"
+                                HeightRequest="36"
+                                CornerRadius="10"
+                                Padding="14,0" />
+
+                        <Button Text="✍️ Thủ công"
+                                Command="{Binding FilterCommand}"
+                                CommandParameter="Thủ công"
+                                Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                FontAttributes="Bold"
+                                HeightRequest="36"
+                                CornerRadius="10"
+                                Padding="14,0" />
+                    </HorizontalStackLayout>
+                </ScrollView>
+
+                <!-- 3. Attendance Records List -->
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="LỊCH SỬ THAM GIA HOẠT ĐỘNG"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}" />
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Records}">
+                        <BindableLayout.EmptyView>
+                            <Border StrokeShape="RoundRectangle 16"
+                                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                    Padding="32"
+                                    Margin="0,10">
+                                <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                                    <Label Text="📋" FontSize="36" HorizontalOptions="Center" />
+                                    <Label Text="Chưa có dữ liệu điểm danh phù hợp"
+                                           FontSize="13"
+                                           TextColor="{StaticResource Gray500}"
+                                           HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </BindableLayout.EmptyView>
+
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:AttendanceRecord">
+                                <Border StrokeShape="RoundRectangle 16"
+                                        Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                        StrokeThickness="1"
+                                        Padding="16"
+                                        Margin="0,0,0,10">
+                                    <VerticalStackLayout Spacing="8">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0"
+                                                   Text="{Binding EventName}"
+                                                   FontSize="14"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="2" />
+                                            <Border Grid.Column="1"
+                                                    StrokeShape="RoundRectangle 8"
+                                                    Background="{Binding StatusBadgeBg}"
+                                                    Padding="8,3"
+                                                    StrokeThickness="0"
+                                                    VerticalOptions="Start">
+                                                <Label Text="{Binding StatusDisplay}"
+                                                       FontSize="11"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{Binding StatusColor}" />
+                                            </Border>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                            <Border Grid.Column="0"
+                                                    StrokeShape="RoundRectangle 6"
+                                                    Background="#EFF6FF"
+                                                    Padding="6,2"
+                                                    StrokeThickness="0">
+                                                <Label Text="{Binding MethodDisplay}"
+                                                       FontSize="11"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{StaticResource Primary}" />
+                                            </Border>
+
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding FormattedCheckInTime}"
+                                                   FontSize="11"
+                                                   TextColor="{StaticResource Gray500}"
+                                                   VerticalOptions="Center" />
+
+                                            <Label Grid.Column="2"
+                                                   Text="{Binding PointsDisplay}"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   TextColor="#16A34A"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+
+                                        <Label Text="{Binding Notes}"
+                                               FontSize="11.5"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="2" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

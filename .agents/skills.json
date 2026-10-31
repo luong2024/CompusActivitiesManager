@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "path": "campus-skills"
+    },
+    {
+      "path": ".agents/skills"
+    },
+    {
+      "path": ".agents/plugins/maui-skills/skills"
+    }
+  ]
+}
