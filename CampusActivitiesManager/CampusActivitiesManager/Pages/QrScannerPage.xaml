@@ -82,18 +82,7 @@
                             StrokeThickness="2"
                             Padding="2"
                             HorizontalOptions="Center">
-                        <Grid>
-                            <!-- Live Camera Barcode Reader View -->
-                            <zxing:CameraBarcodeReaderView
-                                x:Name="BarcodeReader"
-                                WidthRequest="256"
-                                HeightRequest="256"
-                                HorizontalOptions="FillAndExpand"
-                                VerticalOptions="FillAndExpand"
-                                IsDetecting="{Binding IsDetecting}"
-                                IsTorchOn="{Binding IsTorchOn}"
-                                CameraLocation="{Binding SelectedCameraLocation}"
-                                BarcodesDetected="OnBarcodesDetected" />
+                        <Grid x:Name="CameraContainer">
 
                             <!-- Overlay Corner Targets for UX Alignment -->
                             <BoxView WidthRequest="24" HeightRequest="4" Color="{StaticResource Primary}" HorizontalOptions="Start" VerticalOptions="Start" InputTransparent="True" />

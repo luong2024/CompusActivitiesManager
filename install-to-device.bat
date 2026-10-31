@@ -1,7 +1,9 @@
 @echo off
 chcp 65001 >nul
+title Cai dat Campus Activity Manager len dien thoai Android
+cls
 echo ======================================================================
-echo   CÀI ĐẶT ỨNG DỤNG CAMPUS ACTIVITY MANAGER VÀO ĐIỆN THOẠI ANDROID
+echo    CAI DAT UNG DUNG CAMPUS ACTIVITY MANAGER VAO DIEN THOAI ANDROID
 echo ======================================================================
 echo.
 
@@ -11,8 +13,9 @@ if not exist %ADB% (
 )
 
 if not exist %ADB% (
-    echo [LỖI] Không tìm thấy công cụ adb.exe trên máy tính!
-    echo Vui lòng cài Android SDK hoặc chuyển file APK thủ công qua Zalo/Drive.
+    echo [LOI] Khong tim thay cong cu adb.exe tren may tinh!
+    echo Ban hay copy file 'CampusActivityManager.apk' tren Desktop vao dien thoai qua Zalo/Drive/USB.
+    echo.
     pause
     exit /b 1
 )
@@ -20,37 +23,44 @@ if not exist %ADB% (
 set APK="CampusActivitiesManager\CampusActivitiesManager\bin\Debug\net9.0-android\com.companyname.campusactivitiesmanager-Signed.apk"
 
 if not exist %APK% (
-    echo [LỖI] Không tìm thấy file APK đã ký tại:
-    echo %APK%
-    echo Vui lòng chạy 'dotnet build -f net9.0-android' trước.
+    set APK="%USERPROFILE%\Desktop\CampusActivityManager.apk"
+)
+
+if not exist %APK% (
+    echo [LOI] Khong tim thay file APK da ky!
     pause
     exit /b 1
 )
 
-echo [1/3] Đang kiểm tra thiết bị Android kết nối qua USB...
+echo [1/3] Kiem tra ket noi dien thoai qua cap USB...
+echo.
 %ADB% devices
 echo.
-
-echo Hãy chắc chắn rằng:
-echo  1. Bạn đã cắm cáp USB nối điện thoại với máy tính.
-echo  2. Trên điện thoại đã bật 'Tùy chọn nhà phát triển' -^> 'Gỡ lỗi USB' (USB Debugging).
-echo  3. Nếu màn hình điện thoại hiện 'Cho phép gỡ lỗi USB từ máy tính này?', hãy bấm CHO PHÉP (ALLOW).
+echo LUU Y TRUOC KHI TIEP TUC:
+echo  1. Ban da cam cap USB noi dien thoai voi may tinh.
+echo  2. Tren dien thoai da bat 'Go loi USB' (USB Debugging) trong Tuy chon nha phat trien.
+echo  3. Neu man hinh dien thoai hien 'Cho phep go loi USB?', hay tich 'Luon cho phep' va bam OK.
 echo.
 pause
 
 echo.
-echo [2/3] Đang tiến hành cài đặt file APK vào điện thoại...
+echo [2/3] Dang tien hanh cai dat file APK vao dien thoai...
+echo (Vui long cho khoang 10 - 20 giay...)
+echo.
 %ADB% install -r %APK%
 
 if %ERRORLEVEL% EQU 0 (
     echo.
     echo ======================================================================
-    echo   [THÀNH CÔNG] ĐÃ CÀI ĐẶT ỨNG DỤNG LÊN ĐIỆN THOẠI CỦA BẠN!
+    echo   [THANH CONG] DA CAI DAT XONG APP LEN DIEN THOAI CUA BAN!
     echo ======================================================================
-    echo Bạn có thể mở ứng dụng 'Campus Activity Manager' trên điện thoại để test.
+    echo Ban co the mo ung dung 'Campus Activity Manager' tren dien thoai de test ngay.
 ) else (
     echo.
-    echo [LỖI] Cài đặt thất bại! Vui lòng kiểm tra lại cáp kết nối và quyền USB Debugging.
+    echo [LOI] Cai dat khong thanh cong!
+    echo Goi y:
+    echo  - Kiem tra lai xem dien thoai co dang khoa man hinh khong.
+    echo  - Hoac copy truc tiep file 'CampusActivityManager.apk' tu Desktop vao dien thoai de cai thu cong.
 )
 
 echo.

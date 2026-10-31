@@ -91,7 +91,7 @@ namespace CampusActivitiesManager.PageModels
         private bool _isCameraPermissionGranted;
 
         [ObservableProperty]
-        private bool _isDetecting = true;
+        private bool _isDetecting;
 
         [ObservableProperty]
         private bool _isTorchOn;
@@ -264,6 +264,10 @@ namespace CampusActivitiesManager.PageModels
 
                 }
 
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"LoadEventsAsync error: {ex.Message}");
             }
 
             finally
