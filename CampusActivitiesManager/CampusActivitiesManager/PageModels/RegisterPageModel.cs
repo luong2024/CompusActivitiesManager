@@ -1,6 +1,6 @@
 #nullable disable
 using System.Text.RegularExpressions;
-using CampusActivitiesManager.Services;
+using CampusActivitiesManager.BusinessLogic.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.Graphics;

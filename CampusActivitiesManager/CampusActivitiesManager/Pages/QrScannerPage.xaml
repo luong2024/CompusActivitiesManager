@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pagemodels="clr-namespace:CampusActivitiesManager.PageModels"
+             xmlns:models="clr-namespace:CampusActivitiesManager.Models"
+             xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="CampusActivitiesManager.Pages.QrScannerPage"
+             x:DataType="pagemodels:QrScannerViewModel"
+             Title="Quét QR Điểm Danh"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <!-- Header Card -->
+            <Border StrokeShape="RoundRectangle 20"
+                    Background="{StaticResource PrimaryGradientBrush}"
+                    Padding="16,14"
+                    StrokeThickness="0">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Center">
+                    <Border Grid.Column="0"
+                            WidthRequest="40" HeightRequest="40"
+                            StrokeShape="RoundRectangle 10"
+                            BackgroundColor="{StaticResource TranslucentWhite}"
+                            StrokeThickness="0"
+                            VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ToggleMenuCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="☰" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource White}" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                        <Label Text="Quét QR Mở Hoạt Động"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource White}" />
+                        <Label Text="Mở thông tin hoạt động và đăng ký tham gia"
+                               FontSize="11.5"
+                               TextColor="#E0E7FF" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Event Selector -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    StrokeThickness="1"
+                    Padding="16,12">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="CHỌN SỰ KIỆN ĐIỂM DANH"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}" />
+                    <Picker Title="-- Chọn sự kiện cần check-in --"
+                            ItemsSource="{Binding ActiveEvents}"
+                            ItemDisplayBinding="{Binding Name, x:DataType='models:CampusEvent'}"
+                            SelectedItem="{Binding SelectedEvent}"
+                            TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                            FontSize="13.5" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Scanner Viewfinder Box -->
+            <Border StrokeShape="RoundRectangle 24"
+                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                    Stroke="{StaticResource Primary}"
+                    StrokeThickness="2"
+                    Padding="24"
+                    HorizontalOptions="FillAndExpand">
+                <VerticalStackLayout Spacing="16" HorizontalOptions="Center">
+
+                    <!-- Viewfinder Frame with Real-Time Camera Barcode Reader -->
+                    <Border WidthRequest="260"
+                            HeightRequest="260"
+                            StrokeShape="RoundRectangle 20"
+                            Background="#0F172A"
+                            Stroke="{StaticResource Primary}"
+                            StrokeThickness="2"
+                            Padding="2"
+                            HorizontalOptions="Center">
+                        <Grid>
+                            <!-- Live Camera Barcode Reader View -->
+                            <zxing:CameraBarcodeReaderView
+                                x:Name="BarcodeReader"
+                                WidthRequest="256"
+                                HeightRequest="256"
+                                HorizontalOptions="FillAndExpand"
+                                VerticalOptions="FillAndExpand"
+                                IsDetecting="{Binding IsDetecting}"
+                                IsTorchOn="{Binding IsTorchOn}"
+                                CameraLocation="{Binding SelectedCameraLocation}"
+                                BarcodesDetected="OnBarcodesDetected" />
+
+                            <!-- Overlay Corner Targets for UX Alignment -->
+                            <BoxView WidthRequest="24" HeightRequest="4" Color="{StaticResource Primary}" HorizontalOptions="Start" VerticalOptions="Start" InputTransparent="True" />
+                            <BoxView WidthRequest="4" HeightRequest="24" Color="{StaticResource Primary}" HorizontalOptions="Start" VerticalOptions="Start" InputTransparent="True" />
+
+                            <BoxView WidthRequest="24" HeightRequest="4" Color="{StaticResource Primary}" HorizontalOptions="End" VerticalOptions="Start" InputTransparent="True" />
+                            <BoxView WidthRequest="4" HeightRequest="24" Color="{StaticResource Primary}" HorizontalOptions="End" VerticalOptions="Start" InputTransparent="True" />
+
+                            <BoxView WidthRequest="24" HeightRequest="4" Color="{StaticResource Primary}" HorizontalOptions="Start" VerticalOptions="End" InputTransparent="True" />
+                            <BoxView WidthRequest="4" HeightRequest="24" Color="{StaticResource Primary}" HorizontalOptions="Start" VerticalOptions="End" InputTransparent="True" />
+
+                            <BoxView WidthRequest="24" HeightRequest="4" Color="{StaticResource Primary}" HorizontalOptions="End" VerticalOptions="End" InputTransparent="True" />
+                            <BoxView WidthRequest="4" HeightRequest="24" Color="{StaticResource Primary}" HorizontalOptions="End" VerticalOptions="End" InputTransparent="True" />
+
+                            <!-- Bottom Floating Label -->
+                            <Border StrokeShape="RoundRectangle 8" Background="#90000000" Padding="8,4" HorizontalOptions="Center" VerticalOptions="End" Margin="0,0,0,10" InputTransparent="True">
+                                <Label Text="🎯 Hướng camera vào mã QR" FontSize="11" TextColor="White" HorizontalOptions="Center" />
+                            </Border>
+
+                            <!-- Permission Fallback Card if Camera Denied -->
+                            <Border BackgroundColor="#F8FAFC" StrokeThickness="0" StrokeShape="RoundRectangle 18"
+                                    IsVisible="{Binding IsCameraPermissionGranted, Converter={toolkit:InvertedBoolConverter}}"
+                                    Padding="16" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                                <VerticalStackLayout Spacing="8" VerticalOptions="Center" HorizontalOptions="Center">
+                                    <Label Text="📷" FontSize="36" HorizontalOptions="Center" />
+                                    <Label Text="Chưa cấp quyền Camera" FontAttributes="Bold" FontSize="13" TextColor="{StaticResource DarkOnLightBackground}" HorizontalOptions="Center" />
+                                    <Label Text="Bấm để cấp quyền hoặc dán mã bên dưới" FontSize="11" TextColor="{StaticResource Gray500}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                                    <Button Text="Cấp quyền Camera" Command="{Binding InitializeCameraPermissionCommand}"
+                                            HeightRequest="36" FontSize="11.5" FontAttributes="Bold" CornerRadius="8"
+                                            BackgroundColor="{StaticResource Primary}" TextColor="White" Margin="0,4,0,0" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- Camera Quick Controls: Flashlight & Switch Camera -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" WidthRequest="260">
+                        <Button Grid.Column="0"
+                                Text="{Binding TorchButtonText}"
+                                Command="{Binding ToggleTorchCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#334155}"
+                                TextColor="{StaticResource Primary}"
+                                FontSize="12" FontAttributes="Bold" HeightRequest="38" CornerRadius="10" />
+                        <Button Grid.Column="1"
+                                Text="🔄 Đổi camera"
+                                Command="{Binding SwitchCameraLocationCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#334155}"
+                                TextColor="{StaticResource Primary}"
+                                FontSize="12" FontAttributes="Bold" HeightRequest="38" CornerRadius="10" />
+                    </Grid>
+
+                    <!-- Manual Input / Fast Simulate Test -->
+                    <VerticalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
+                        <Label Text="Hoặc dán / nhập mã đường dẫn sự kiện:"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Entry Grid.Column="0"
+                                   Placeholder="Ví dụ: campus://event/1 hoặc 1..."
+                                   Text="{Binding QrInput}"
+                                   FontSize="12"
+                                   ClearButtonVisibility="WhileEditing" />
+                            <Button Grid.Column="1"
+                                    Text="Mở sự kiện"
+                                    Command="{Binding ProcessQrCodeCommand}"
+                                    Background="{StaticResource Primary}"
+                                    TextColor="{StaticResource White}"
+                                    FontAttributes="Bold"
+                                    CornerRadius="10"
+                                    HeightRequest="42"
+                                    Padding="14,0" />
+                        </Grid>
+
+                        <!-- Open Selected Event Directly -->
+                        <Button Text="🔍 Mở Chi Tiết Hoạt Động Đã Chọn"
+                                Command="{Binding OpenSelectedEventDetailCommand}"
+                                Background="{StaticResource PrimaryGradientBrush}"
+                                TextColor="{StaticResource White}"
+                                FontAttributes="Bold"
+                                HeightRequest="44"
+                                CornerRadius="12">
+                            <Button.Shadow>
+                                <Shadow Brush="{StaticResource Primary}" Offset="0,4" Radius="8" Opacity="0.3" />
+                            </Button.Shadow>
+                        </Button>
+
+                        
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Result Card -->
+            <Border StrokeShape="RoundRectangle 20"
+                    IsVisible="{Binding HasResult}"
+                    Background="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
+                    Stroke="#16A34A"
+                    StrokeThickness="1.5"
+                    Padding="20">
+                <VerticalStackLayout Spacing="12">
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="🎉" FontSize="26" VerticalOptions="Center" />
+                        <VerticalStackLayout VerticalOptions="Center">
+                            <Label Text="Ghi Nhận Điểm Danh Thành Công"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="#16A34A" />
+                            <Label Text="{Binding StatusMessage}"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+
+                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+
+                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="6" ColumnSpacing="12">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Sinh viên:" FontSize="12.5" TextColor="{StaticResource Gray500}" />
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding LastRecord.StudentName}" FontSize="12.5" FontAttributes="Bold" />
+
+                        <Label Grid.Row="1" Grid.Column="0" Text="Mã số sinh viên:" FontSize="12.5" TextColor="{StaticResource Gray500}" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding LastRecord.StudentCode}" FontSize="12.5" FontAttributes="Bold" />
+
+                        <Label Grid.Row="2" Grid.Column="0" Text="Điểm rèn luyện:" FontSize="12.5" TextColor="{StaticResource Gray500}" />
+                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding LastRecord.PointsDisplay}" FontSize="12.5" FontAttributes="Bold" TextColor="#16A34A" />
+                    </Grid>
+
+                    <Button Text="Tiếp tục quét mã khác"
+                            Command="{Binding ResetScanCommand}"
+                            Background="#F1F5F9"
+                            TextColor="{StaticResource DarkOnLightBackground}"
+                            FontAttributes="Bold"
+                            CornerRadius="10"
+                            HeightRequest="40" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

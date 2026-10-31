@@ -6,8 +6,8 @@ namespace CampusActivitiesManager.Pages
     {
         public EventManagementPage(EventManagementPageModel model)
         {
-            InitializeComponent();
             BindingContext = model;
+            InitializeComponent();
         }
     }
 }

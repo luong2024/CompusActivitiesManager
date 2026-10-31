@@ -1,49 +1,106 @@
 #nullable disable
 using System.Collections.ObjectModel;
+using CampusActivitiesManager.BusinessLogic.Services;
 using CampusActivitiesManager.Data;
 using CampusActivitiesManager.Models;
-using CampusActivitiesManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Graphics;
 
 namespace CampusActivitiesManager.PageModels
 {
-    public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
+    public partial class MainPageModel : ObservableObject
     {
-        private bool _isNavigatedTo;
-        private bool _dataLoaded;
-        private readonly ProjectRepository _projectRepository;
-        private readonly TaskRepository _taskRepository;
-        private readonly CategoryRepository _categoryRepository;
-        private readonly ModalErrorHandler _errorHandler;
-        private readonly SeedDataService _seedDataService;
+        private readonly IEventService _eventService;
         private readonly IAuthenticationService _authService;
+        private readonly IUserService _userService;
+        private readonly ModalErrorHandler _errorHandler;
+        private readonly IQrCodeService _qrCodeService;
+        private readonly IAttendanceService _attendanceService;
 
         [ObservableProperty]
         private Account _currentStudent;
 
         [ObservableProperty]
-        private string _studentGreeting = "Xin chào Sinh viên 👋";
+        private string _studentGreeting = "Xin chào 👋";
 
         [ObservableProperty]
-        private int _upcomingActivitiesCount = 4;
+        private string _roleSubtitle = string.Empty;
+
+        // Role Indicators
+        [ObservableProperty]
+        private bool _isAdmin;
 
         [ObservableProperty]
-        private int _registeredActivitiesCount = 2;
+        private bool _isManager;
 
         [ObservableProperty]
-        private int _completedTasksCount = 0;
+        private bool _isLecturer;
 
         [ObservableProperty]
-        private bool _isQrModalVisible = false;
+        private bool _isSecretary;
 
         [ObservableProperty]
-        private string _selectedActivityForQr = "Hội thảo Công nghệ Thông tin 2026";
+        private bool _isStudent;
 
         [ObservableProperty]
-        private string _qrTicketCode = "CAMPUS-TICKET-2026-B20DCCN001";
+        private bool _isStudentOrSecretary;
+
+        [ObservableProperty]
+        private bool _isAdminOrManager;
+
+        // Student DRL Progress
+        [ObservableProperty]
+        private double _trainingPointsProgress = 0.0;
+
+        [ObservableProperty]
+        private double _semesterProgress = 0.0;
+
+        [ObservableProperty]
+        private double _yearProgress = 0.0;
+
+        [ObservableProperty]
+        private string _semesterGoalDisplay = "0/50 ĐRL";
+
+        [ObservableProperty]
+        private string _yearGoalDisplay = "0/250 ĐRL";
+
+        [ObservableProperty]
+        private bool _isSemesterQualified;
+
+        [ObservableProperty]
+        private bool _isYearQualified;
+
+        // Role-Specific Metrics
+        [ObservableProperty]
+        private int _totalUsersCount;
+
+        [ObservableProperty]
+        private int _myCreatedEventsCount;
+
+        [ObservableProperty]
+        private int _pendingRegistrationsCount;
+
+        [ObservableProperty]
+        private string _assignedClassDisplay = "D20CNTT1";
+
+        [ObservableProperty]
+        private int _classStudentsCount;
+
+        [ObservableProperty]
+        private int _pendingApprovalCount;
+
+        [ObservableProperty]
+        private bool _hasPendingApprovals;
+
+        // Events Data
+        [ObservableProperty]
+        private List<CampusEvent> _allEvents = [];
+
+        [ObservableProperty]
+        private List<CampusEvent> _displayEvents = [];
+
+        [ObservableProperty]
+        private List<CampusEvent> _myRegisteredEvents = [];
 
         [ObservableProperty]
         private List<CategoryChartData> _todoCategoryData = [];
@@ -52,10 +109,13 @@ namespace CampusActivitiesManager.PageModels
         private List<Brush> _todoCategoryColors = [];
 
         [ObservableProperty]
-        private List<ProjectTask> _tasks = [];
+        private string _selectedCategoryFilter = "Tất cả";
 
         [ObservableProperty]
-        private List<Project> _projects = [];
+        private int _upcomingCount;
+
+        [ObservableProperty]
+        private int _registeredCount;
 
         [ObservableProperty]
         private bool _isBusy;
@@ -66,131 +126,153 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private string _today = DateTime.Now.ToString("dddd, dd/MM/yyyy");
 
-        public bool HasCompletedTasks => Tasks?.Any(t => t.IsCompleted) ?? false;
+        // QR Attendance Ticket Modal
+        [ObservableProperty]
+        private bool _isQrModalVisible;
+
+        [ObservableProperty]
+        private string _selectedActivityForQr = "Hội thảo AI & Công nghệ Thông tin 2026";
+
+        [ObservableProperty]
+        private string _qrTicketCode = "CAMPUS-TK-B20DCCN001-71965";
+
+        [ObservableProperty]
+        private ImageSource _qrImageSource;
+
+        [ObservableProperty]
+        private ObservableCollection<CampusNotificationDto> _notifications = [];
+
+        [ObservableProperty]
+        private int _unreadNotificationsCount;
+
+        [ObservableProperty]
+        private bool _hasUnreadNotifications;
+
+        [ObservableProperty]
+        private bool _isNotificationsModalVisible;
+
+        [ObservableProperty]
+        private bool _isCreateNotificationModalVisible;
+
+        [ObservableProperty]
+        private string _selectedNotificationFilter = "ALL";
+
+        public Color FilterAllBg => SelectedNotificationFilter == "ALL" ? Color.FromArgb("#2563EB") : Color.FromArgb("#F1F5F9");
+        public Color FilterAllText => SelectedNotificationFilter == "ALL" ? Colors.White : Color.FromArgb("#475569");
+
+        public Color FilterSchoolBg => SelectedNotificationFilter == "SCHOOL" ? Color.FromArgb("#2563EB") : Color.FromArgb("#F1F5F9");
+        public Color FilterSchoolText => SelectedNotificationFilter == "SCHOOL" ? Colors.White : Color.FromArgb("#475569");
+
+        public Color FilterClassBg => SelectedNotificationFilter == "CLASS" ? Color.FromArgb("#2563EB") : Color.FromArgb("#F1F5F9");
+        public Color FilterClassText => SelectedNotificationFilter == "CLASS" ? Colors.White : Color.FromArgb("#475569");
+
+        public Color FilterPersonalBg => SelectedNotificationFilter == "PERSONAL" ? Color.FromArgb("#2563EB") : Color.FromArgb("#F1F5F9");
+        public Color FilterPersonalText => SelectedNotificationFilter == "PERSONAL" ? Colors.White : Color.FromArgb("#475569");
+
+        private List<CampusNotificationDto> _allNotifications = new();
+
+        [RelayCommand]
+        public void SetNotificationFilter(string filter)
+        {
+            SelectedNotificationFilter = filter ?? "ALL";
+            OnPropertyChanged(nameof(FilterAllBg));
+            OnPropertyChanged(nameof(FilterAllText));
+            OnPropertyChanged(nameof(FilterSchoolBg));
+            OnPropertyChanged(nameof(FilterSchoolText));
+            OnPropertyChanged(nameof(FilterClassBg));
+            OnPropertyChanged(nameof(FilterClassText));
+            OnPropertyChanged(nameof(FilterPersonalBg));
+            OnPropertyChanged(nameof(FilterPersonalText));
+            ApplyNotificationFilter();
+        }
+
+        private void ApplyNotificationFilter()
+        {
+            var currentUser = _authService.CurrentUser;
+            string myUser = currentUser?.Username ?? "";
+            string myClass = currentUser?.ClassName ?? "";
+
+            IEnumerable<CampusNotificationDto> filtered = _allNotifications;
+
+            if (SelectedNotificationFilter == "SCHOOL")
+            {
+                filtered = _allNotifications.Where(n => string.IsNullOrWhiteSpace(n.TargetUsername) || n.TargetUsername == "ALL");
+            }
+            else if (SelectedNotificationFilter == "CLASS")
+            {
+                filtered = _allNotifications.Where(n =>
+                    !string.IsNullOrWhiteSpace(n.TargetUsername) &&
+                    n.TargetUsername != "ALL" &&
+                    (string.Equals(n.TargetUsername, myClass, StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(n.TargetUsername, "CLASS:" + myClass, StringComparison.OrdinalIgnoreCase) ||
+                     (!n.TargetUsername.Equals(myUser, StringComparison.OrdinalIgnoreCase) && n.Type != "Points")));
+            }
+            else if (SelectedNotificationFilter == "PERSONAL")
+            {
+                filtered = _allNotifications.Where(n =>
+                    n.Type == "Points" ||
+                    string.Equals(n.TargetUsername, myUser, StringComparison.OrdinalIgnoreCase));
+            }
+
+            Notifications.Clear();
+            foreach (var item in filtered.OrderByDescending(x => x.CreatedAt))
+            {
+                Notifications.Add(item);
+            }
+        }
+
+        [ObservableProperty]
+        private string _newNotifTitle = string.Empty;
+
+        [ObservableProperty]
+        private string _newNotifMessage = string.Empty;
+
+        [ObservableProperty]
+        private string _newNotifType = "Info";
+
+        [ObservableProperty]
+        private string _newNotifTarget = "ALL (Toàn trường)";
+
+        [ObservableProperty]
+        private List<string> _availableNotifTargets = new() { "ALL (Toàn trường)" };
 
         public MainPageModel(
-            SeedDataService seedDataService,
-            ProjectRepository projectRepository,
-            TaskRepository taskRepository,
-            CategoryRepository categoryRepository,
+            IEventService eventService,
+            IAuthenticationService authService,
+            IUserService userService,
             ModalErrorHandler errorHandler,
-            IAuthenticationService authService)
+            IQrCodeService qrCodeService,
+            IAttendanceService attendanceService)
         {
-            _projectRepository = projectRepository;
-            _taskRepository = taskRepository;
-            _categoryRepository = categoryRepository;
-            _errorHandler = errorHandler;
-            _seedDataService = seedDataService;
+            _eventService = eventService;
             _authService = authService;
+            _userService = userService;
+            _errorHandler = errorHandler;
+            _qrCodeService = qrCodeService;
+            _attendanceService = attendanceService;
+        }
+
+        [RelayCommand]
+        private async Task Appearing()
+        {
+            if (_authService?.CurrentUser == null)
+            {
+                await _authService.TryRestoreSessionAsync();
+            }
+
+            // Bắt buộc đăng nhập nếu thực sự không có phiên người dùng
+            if (_authService?.CurrentUser == null)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.GoToAsync("//login");
+                }
+                return;
+            }
 
             UpdateStudentProfile();
-        }
-
-        private void UpdateStudentProfile()
-        {
-            if (_authService?.CurrentUser != null)
-            {
-                var u = _authService.CurrentUser;
-                CurrentStudent = new Account
-                {
-                    FullName = u.FullName,
-                    StudentCode = u.Username.ToUpper(),
-                    Email = u.Email,
-                    PhoneNumber = u.PhoneNumber,
-                    ClassName = "D20CNTT1",
-                    AcademicYear = "K20 (2020–2025)",
-                    Role = AccountRole.SinhVien,
-                    Status = AccountStatus.DangHoc,
-                    TrainingPoints = 92
-                };
-            }
-            else
-            {
-                // Default placeholder when no user is signed in
-                CurrentStudent = new Account
-                {
-                    FullName = "Sinh viên",
-                    StudentCode = "SV000000",
-                    Email = "",
-                    PhoneNumber = "",
-                    ClassName = "",
-                    AcademicYear = "",
-                    Role = AccountRole.SinhVien,
-                    Status = AccountStatus.DangHoc,
-                    TrainingPoints = 0
-                };
-            }
-
-            StudentGreeting = $"Xin chào, {CurrentStudent.FullName} 👋";
-            QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-71965";
-        }
-
-        private async Task LoadData()
-        {
-            try
-            {
-                IsBusy = true;
-                UpdateStudentProfile();
-
-                Projects = await _projectRepository.ListAsync();
-                UpcomingActivitiesCount = Projects.Count;
-
-                var categories = await _categoryRepository.ListAsync();
-                foreach (var p in Projects)
-                {
-                    p.Category = categories.FirstOrDefault(c => c.ID == p.CategoryID)
-                                 ?? (p.Tags.Count > 0 ? new Category { Title = p.Tags[0].Title } : null);
-                }
-
-                // Set initial registration for the first 2 events
-                for (int i = 0; i < Projects.Count; i++)
-                {
-                    if (i == 0 || i == 1)
-                    {
-                        Projects[i].IsRegistered = true;
-                    }
-                }
-                RegisteredActivitiesCount = Projects.Count(p => p.IsRegistered);
-
-                var chartData = new List<CategoryChartData>();
-                var chartColors = new List<Brush>();
-
-                foreach (var category in categories)
-                {
-                    chartColors.Add(category.ColorBrush);
-                    var ps = Projects.Where(p => p.CategoryID == category.ID).ToList();
-                    int tasksCount = ps.SelectMany(p => p.Tasks).Count();
-                    chartData.Add(new(category.Title, tasksCount));
-                }
-
-                TodoCategoryData = chartData;
-                TodoCategoryColors = chartColors;
-
-                Tasks = await _taskRepository.ListAsync();
-                CompletedTasksCount = Tasks.Count(t => t.IsCompleted);
-            }
-            finally
-            {
-                IsBusy = false;
-                OnPropertyChanged(nameof(HasCompletedTasks));
-            }
-        }
-
-        private async Task InitData(SeedDataService seedDataService)
-        {
-            try
-            {
-                bool isSeeded = Preferences.Default.ContainsKey("is_seeded_v10");
-                if (!isSeeded)
-                {
-                    await Task.Run(() => seedDataService.LoadSeedDataAsync());
-                    Preferences.Default.Set("is_seeded_v10", true);
-                }
-            }
-            catch (Exception ex)
-            {
-                _errorHandler.HandleError(ex);
-            }
+            await LoadEventsData();
+            await LoadNotificationsAsync();
         }
 
         [RelayCommand]
@@ -199,11 +281,9 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 IsRefreshing = true;
-                await LoadData();
-            }
-            catch (Exception e)
-            {
-                _errorHandler.HandleError(e);
+                UpdateStudentProfile();
+                await LoadEventsData();
+                await LoadNotificationsAsync();
             }
             finally
             {
@@ -211,76 +291,184 @@ namespace CampusActivitiesManager.PageModels
             }
         }
 
-        [RelayCommand]
-        private void NavigatedTo() => _isNavigatedTo = true;
-
-        [RelayCommand]
-        private void NavigatedFrom() => _isNavigatedTo = false;
-
-        [RelayCommand]
-        private async Task Appearing()
+        private void UpdateStudentProfile()
         {
-            if (!_dataLoaded)
+            var u = _authService.CurrentUser;
+            if (u == null) return;
+
+            IsAdmin = u.Role == Role.Admin;
+            IsManager = u.Role == Role.Manager;
+            IsLecturer = u.Role == Role.Lecturer;
+            IsSecretary = u.Role == Role.Secretary || u.IsSecretary;
+            IsStudent = !IsAdmin && !IsManager && !IsLecturer && !IsSecretary;
+            IsAdminOrManager = IsAdmin || IsManager;
+            IsStudentOrSecretary = IsStudent || IsSecretary;
+
+            int currentPts = u.TrainingPoints;
+
+            var role = u.Role switch
             {
-                _dataLoaded = true;
-                await InitData(_seedDataService);
-                await Refresh();
+                Role.Admin => AccountRole.Admin,
+                Role.Manager => AccountRole.BanChuNhiem,
+                _ => AccountRole.SinhVien
+            };
+
+            CurrentStudent = new Account
+            {
+                FullName = u.FullName,
+                StudentCode = string.IsNullOrWhiteSpace(u.Username) ? (u.Role == Role.Admin ? "ADMIN" : "MANAGER") : u.Username.ToUpper(),
+                Email = u.Email,
+                PhoneNumber = u.PhoneNumber,
+                ClassName = u.Role == Role.Admin ? "Ban Quản Trị Hệ Thống" : (u.Role == Role.Manager ? "Ban Tổ Chức Sự Kiện" : (u.ClassName ?? "D20CNTT1")),
+                AcademicYear = u.Role == Role.Admin ? "Quản trị viên" : (u.Role == Role.Manager ? "Quản lý sự kiện" : (u.IsSecretary ? "Bí thư chi đoàn" : (u.Role == Role.Lecturer ? "Cố vấn học tập" : "K20 (2020–2025)"))),
+                Role = role,
+                Status = AccountStatus.DangHoc,
+                TrainingPoints = currentPts
+            };
+
+            StudentGreeting = u.Role switch
+            {
+                Role.Admin => $"Xin chào, Quản trị viên {u.FullName} 🛡️",
+                Role.Manager => $"Xin chào, Ban tổ chức {u.FullName} 🎪",
+                Role.Lecturer => $"Xin chào, Giảng viên {u.FullName} 👨‍🏫",
+                Role.Secretary => $"Xin chào, Bí thư {u.FullName} 🎓",
+                _ => $"Xin chào, {u.FullName} 👋"
+            };
+
+            RoleSubtitle = u.Role switch
+            {
+                Role.Admin => "Bảng Điều Khiển Quản Trị Toàn Quyền",
+                Role.Manager => "Bảng Điều Khiển Quản Lý Sự Kiện & Duyệt Check-in",
+                Role.Lecturer => $"Cố Vấn Học Tập • Lớp {u.AssignedClass ?? u.ClassName}",
+                Role.Secretary => $"Bí Thư Chi Đoàn • Lớp {u.ClassName}",
+                _ => $"Sinh Viên Lớp {u.ClassName} • MSV: {u.Username}"
+            };
+
+            AssignedClassDisplay = u.AssignedClass ?? u.ClassName ?? "D20CNTT1";
+
+            TrainingPointsProgress = Math.Clamp((double)currentPts / 50.0, 0.0, 1.0);
+            SemesterProgress = Math.Clamp((double)currentPts / 50.0, 0.0, 1.0);
+            YearProgress = Math.Clamp((double)currentPts / 250.0, 0.0, 1.0);
+            SemesterGoalDisplay = $"{currentPts}/50 ĐRL";
+            YearGoalDisplay = $"{currentPts}/250 ĐRL";
+            IsSemesterQualified = currentPts >= 50;
+            IsYearQualified = currentPts >= 250;
+
+            QrTicketCode = $"CAMPUS-TK-{CurrentStudent.StudentCode}-71965";
+        }
+
+        private async Task LoadEventsData()
+        {
+            try
+            {
+                IsBusy = true;
+                var currentUser = _authService.CurrentUser;
+                if (currentUser == null) return;
+
+                // Sự kiện được lọc chuẩn theo quyền của role
+                var events = await _eventService.GetEventsForUserAsync(currentUser);
+                AllEvents = events ?? [];
+
+                var allRaw = await _eventService.GetEventsAsync(includePending: true);
+                PendingApprovalCount = allRaw.Count(e => e.ApprovalStatus == "Pending");
+                HasPendingApprovals = IsAdmin && PendingApprovalCount > 0;
+
+                UpcomingCount = AllEvents.Count;
+
+                // Thống kê riêng cho Manager
+                if (IsManager)
+                {
+                    var myEvents = allRaw.Where(e => e.CreatedByUsername == currentUser.Username || e.CreatedByName == currentUser.FullName).ToList();
+                    MyCreatedEventsCount = myEvents.Count;
+                    PendingRegistrationsCount = myEvents.SelectMany(e => e.Registrations ?? []).Count(r => r.Status == "Pending");
+                }
+
+                // Thống kê riêng cho Admin
+                if (IsAdmin)
+                {
+                    var allUsers = await _userService.GetUsersListAsync();
+                    TotalUsersCount = allUsers?.Count ?? 0;
+                }
+
+                // Thống kê riêng cho Giảng viên
+                if (IsLecturer)
+                {
+                    var classUsers = await _userService.GetUsersListAsync();
+                    ClassStudentsCount = classUsers?.Count(u => u.ClassName == AssignedClassDisplay && u.Role == Role.User) ?? 0;
+                }
+
+                string myCode = currentUser.Username ?? "B20DCCN001";
+                MyRegisteredEvents = AllEvents.Where(e => e.Registrations != null &&
+                    e.Registrations.Any(r => r.StudentCode.Equals(myCode, StringComparison.OrdinalIgnoreCase) && r.Status != "Cancelled")).ToList();
+                RegisteredCount = MyRegisteredEvents.Count;
+
+                ApplyCategoryFilter();
+                UpdateChartData();
             }
-            else if (!_isNavigatedTo)
+            catch (Exception ex)
             {
-                await Refresh();
+                _errorHandler.HandleError(ex);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private void UpdateChartData()
+        {
+            var chartList = new List<CategoryChartData>
+            {
+                new("Học thuật", AllEvents.Count(e => e.CategoryTitle == "Học thuật")),
+                new("Thể thao", AllEvents.Count(e => e.CategoryTitle == "Thể thao")),
+                new("Tình nguyện", AllEvents.Count(e => e.CategoryTitle == "Tình nguyện")),
+                new("Kỹ năng", AllEvents.Count(e => e.CategoryTitle == "Kỹ năng mềm" || e.CategoryTitle == "Kỹ năng"))
+            };
+
+            var colorList = new List<Brush>
+            {
+                new SolidColorBrush(Color.FromArgb("#2563EB")),
+                new SolidColorBrush(Color.FromArgb("#10B981")),
+                new SolidColorBrush(Color.FromArgb("#EF4444")),
+                new SolidColorBrush(Color.FromArgb("#7C3AED"))
+            };
+
+            TodoCategoryData = chartList;
+            TodoCategoryColors = colorList;
+        }
+
+        [RelayCommand]
+        private void FilterCategory(string category)
+        {
+            SelectedCategoryFilter = category;
+            ApplyCategoryFilter();
+        }
+
+        private void ApplyCategoryFilter()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedCategoryFilter) || SelectedCategoryFilter == "Tất cả")
+            {
+                DisplayEvents = new List<CampusEvent>(AllEvents ?? []);
+            }
+            else
+            {
+                DisplayEvents = (AllEvents ?? []).Where(e => string.Equals(e.CategoryTitle, SelectedCategoryFilter, StringComparison.OrdinalIgnoreCase)).ToList();
             }
         }
 
         [RelayCommand]
-        private Task TaskCompleted(ProjectTask task)
+        private void ShowQrTicket(CampusEvent evt)
         {
-            OnPropertyChanged(nameof(HasCompletedTasks));
-            CompletedTasksCount = Tasks.Count(t => t.IsCompleted);
-            return _taskRepository.SaveItemAsync(task);
-        }
-
-        [RelayCommand]
-        private Task AddTask() => Shell.Current.GoToAsync("task");
-
-        [RelayCommand]
-        private Task NavigateToProject(Project project) => Shell.Current.GoToAsync($"project?id={project.ID}");
-
-        [RelayCommand]
-        private Task NavigateToTask(ProjectTask task) => Shell.Current.GoToAsync($"task?id={task.ID}");
-
-        // US 17 & US 01: Quick Register or View QR Ticket for Campus Activity
-        [RelayCommand]
-        private async Task RegisterActivity(Project project)
-        {
-            if (project == null) return;
-
-            if (project.IsRegistered)
+            if (evt != null)
             {
-                SelectedActivityForQr = project.Name;
-                ShowQrTicket();
-                return;
+                SelectedActivityForQr = evt.Name;
+                QrTicketCode = _qrCodeService.GenerateTicketPayload(evt.ID, CurrentStudent.StudentCode, evt.Name);
             }
-
-            project.IsRegistered = true;
-            RegisteredActivitiesCount = Projects.Count(p => p.IsRegistered);
-            Projects = new(Projects); // refresh binding
-
-            await Shell.Current.DisplayAlert(
-                "Đăng ký thành công 🎉",
-                $"Bạn đã đăng ký tham gia sự kiện: {project.Name}.\n" +
-                $"Thời gian: Sắp diễn ra\n" +
-                $"Vé điện tử QR của bạn đã sẵn sàng trong mục 'Vé QR'!",
-                "Xem vé ngay"
-            );
-            SelectedActivityForQr = project.Name;
-            ShowQrTicket();
-        }
-
-        // Show QR Attendance Ticket Modal (US 17)
-        [RelayCommand]
-        private void ShowQrTicket()
-        {
+            else
+            {
+                QrTicketCode = _qrCodeService.GenerateTicketPayload(1, CurrentStudent.StudentCode, SelectedActivityForQr);
+            }
+            QrImageSource = _qrCodeService.GenerateQrCodeImageSource(QrTicketCode, 20);
             IsQrModalVisible = true;
         }
 
@@ -290,77 +478,278 @@ namespace CampusActivitiesManager.PageModels
             IsQrModalVisible = false;
         }
 
-        // Student Logout
         [RelayCommand]
-        private async Task Logout()
+        private async Task OpenVideo(CampusEvent evt)
         {
-            bool confirm = await Shell.Current.DisplayAlert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Sinh viên?", "Đăng xuất", "Hủy");
-            if (confirm)
+            if (evt == null || string.IsNullOrWhiteSpace(evt.VideoUrl))
             {
-                _authService?.Logout();
-                await Shell.Current.GoToAsync("//login");
+                await Shell.Current.DisplayAlert("Thông báo", "Hoạt động này chưa có video đính kèm.", "Đóng");
+                return;
+            }
+
+            try
+            {
+                if (Uri.TryCreate(evt.VideoUrl, UriKind.Absolute, out var uri))
+                {
+                    await Launcher.Default.OpenAsync(uri);
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Video giới thiệu", $"Đường dẫn video hoạt động:\n{evt.VideoUrl}", "Đóng");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
             }
         }
 
         [RelayCommand]
-        private async Task CleanTasks()
+        private async Task CheckInWithPhoto(CampusEvent evt)
         {
-            var completedTasks = Tasks.Where(t => t.IsCompleted).ToList();
-            foreach (var task in completedTasks)
+            if (evt == null) return;
+            if (Shell.Current != null)
             {
-                await _taskRepository.DeleteItemAsync(task);
-                Tasks.Remove(task);
+                await Shell.Current.GoToAsync($"photoattendance?eventId={evt.ID}");
             }
-
-            OnPropertyChanged(nameof(HasCompletedTasks));
-            Tasks = new(Tasks);
-            CompletedTasksCount = 0;
-            await Shell.Current.DisplayAlert("Thông báo", "Đã dọn dẹp các nhiệm vụ hoàn thành!", "Đóng");
         }
 
         [RelayCommand]
-        private async Task NavigateToAdmin()
+        private async Task ViewEventReport(CampusEvent evt)
         {
-            if (_authService == null || !_authService.IsAuthenticated)
+            if (evt == null) return;
+            if (Shell.Current != null)
             {
-                await Shell.Current.DisplayAlert(
-                    "Yêu cầu đăng nhập",
-                    "Bạn cần đăng nhập để truy cập trang Quản Trị Admin.",
-                    "Đóng");
-                return;
+                await Shell.Current.GoToAsync($"attendancereport?eventId={evt.ID}");
             }
+        }
 
-            if (!_authService.IsAdmin)
+        [RelayCommand]
+        private async Task NavigateToQrScanner()
+        {
+            if (Shell.Current != null)
             {
-                await Shell.Current.DisplayAlert(
-                    "Không có quyền truy cập",
-                    "Chỉ tài khoản Quản Trị Viên (Admin) mới có thể truy cập trang này.",
-                    "Đã hiểu");
-                return;
+                await Shell.Current.GoToAsync("//qrTab/qrscan");
             }
+        }
 
-            await Shell.Current.GoToAsync("//users");
+        [RelayCommand]
+        private async Task NavigateToUsers()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("users");
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToClassHub()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//classTab/classhub");
+            }
         }
 
         [RelayCommand]
         private async Task NavigateToEvents()
         {
-            if (_authService == null || !_authService.IsAuthenticated)
+            if (Shell.Current != null)
             {
-                await Shell.Current.DisplayAlert("Yêu cầu đăng nhập", "Bạn cần đăng nhập để truy cập trang Quản lý sự kiện.", "Đóng");
-                return;
+                await Shell.Current.GoToAsync("//eventsTab/events");
             }
-
-            if (!_authService.IsAdmin && _authService.CurrentUser?.Role != Role.Manager)
-            {
-                await Shell.Current.DisplayAlert("Không có quyền truy cập", "Chỉ tài khoản Admin hoặc Manager mới có thể truy cập trang Quản lý sự kiện.", "Đã hiểu");
-                return;
-            }
-
-            await Shell.Current.GoToAsync("//events");
         }
 
         [RelayCommand]
-        private Task NavigateToLogin() => Shell.Current.GoToAsync("//login");
+        private async Task NavigateToProfile()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//profileTab/profile");
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToAttendanceReport()
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync("//attendancereport");
+            }
+        }
+
+        [RelayCommand]
+        private async Task Logout()
+        {
+            if (Shell.Current != null)
+            {
+                bool confirm = await Shell.Current.DisplayAlert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?", "Đăng xuất", "Hủy");
+                if (confirm)
+                {
+                    _authService?.Logout();
+                    await Shell.Current.GoToAsync("//login");
+                }
+            }
+            else
+            {
+                _authService?.Logout();
+            }
+        }
+
+        [RelayCommand]
+        public void ToggleMenu()
+        {
+            if (Shell.Current != null)
+            {
+                Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
+            }
+        }
+
+        [RelayCommand]
+        public async Task OpenEventDetail(CampusEvent evt)
+        {
+            if (evt != null && Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync($"eventdetail?eventId={evt.ID}");
+            }
+        }
+    
+        public async Task LoadNotificationsAsync()
+        {
+            try
+            {
+                var currentUser = _authService.CurrentUser;
+                var list = await _attendanceService.GetNotificationsAsync(currentUser?.Username, currentUser?.ClassName);
+                _allNotifications = list;
+                ApplyNotificationFilter();
+                UnreadNotificationsCount = _allNotifications.Count(n => !n.IsRead);
+                HasUnreadNotifications = UnreadNotificationsCount > 0;
+            }
+            catch { }
+        }
+
+        [RelayCommand]
+        public void ToggleNotificationsModal()
+        {
+            IsNotificationsModalVisible = !IsNotificationsModalVisible;
+        }
+
+        [RelayCommand]
+        public void CloseNotificationsModal()
+        {
+            IsNotificationsModalVisible = false;
+        }
+
+        [RelayCommand]
+        public async Task MarkNotificationAsReadAsync(CampusNotificationDto notif)
+        {
+            if (notif == null) return;
+            notif.IsRead = true;
+            await _attendanceService.MarkNotificationAsReadAsync(notif.Id);
+            UnreadNotificationsCount = Notifications.Count(n => !n.IsRead);
+            HasUnreadNotifications = UnreadNotificationsCount > 0;
+        }
+
+        [RelayCommand]
+        public async Task MarkAllNotificationsAsReadAsync()
+        {
+            var currentUser = _authService.CurrentUser;
+            await _attendanceService.MarkAllNotificationsAsReadAsync(currentUser?.Username);
+            foreach (var n in _allNotifications)
+            {
+                n.IsRead = true;
+            }
+            ApplyNotificationFilter();
+            UnreadNotificationsCount = 0;
+            HasUnreadNotifications = false;
+        }
+
+        [RelayCommand]
+        public async Task OpenCreateNotificationModalAsync()
+        {
+            if (!IsAdmin)
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Phân quyền ⚠️", "Chức năng tạo thông báo chung chỉ dành cho Quản trị viên (Admin)!", "Đã hiểu");
+                }
+                return;
+            }
+
+            NewNotifTitle = string.Empty;
+            NewNotifMessage = string.Empty;
+            NewNotifType = "Info";
+            NewNotifTarget = "ALL (Toàn trường)";
+
+            try
+            {
+                var classes = await _userService.GetClassesAsync();
+                var targets = new List<string> { "ALL (Toàn trường)" };
+                if (classes != null && classes.Any())
+                {
+                    targets.AddRange(classes.Select(c => c.ClassName).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct());
+                }
+                AvailableNotifTargets = targets;
+            }
+            catch { }
+
+            IsCreateNotificationModalVisible = true;
+        }
+
+        [RelayCommand]
+        public void CloseCreateNotificationModal()
+        {
+            IsCreateNotificationModalVisible = false;
+        }
+
+        [RelayCommand]
+        public async Task SendNotificationAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NewNotifTitle))
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Thiếu thông tin ⚠️", "Vui lòng nhập tiêu đề thông báo.", "Đóng");
+                }
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(NewNotifMessage))
+            {
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Thiếu thông tin ⚠️", "Vui lòng nhập nội dung thông báo.", "Đóng");
+                }
+                return;
+            }
+
+            string target = string.IsNullOrWhiteSpace(NewNotifTarget) || NewNotifTarget.StartsWith("ALL", StringComparison.OrdinalIgnoreCase)
+                ? "ALL"
+                : NewNotifTarget.Trim();
+
+            var notif = new CampusNotificationDto
+            {
+                Id = "NOTIF-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                Title = NewNotifTitle.Trim(),
+                Message = NewNotifMessage.Trim(),
+                Type = string.IsNullOrWhiteSpace(NewNotifType) ? "Info" : NewNotifType,
+                TargetUsername = target,
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            await _attendanceService.AddNotificationAsync(notif);
+            IsCreateNotificationModalVisible = false;
+            await LoadNotificationsAsync();
+
+            string targetDisplay = target == "ALL" ? "Toàn trường" : $"Lớp/Mục tiêu: {target}";
+            if (Shell.Current != null)
+            {
+                await Shell.Current.DisplayAlert(
+                    "Đã phát thông báo thành công 📢",
+                    $"Thông báo '{notif.Title}' đã được gửi đến {targetDisplay} và tự động đồng bộ hóa lên Firebase Cloud!",
+                    "OK");
+            }
+        }
     }
 }

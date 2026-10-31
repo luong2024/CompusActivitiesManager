@@ -5,21 +5,18 @@ using Microsoft.Extensions.Logging;
 namespace CampusActivitiesManager.Data
 {
     /// <summary>
-    /// Repository class for managing projects in the database.
+    /// Repository class for managing projects in the local SQLite database.
     /// </summary>
     public class ProjectRepository
     {
         private bool _hasBeenInitialized = false;
-        private readonly ILogger _logger;
         private readonly TaskRepository _taskRepository;
         private readonly TagRepository _tagRepository;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectRepository"/> class.
         /// </summary>
-        /// <param name="taskRepository">The task repository instance.</param>
-        /// <param name="tagRepository">The tag repository instance.</param>
-        /// <param name="logger">The logger instance.</param>
         public ProjectRepository(TaskRepository taskRepository, TagRepository tagRepository, ILogger<ProjectRepository> logger)
         {
             _taskRepository = taskRepository;
@@ -45,8 +42,8 @@ namespace CampusActivitiesManager.Data
             CREATE TABLE IF NOT EXISTS Project (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 Name TEXT NOT NULL,
-                Description TEXT NOT NULL,
-                Icon TEXT NOT NULL,
+                Description TEXT,
+                Icon TEXT,
                 CategoryID INTEGER NOT NULL
             );";
                 await createTableCmd.ExecuteNonQueryAsync();
@@ -63,24 +60,8 @@ namespace CampusActivitiesManager.Data
         /// <summary>
         /// Retrieves a list of all projects from the database.
         /// </summary>
-        /// <returns>A list of <see cref="Project"/> objects.</returns>
         public async Task<List<Project>> ListAsync()
         {
-            try
-            {
-                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
-                var response = await httpClient.GetAsync(Constants.EventsApiUrl);
-                if (response.IsSuccessStatusCode)
-                {
-                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<List<CampusActivitiesManager.Models.Project>>>(response.Content, options);
-                    if (result != null && result.Success && result.Data != null) return result.Data;
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Microsoft.Extensions.Logging.LoggerExtensions.LogWarning(_logger, ex, "Error fetching events from API, falling back to SQLite");
-            }
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -114,34 +95,15 @@ namespace CampusActivitiesManager.Data
         /// <summary>
         /// Retrieves a specific project by its ID.
         /// </summary>
-        /// <param name="id">The ID of the project.</param>
-        /// <returns>A <see cref="Project"/> object if found; otherwise, null.</returns>
         public async Task<Project?> GetAsync(int id)
         {
-            try
-            {
-                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
-                var response = await httpClient.GetAsync($"{Constants.EventsApiUrl}/{id}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<CampusActivitiesManager.Models.Project>>(response.Content, options);
-                    if (result != null && result.Success && result.Data != null)
-                        return result.Data;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error fetching event by ID from API, falling back to SQLite");
-            }
-
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
 
             var selectCmd = connection.CreateCommand();
-            selectCmd.CommandText = "SELECT * FROM Project WHERE ID = @id";
-            selectCmd.Parameters.AddWithValue("@id", id);
+            selectCmd.CommandText = "SELECT * FROM Project WHERE ID = @ID";
+            selectCmd.Parameters.AddWithValue("@ID", id);
 
             await using var reader = await selectCmd.ExecuteReaderAsync();
             if (await reader.ReadAsync())
@@ -165,47 +127,10 @@ namespace CampusActivitiesManager.Data
         }
 
         /// <summary>
-        /// Saves a project to the database and Firebase API.
+        /// Saves a project to the local database.
         /// </summary>
         public async Task<int> SaveItemAsync(Project item)
         {
-            try
-            {
-                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
-                var payload = new
-                {
-                    name = item.Name,
-                    description = item.Description,
-                    icon = string.IsNullOrWhiteSpace(item.Icon) ? "📅" : item.Icon,
-                    categoryId = item.CategoryID > 0 ? item.CategoryID : (item.Category?.ID ?? 1)
-                };
-
-                HttpResponseMessage response;
-                if (item.ID == 0)
-                {
-                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PostAsJsonAsync(httpClient, Constants.EventsApiUrl, payload);
-                }
-                else
-                {
-                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PutAsJsonAsync(httpClient, $"{Constants.EventsApiUrl}/{item.ID}", payload);
-                }
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<CampusActivitiesManager.Models.Project>>(response.Content, options);
-                    if (result?.Data != null && result.Data.ID > 0)
-                    {
-                        item.ID = result.Data.ID;
-                        return item.ID;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error saving event to API, falling back to SQLite");
-            }
-
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -228,8 +153,8 @@ namespace CampusActivitiesManager.Data
             }
 
             saveCmd.Parameters.AddWithValue("@Name", item.Name);
-            saveCmd.Parameters.AddWithValue("@Description", item.Description);
-            saveCmd.Parameters.AddWithValue("@Icon", item.Icon);
+            saveCmd.Parameters.AddWithValue("@Description", item.Description ?? string.Empty);
+            saveCmd.Parameters.AddWithValue("@Icon", item.Icon ?? "📅");
             saveCmd.Parameters.AddWithValue("@CategoryID", item.CategoryID);
 
             var dbResult = await saveCmd.ExecuteScalarAsync();
@@ -242,24 +167,10 @@ namespace CampusActivitiesManager.Data
         }
 
         /// <summary>
-        /// Deletes a project from the Firebase API and database.
+        /// Deletes a project from the database.
         /// </summary>
         public async Task<int> DeleteItemAsync(Project item)
         {
-            try
-            {
-                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
-                var response = await httpClient.DeleteAsync($"{Constants.EventsApiUrl}/{item.ID}");
-                if (response.IsSuccessStatusCode)
-                {
-                    return 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error deleting event from API, falling back to SQLite");
-            }
-
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -272,19 +183,18 @@ namespace CampusActivitiesManager.Data
         }
 
         /// <summary>
-        /// Drops the Project table from the database.
+        /// Deletes all projects from the database.
         /// </summary>
-        public async Task DropTableAsync()
+        public async Task<int> DropTableAsync()
         {
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
 
-            var dropCmd = connection.CreateCommand();
-            dropCmd.CommandText = "DROP TABLE IF EXISTS Project";
-            await dropCmd.ExecuteNonQueryAsync();
+            var deleteCmd = connection.CreateCommand();
+            deleteCmd.CommandText = "DELETE FROM Project";
 
-            _hasBeenInitialized = false;
+            return await deleteCmd.ExecuteNonQueryAsync();
         }
     }
 }

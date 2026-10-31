@@ -1,10 +1,12 @@
+using ZXing.Net.Maui.Controls;
+using CampusActivitiesManager.BusinessLogic.Interfaces;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
 using CampusActivitiesManager.Data;
 using CampusActivitiesManager.PageModels;
 using CampusActivitiesManager.Pages;
-using CampusActivitiesManager.Services;
+using CampusActivitiesManager.BusinessLogic.Services;
 
 namespace CampusActivitiesManager
 {
@@ -16,6 +18,7 @@ namespace CampusActivitiesManager
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .UseBarcodeReader()
                 .ConfigureSyncfusionToolkit()
                 .ConfigureMauiHandlers(handlers =>
                 {
@@ -37,6 +40,7 @@ namespace CampusActivitiesManager
                         handler.PlatformView.Resources["TextControlBorderThemeThicknessFocused"] = new Microsoft.UI.Xaml.Thickness(0);
                         handler.PlatformView.Resources["TextControlBorderThemeThickness"] = new Microsoft.UI.Xaml.Thickness(0);
                     });
+
                     Microsoft.Maui.Handlers.PickerHandler.Mapper.AppendToMapping("Borderless", (handler, view) =>
                     {
                         handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
@@ -62,11 +66,16 @@ namespace CampusActivitiesManager
             builder.Services.AddSingleton<CategoryRepository>();
             builder.Services.AddSingleton<TagRepository>();
             builder.Services.AddSingleton<UserRepository>();
+            builder.Services.AddSingleton<AccountRepository>();
+            builder.Services.AddSingleton<AuthService>();
             builder.Services.AddSingleton<UserService>();
             builder.Services.AddSingleton<IUserService<User>, UserService>();
             builder.Services.AddSingleton<IUserService, UserService>();
+            builder.Services.AddSingleton<IFirebaseSyncService, FirebaseSyncService>();
             builder.Services.AddSingleton<IEventService, EventService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
+            builder.Services.AddSingleton<IAttendanceService, AttendanceService>();
             builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddSingleton<ModalErrorHandler>();
 
@@ -84,6 +93,17 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<AccessDeniedViewModel>();
             builder.Services.AddTransient<ProjectDetailPageModel>();
             builder.Services.AddTransient<TaskDetailPageModel>();
+            builder.Services.AddTransient<QrScannerViewModel>();
+            builder.Services.AddTransient<PhotoAttendanceViewModel>();
+            builder.Services.AddTransient<AttendanceHistoryViewModel>();
+            builder.Services.AddTransient<EventAttendanceReportViewModel>();
+            builder.Services.AddTransient<EventFormPageModel>();
+            builder.Services.AddTransient<EventListPageModel>();
+            builder.Services.AddTransient<EventDetailPageModel>();
+            builder.Services.AddTransient<ClassHubPageModel>();
+            builder.Services.AddTransient<AccountListPageModel>();
+            builder.Services.AddTransient<RegisterPageModel>();
+            builder.Services.AddTransient<ManageCategoriesPageModel>();
 
             // Pages
             builder.Services.AddTransient<MainPage>();
@@ -91,6 +111,17 @@ namespace CampusActivitiesManager
             builder.Services.AddTransient<EventManagementPage>();
             builder.Services.AddTransient<ProfilePage>();
             builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<ManageMetaPage>();
+            builder.Services.AddTransient<QrScannerPage>();
+            builder.Services.AddTransient<PhotoAttendancePage>();
+            builder.Services.AddTransient<AttendanceHistoryPage>();
+            builder.Services.AddTransient<EventAttendanceReportPage>();
+            builder.Services.AddTransient<EventFormPage>();
+            builder.Services.AddTransient<EventListPage>();
+            builder.Services.AddTransient<EventDetailPage>();
+            builder.Services.AddTransient<ClassHubPage>();
+            builder.Services.AddTransient<AccountListPage>();
+            builder.Services.AddTransient<ManageCategoriesPage>();
 
             builder.Services.AddTransientWithShellRoute<RegisterPage, RegisterViewModel>("register");
             builder.Services.AddTransientWithShellRoute<CreateUserPage, CreateUserViewModel>("createuser");
@@ -98,93 +129,18 @@ namespace CampusActivitiesManager
             builder.Services.AddTransientWithShellRoute<AccessDeniedPage, AccessDeniedViewModel>("accessdenied");
             builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
             builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
-
-#if WINDOWS && DEBUG
-            EnsureLocalBackendRunning();
-#endif
-
+            builder.Services.AddTransientWithShellRoute<ManageMetaPage, ManageMetaPageModel>("meta");
+            builder.Services.AddTransientWithShellRoute<QrScannerPage, QrScannerViewModel>("qrscan");
+            builder.Services.AddTransientWithShellRoute<PhotoAttendancePage, PhotoAttendanceViewModel>("photoattendance");
+            builder.Services.AddTransientWithShellRoute<AttendanceHistoryPage, AttendanceHistoryViewModel>("attendancehistory");
+            builder.Services.AddTransientWithShellRoute<EventAttendanceReportPage, EventAttendanceReportViewModel>("attendancereport");
+            builder.Services.AddTransientWithShellRoute<EventListPage, EventListPageModel>("eventlist");
+            builder.Services.AddTransientWithShellRoute<EventDetailPage, EventDetailPageModel>("eventdetail");
+            builder.Services.AddTransientWithShellRoute<EventDetailPage, EventDetailPageModel>("eventdetails");
+            builder.Services.AddTransientWithShellRoute<ClassHubPage, ClassHubPageModel>("classhub");
+            builder.Services.AddTransientWithShellRoute<AccountListPage, AccountListPageModel>("accountlist");
+            builder.Services.AddTransientWithShellRoute<ManageCategoriesPage, ManageCategoriesPageModel>("managecategories");
             return builder.Build();
         }
-
-#if WINDOWS && DEBUG
-        private static void EnsureLocalBackendRunning()
-        {
-            try
-            {
-                using var tcpClient = new System.Net.Sockets.TcpClient();
-                var connectTask = tcpClient.ConnectAsync("127.0.0.1", 7258);
-                if (connectTask.Wait(TimeSpan.FromMilliseconds(150)) && tcpClient.Connected)
-                {
-                    return;
-                }
-            }
-            catch
-            {
-                // Port 7258 is not listening yet; launch background API server
-            }
-
-            try
-            {
-                var dir = new DirectoryInfo(AppContext.BaseDirectory);
-                while (dir != null)
-                {
-                    var candidateApiDir = Path.Combine(dir.FullName, "CampusActivitiesManager.Api");
-                    var candidateCsproj = Path.Combine(candidateApiDir, "CampusActivitiesManager.Api.csproj");
-                    if (File.Exists(candidateCsproj))
-                    {
-                        var apiExe = Path.Combine(candidateApiDir, "bin", "Debug", "net9.0", "CampusActivitiesManager.Api.exe");
-                        var startInfo = new System.Diagnostics.ProcessStartInfo
-                        {
-                            WorkingDirectory = candidateApiDir,
-                            CreateNoWindow = true,
-                            UseShellExecute = false
-                        };
-
-                        if (File.Exists(apiExe))
-                        {
-                            startInfo.FileName = apiExe;
-                            startInfo.Arguments = "--urls \"https://localhost:7258;http://localhost:5073\"";
-                        }
-                        else
-                        {
-                            startInfo.FileName = "dotnet";
-                            startInfo.Arguments = $"run --project \"{candidateCsproj}\" --no-launch-profile --urls \"https://localhost:7258;http://localhost:5073\"";
-                        }
-
-                        var launchSettingsPath = Path.Combine(candidateApiDir, "Properties", "launchSettings.json");
-                        if (File.Exists(launchSettingsPath))
-                        {
-                            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(launchSettingsPath));
-                            if (doc.RootElement.TryGetProperty("profiles", out var profiles))
-                            {
-                                foreach (var profile in profiles.EnumerateObject())
-                                {
-                                    if (profile.Value.TryGetProperty("environmentVariables", out var envVars))
-                                    {
-                                        foreach (var envVar in envVars.EnumerateObject())
-                                        {
-                                            if (envVar.Value.ValueKind == System.Text.Json.JsonValueKind.String)
-                                            {
-                                                startInfo.EnvironmentVariables[envVar.Name] = envVar.Value.GetString();
-                                            }
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-
-                        System.Diagnostics.Process.Start(startInfo);
-                        break;
-                    }
-                    dir = dir.Parent;
-                }
-            }
-            catch
-            {
-                // Ignore if background launcher cannot start
-            }
-        }
-#endif
     }
 }

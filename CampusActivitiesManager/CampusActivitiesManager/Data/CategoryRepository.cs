@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace CampusActivitiesManager.Data
 {
     /// <summary>
-    /// Repository class for managing categories in the database.
+    /// Repository class for managing categories in the local database.
     /// </summary>
     public class CategoryRepository
     {
@@ -15,7 +15,6 @@ namespace CampusActivitiesManager.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="CategoryRepository"/> class.
         /// </summary>
-        /// <param name="logger">The logger instance.</param>
         public CategoryRepository(ILogger<CategoryRepository> logger)
         {
             _logger = logger;
@@ -55,26 +54,8 @@ namespace CampusActivitiesManager.Data
         /// <summary>
         /// Retrieves a list of all categories from the database.
         /// </summary>
-        /// <returns>A list of <see cref="Category"/> objects.</returns>
         public async Task<List<Category>> ListAsync()
         {
-            try
-            {
-                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
-                var response = await httpClient.GetAsync(Constants.CategoriesApiUrl);
-                if (response.IsSuccessStatusCode)
-                {
-                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<List<Category>>>(response.Content, options);
-                    if (result != null && result.Success && result.Data != null)
-                        return result.Data;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error fetching categories from API, falling back to SQLite");
-            }
-
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -102,30 +83,13 @@ namespace CampusActivitiesManager.Data
         /// </summary>
         public async Task<Category?> GetAsync(int id)
         {
-            try
-            {
-                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
-                var response = await httpClient.GetAsync($"{Constants.CategoriesApiUrl}/{id}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<Category>>(response.Content, options);
-                    if (result != null && result.Success && result.Data != null)
-                        return result.Data;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error fetching category by ID from API, falling back to SQLite");
-            }
-
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
 
             var selectCmd = connection.CreateCommand();
-            selectCmd.CommandText = "SELECT * FROM Category WHERE ID = @id";
-            selectCmd.Parameters.AddWithValue("@id", id);
+            selectCmd.CommandText = "SELECT * FROM Category WHERE ID = @ID";
+            selectCmd.Parameters.AddWithValue("@ID", id);
 
             await using var reader = await selectCmd.ExecuteReaderAsync();
             if (await reader.ReadAsync())
@@ -142,45 +106,10 @@ namespace CampusActivitiesManager.Data
         }
 
         /// <summary>
-        /// Saves a category to the Firebase API and database.
+        /// Saves a category to the database.
         /// </summary>
         public async Task<int> SaveItemAsync(Category item)
         {
-            try
-            {
-                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
-                var payload = new
-                {
-                    title = item.Title,
-                    color = string.IsNullOrWhiteSpace(item.Color) ? "#2563EB" : item.Color
-                };
-
-                HttpResponseMessage response;
-                if (item.ID == 0)
-                {
-                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PostAsJsonAsync(httpClient, Constants.CategoriesApiUrl, payload);
-                }
-                else
-                {
-                    response = await System.Net.Http.Json.HttpClientJsonExtensions.PutAsJsonAsync(httpClient, $"{Constants.CategoriesApiUrl}/{item.ID}", payload);
-                }
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    var result = await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<CampusActivitiesManager.Services.ApiResponse<Category>>(response.Content, options);
-                    if (result?.Data != null && result.Data.ID > 0)
-                    {
-                        item.ID = result.Data.ID;
-                        return item.ID;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error saving category to API, falling back to SQLite");
-            }
-
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
@@ -196,7 +125,8 @@ namespace CampusActivitiesManager.Data
             else
             {
                 saveCmd.CommandText = @"
-                UPDATE Category SET Title = @Title, Color = @Color
+                UPDATE Category
+                SET Title = @Title, Color = @Color
                 WHERE ID = @ID";
                 saveCmd.Parameters.AddWithValue("@ID", item.ID);
             }
@@ -214,49 +144,34 @@ namespace CampusActivitiesManager.Data
         }
 
         /// <summary>
-        /// Deletes a category from the Firebase API and database.
+        /// Deletes a category from the database.
         /// </summary>
         public async Task<int> DeleteItemAsync(Category item)
         {
-            try
-            {
-                using var httpClient = CampusActivitiesManager.Services.HttpHelper.CreateApiClient();
-                var response = await httpClient.DeleteAsync($"{Constants.CategoriesApiUrl}/{item.ID}");
-                if (response.IsSuccessStatusCode)
-                {
-                    return 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error deleting category from API, falling back to SQLite");
-            }
-
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
 
             var deleteCmd = connection.CreateCommand();
-            deleteCmd.CommandText = "DELETE FROM Category WHERE ID = @id";
-            deleteCmd.Parameters.AddWithValue("@id", item.ID);
+            deleteCmd.CommandText = "DELETE FROM Category WHERE ID = @ID";
+            deleteCmd.Parameters.AddWithValue("@ID", item.ID);
 
             return await deleteCmd.ExecuteNonQueryAsync();
         }
 
         /// <summary>
-        /// Drops the Category table from the database.
+        /// Deletes all categories from the database.
         /// </summary>
-        public async Task DropTableAsync()
+        public async Task<int> DropTableAsync()
         {
             await Init();
             await using var connection = new SqliteConnection(Constants.DatabasePath);
             await connection.OpenAsync();
 
-            var dropTableCmd = connection.CreateCommand();
-            dropTableCmd.CommandText = "DROP TABLE IF EXISTS Category";
+            var deleteCmd = connection.CreateCommand();
+            deleteCmd.CommandText = "DELETE FROM Category";
 
-            await dropTableCmd.ExecuteNonQueryAsync();
-            _hasBeenInitialized = false;
+            return await deleteCmd.ExecuteNonQueryAsync();
         }
     }
 }
