@@ -336,10 +336,20 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
-        public void ShowVideoModal()
+        public async Task ShowVideoModal()
         {
             if (string.IsNullOrWhiteSpace(EventItem?.VideoUrl)) return;
-            PrepareEmbeddedVideo(EventItem.VideoUrl);
+
+            string url = EventItem.VideoUrl.Trim();
+            bool isLocal = url.StartsWith("/") || url.StartsWith("\\") || url.StartsWith("file:", StringComparison.OrdinalIgnoreCase) || (url.Length > 2 && url[1] == ':');
+
+            if (isLocal)
+            {
+                await VideoLauncherHelper.OpenVideoAsync(url, EventItem.Name);
+                return;
+            }
+
+            PrepareEmbeddedVideo(url);
             IsVideoModalVisible = true;
         }
 
@@ -382,7 +392,7 @@ namespace CampusActivitiesManager.PageModels
                 return;
             }
 
-            ShowVideoModal();
+            await ShowVideoModal();
         }
 
         private void PrepareEmbeddedVideo(string url)

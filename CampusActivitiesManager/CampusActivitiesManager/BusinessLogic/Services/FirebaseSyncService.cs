@@ -324,7 +324,9 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                         StartDate = item.Fields.GetValueOrDefault("startDate", DateTime.Now.AddDays(2).ToString("dd/MM/yyyy")),
                         EndDate = item.Fields.GetValueOrDefault("endDate", DateTime.Now.AddDays(2).ToString("dd/MM/yyyy")),
                         StartTime = item.Fields.GetValueOrDefault("startTime", "08:00"),
-                        EndTime = item.Fields.GetValueOrDefault("endTime", "11:30")
+                        EndTime = item.Fields.GetValueOrDefault("endTime", "11:30"),
+                        ImageUrl = item.Fields.GetValueOrDefault("imageUrl", ""),
+                        VideoUrl = item.Fields.GetValueOrDefault("videoUrl", "")
                     };
                 }
 
@@ -362,6 +364,8 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 ["approvalStatus"] = evt.ApprovalStatus ?? "",
                 ["location"] = evt.Location ?? "",
                 ["startDate"] = evt.StartDate ?? "",
+                ["imageUrl"] = evt.ImageUrl ?? "",
+                ["videoUrl"] = evt.VideoUrl ?? "",
                 ["createdByRole"] = evt.CreatedByRole ?? "",
                 ["createdByName"] = evt.CreatedByName ?? ""
             };

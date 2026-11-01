@@ -116,6 +116,12 @@ namespace CampusActivitiesManager.PageModels
         private string _formImageUrl = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
 
         [ObservableProperty]
+        private ImageSource _formImagePreviewSource;
+
+        [ObservableProperty]
+        private bool _hasFormImagePreview;
+
+        [ObservableProperty]
         private string _formVideoUrl = string.Empty;
 
         [ObservableProperty]
@@ -410,6 +416,8 @@ namespace CampusActivitiesManager.PageModels
             IsUnlimitedCapacity = false;
             FormRegistrationType = "Auto";
             SelectedCategoryIndex = 0;
+            FormImagePreviewSource = ImageCompressor.ConvertToImageSource(FormImageUrl);
+            HasFormImagePreview = FormImagePreviewSource != null;
 
             IsModalVisible = true;
         }
@@ -450,6 +458,8 @@ namespace CampusActivitiesManager.PageModels
 
             int catIdx = Categories.FindIndex(c => c.ID == evt.CategoryID || c.Title == evt.CategoryTitle);
             SelectedCategoryIndex = catIdx >= 0 ? catIdx : 0;
+            FormImagePreviewSource = ImageCompressor.ConvertToImageSource(evt.PrimaryImageUrl);
+            HasFormImagePreview = FormImagePreviewSource != null;
 
             IsModalVisible = true;
         }
@@ -477,8 +487,22 @@ namespace CampusActivitiesManager.PageModels
                 var photo = await MediaPicker.Default.PickPhotoAsync();
                 if (photo != null)
                 {
-                    FormImageUrl = photo.FullPath;
-                    await AppShell.DisplayToastAsync("Đã chọn ảnh đại diện hoạt động! 🖼️");
+                    // Nén ảnh chất lượng cao và chuyển đổi thành Base64 Data URI lưu trực tiếp lên Firestore
+                    var base64 = await ImageCompressor.CompressAndConvertToBase64Async(photo, 720, 0.75f);
+                    if (!string.IsNullOrWhiteSpace(base64))
+                    {
+                        FormImageUrl = base64;
+                        FormImagePreviewSource = ImageCompressor.ConvertToImageSource(base64);
+                        HasFormImagePreview = true;
+                        await AppShell.DisplayToastAsync("Đã chọn & tối ưu ảnh hoạt động thành công! 🖼️");
+                    }
+                    else
+                    {
+                        FormImageUrl = photo.FullPath;
+                        FormImagePreviewSource = ImageSource.FromFile(photo.FullPath);
+                        HasFormImagePreview = true;
+                        await AppShell.DisplayToastAsync("Đã chọn ảnh đại diện hoạt động! 🖼️");
+                    }
                 }
             }
             catch (Exception ex)

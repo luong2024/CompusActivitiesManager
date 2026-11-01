@@ -73,7 +73,7 @@
                 <!-- Event Image Banner -->
                 <Border StrokeShape="RoundRectangle 16" StrokeThickness="0" HeightRequest="200" BackgroundColor="#E2E8F0">
                     <Grid>
-                        <Image Source="{Binding EventItem.PrimaryImageUrl}" Aspect="AspectFill" />
+                        <Image Source="{Binding EventItem.PrimaryImageSource}" Aspect="AspectFill" />
                         <!-- Gradient Overlay -->
                         <BoxView BackgroundColor="#40000000" VerticalOptions="Fill" HorizontalOptions="Fill" />
                         

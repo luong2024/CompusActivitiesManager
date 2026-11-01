@@ -767,6 +767,22 @@
                                     <Button Grid.Column="1" Text="📷 Chọn ảnh" Command="{Binding PickCoverPhotoCommand}" 
                                             HeightRequest="42" CornerRadius="10" Style="{StaticResource PrimaryButton}" Padding="12,0" FontSize="12" />
                                 </Grid>
+
+                                <!-- Form Image Preview -->
+                                <Border IsVisible="{Binding HasFormImagePreview}"
+                                        StrokeShape="RoundRectangle 10"
+                                        Stroke="{StaticResource Primary}"
+                                        StrokeThickness="1"
+                                        HeightRequest="120"
+                                        Margin="0,4,0,0">
+                                    <Grid>
+                                        <Image Source="{Binding FormImagePreviewSource}" Aspect="AspectFill" />
+                                        <Border HorizontalOptions="End" VerticalOptions="Start" Margin="6"
+                                                BackgroundColor="#80000000" StrokeShape="RoundRectangle 6" Padding="6,2">
+                                            <Label Text="Xem trước ảnh bìa ✓" TextColor="White" FontSize="10" FontAttributes="Bold" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
                             </VerticalStackLayout>
 
                             <!-- Video Picker (Tối ưu YouTube) -->

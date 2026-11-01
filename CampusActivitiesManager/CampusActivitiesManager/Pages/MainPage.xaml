@@ -1704,7 +1704,7 @@
 
                                                     <Border StrokeShape="RoundRectangle 12" StrokeThickness="0" BackgroundColor="#E2E8F0">
 
-                                                        <Image Source="{Binding PrimaryImageUrl}" Aspect="AspectFill" HeightRequest="110" HorizontalOptions="Fill" />
+                                                        <Image Source="{Binding PrimaryImageSource}" Aspect="AspectFill" HeightRequest="110" HorizontalOptions="Fill" />
 
                                                     </Border>
 
@@ -2562,75 +2562,42 @@
 
 
             <Border StrokeShape="RoundRectangle 24"
-
                     StrokeThickness="0"
-
                     BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkSecondaryBackground}}"
-
                     HorizontalOptions="Center"
-
                     VerticalOptions="Center"
-
-                    MaximumWidthRequest="380"
-
+                    MaximumWidthRequest="360"
                     MaximumHeightRequest="620"
-
-                    Margin="8"
-
-                    Padding="20">
+                    Margin="12"
+                    Padding="16,20">
 
                 <Border.Shadow>
-
                     <Shadow Brush="{StaticResource Black}" Offset="0,10" Radius="30" Opacity="0.35" />
-
                 </Border.Shadow>
 
-
-
                 <Border.GestureRecognizers>
-
                     <TapGestureRecognizer />
-
                 </Border.GestureRecognizers>
 
+                <ScrollView VerticalScrollBarVisibility="Default" Orientation="Vertical">
+                    <VerticalStackLayout Spacing="14" HorizontalOptions="Fill">
 
+                    <!-- Modal Header (Auto,*,Auto Layout avoids clipping) -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                        <Border Grid.Column="0" WidthRequest="36" HeightRequest="36" StrokeShape="RoundRectangle 10"
+                                BackgroundColor="#EFF6FF" StrokeThickness="0" VerticalOptions="Center">
+                            <Label Text="📢" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
 
-                <ScrollView VerticalScrollBarVisibility="Default">
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Tạo Thông Báo Mới" FontSize="16" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                            <Label Text="Phát tin tức, thông báo khẩn hoặc nhắc nhở (Admin)" FontSize="11" 
+                                   LineBreakMode="TailTruncation" MaxLines="2" TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="14">
-
-                    <!-- Modal Header -->
-
-                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-
-                        <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
-
-                            <Border WidthRequest="36" HeightRequest="36" StrokeShape="RoundRectangle 10"
-
-                                    BackgroundColor="#EFF6FF" StrokeThickness="0" VerticalOptions="Center">
-
-                                <Label Text="📢" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
-
-                            </Border>
-
-                            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
-
-                                <Label Text="Tạo Thông Báo Mới" FontSize="16" FontAttributes="Bold"
-
-                                       TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
-
-                                <Label Text="Phát tin tức, thông báo khẩn hoặc nhắc nhở (Admin)" FontSize="11" TextColor="{StaticResource Gray500}" />
-
-                            </VerticalStackLayout>
-
-                        </HorizontalStackLayout>
-
-
-
-                        <Button Grid.Column="1" Text="✕" Background="Transparent" TextColor="{StaticResource Gray500}"
-
+                        <Button Grid.Column="2" Text="✕" Background="Transparent" TextColor="{StaticResource Gray500}"
                                 WidthRequest="32" HeightRequest="32" Padding="0" Command="{Binding CloseCreateNotificationModalCommand}" />
-
                     </Grid>
 
 

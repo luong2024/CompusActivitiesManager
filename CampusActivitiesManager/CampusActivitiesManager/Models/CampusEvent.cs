@@ -1,4 +1,6 @@
 using System.Text.Json.Serialization;
+using Microsoft.Maui.Controls;
+using CampusActivitiesManager.Utilities;
 
 namespace CampusActivitiesManager.Models
 {
@@ -321,9 +323,39 @@ namespace CampusActivitiesManager.Models
         public bool HasImage => !string.IsNullOrWhiteSpace(ImageUrl) || (ImageUrls != null && ImageUrls.Count > 0);
 
         [JsonIgnore]
-        public string PrimaryImageUrl => !string.IsNullOrWhiteSpace(ImageUrl)
-            ? ImageUrl
-            : (ImageUrls != null && ImageUrls.Count > 0 ? ImageUrls[0] : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80");
+        public string PrimaryImageUrl
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(ImageUrl))
+                {
+                    var trimmed = ImageUrl.Trim();
+                    bool isLocal = trimmed.StartsWith("/") || trimmed.StartsWith("\\") || trimmed.StartsWith("file:", StringComparison.OrdinalIgnoreCase) || (trimmed.Length > 2 && trimmed[1] == ':');
+                    if (!isLocal || File.Exists(trimmed))
+                    {
+                        return trimmed;
+                    }
+                }
+
+                if (ImageUrls != null && ImageUrls.Count > 0)
+                {
+                    var first = ImageUrls[0]?.Trim();
+                    if (!string.IsNullOrWhiteSpace(first))
+                    {
+                        bool isLocal = first.StartsWith("/") || first.StartsWith("\\") || first.StartsWith("file:", StringComparison.OrdinalIgnoreCase) || (first.Length > 2 && first[1] == ':');
+                        if (!isLocal || File.Exists(first))
+                        {
+                            return first;
+                        }
+                    }
+                }
+
+                return "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
+            }
+        }
+
+        [JsonIgnore]
+        public ImageSource? PrimaryImageSource => ImageCompressor.ConvertToImageSource(PrimaryImageUrl);
 
         [JsonIgnore]
         public string CategoryTitle => !string.IsNullOrWhiteSpace(Category?.Title) ? Category.Title : "Học thuật";
