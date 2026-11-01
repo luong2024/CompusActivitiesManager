@@ -58,7 +58,7 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 PointsReward = 10,
                 PointsPenalty = 5,
                 ImageUrl = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80",
-                VideoUrl = "https://www.w3schools.com/html/mov_bbb.mp4"
+                VideoUrl = "https://www.youtube.com/watch?v=kYv9d5n-G1w"
             },
             new()
             {
@@ -86,7 +86,8 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 RegistrationType = "RequiresApproval",
                 PointsReward = 10,
                 PointsPenalty = 5,
-                ImageUrl = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80"
+                ImageUrl = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80",
+                VideoUrl = "https://www.youtube.com/watch?v=9No-FiEInLA"
             },
             new()
             {
@@ -114,7 +115,8 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 RegistrationType = "RequiresApproval",
                 PointsReward = 15,
                 PointsPenalty = 5,
-                ImageUrl = "https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=800&q=80"
+                ImageUrl = "https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=800&q=80",
+                VideoUrl = "https://www.youtube.com/watch?v=ScMzIvxBSi4"
             },
             new()
             {
@@ -252,7 +254,8 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 RegistrationType = "RequiresApproval",
                 PointsReward = 20,
                 PointsPenalty = 5,
-                ImageUrl = "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80"
+                ImageUrl = "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
+                VideoUrl = "https://www.youtube.com/watch?v=aircAruvnKk"
             }
         };
 

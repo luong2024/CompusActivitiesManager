@@ -488,15 +488,84 @@ namespace CampusActivitiesManager.PageModels
         }
 
         [RelayCommand]
+        private async Task PasteYouTubeUrl()
+        {
+            try
+            {
+                if (Clipboard.Default.HasText)
+                {
+                    string text = await Clipboard.Default.GetTextAsync() ?? "";
+                    text = text.Trim();
+
+                    if (YouTubeHelper.TryExtractVideoId(text, out var videoId))
+                    {
+                        FormVideoUrl = YouTubeHelper.GetWatchUrl(videoId);
+                        await AppShell.DisplayToastAsync("Đã dán liên kết YouTube hợp lệ! 🎬");
+
+                        // Nếu chưa có ảnh bìa, tự động gợi ý lấy Thumbnail của YouTube
+                        if (string.IsNullOrWhiteSpace(FormImageUrl))
+                        {
+                            string thumb = YouTubeHelper.GetThumbnailUrl(videoId, true);
+                            bool setThumb = await Shell.Current.DisplayAlert(
+                                "Ảnh đại diện sự kiện 🖼️",
+                                "Bạn có muốn dùng luôn ảnh thu nhỏ (HD Thumbnail) từ video YouTube này làm ảnh bìa hoạt động không?",
+                                "Đồng ý dùng", "Bỏ qua");
+                            if (setThumb)
+                            {
+                                FormImageUrl = thumb;
+                            }
+                        }
+                    }
+                    else if (text.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || text.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        FormVideoUrl = text;
+                        await AppShell.DisplayToastAsync("Đã dán liên kết video! 🔗");
+                    }
+                    else
+                    {
+                        await Shell.Current.DisplayAlert("Thông báo", "Nội dung trong bộ nhớ tạm không phải là liên kết video hợp lệ.", "Đóng");
+                    }
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Bộ nhớ tạm", "Chưa có liên kết nào được sao chép trong bộ nhớ tạm.", "Đóng");
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorHandler.HandleError(ex);
+            }
+        }
+
+        [RelayCommand]
+        private async Task PreviewVideo()
+        {
+            if (string.IsNullOrWhiteSpace(FormVideoUrl))
+            {
+                await Shell.Current.DisplayAlert("Thông báo", "Vui lòng nhập hoặc dán liên kết video trước khi xem thử.", "Đóng");
+                return;
+            }
+
+            await VideoLauncherHelper.OpenVideoAsync(FormVideoUrl, FormName ?? "Xem thử video");
+        }
+
+        [RelayCommand]
         private async Task PickVideo()
         {
+            bool proceed = await Shell.Current.DisplayAlert(
+                "Lưu ý video 🎬",
+                "Khuyên dùng: Bạn nên tải video lên YouTube và dán link vào ứng dụng để mọi sinh viên trên mọi thiết bị đều xem được mượt mà.\n\nVideo chọn từ bộ nhớ máy sẽ chỉ phát được trên thiết bị hiện tại.\n\nBạn có muốn tiếp tục chọn file từ máy không?",
+                "Chọn từ máy", "Hủy");
+
+            if (!proceed) return;
+
             try
             {
                 var video = await MediaPicker.Default.PickVideoAsync();
                 if (video != null)
                 {
                     FormVideoUrl = video.FullPath;
-                    await AppShell.DisplayToastAsync("Đã chọn video cho hoạt động! 🎬");
+                    await AppShell.DisplayToastAsync("Đã chọn video cục bộ từ máy! 📁");
                 }
             }
             catch (Exception ex)
@@ -539,6 +608,13 @@ namespace CampusActivitiesManager.PageModels
                 string createdName = _authService?.CurrentUser?.FullName ?? (isUserAdmin ? "Admin" : "Ban tổ chức");
                 string createdUsername = _authService?.CurrentUser?.Username ?? (isUserAdmin ? "admin" : "manager");
 
+                string finalImageUrl = FormImageUrl?.Trim() ?? "";
+                if (string.IsNullOrWhiteSpace(finalImageUrl) && YouTubeHelper.TryExtractVideoId(FormVideoUrl, out var autoVidId))
+                {
+                    finalImageUrl = YouTubeHelper.GetThumbnailUrl(autoVidId, true);
+                    FormImageUrl = finalImageUrl;
+                }
+
                 var evtModel = new CampusEvent
                 {
                     ID = EditingId,
@@ -559,7 +635,7 @@ namespace CampusActivitiesManager.PageModels
                     TargetClass = (FormScope == "ClassOnly" ? FormTargetClass : "Tất cả"),
                     RegistrationType = string.IsNullOrWhiteSpace(FormRegistrationType) ? "Auto" : FormRegistrationType,
                     Status = FormStatus,
-                    ImageUrl = FormImageUrl?.Trim() ?? "",
+                    ImageUrl = finalImageUrl,
                     VideoUrl = FormVideoUrl?.Trim() ?? "",
                     IsApproved = IsEditing ? (Events.FirstOrDefault(e => e.ID == EditingId)?.IsApproved ?? isApproved) : isApproved,
                     ApprovalStatus = IsEditing ? (Events.FirstOrDefault(e => e.ID == EditingId)?.ApprovalStatus ?? approvalStatus) : approvalStatus,

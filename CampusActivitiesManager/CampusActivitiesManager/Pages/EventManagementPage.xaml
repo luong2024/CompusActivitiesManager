@@ -756,34 +756,48 @@
 
                             <!-- Photo Picker -->
                             <VerticalStackLayout Spacing="4">
-                                <Label Text="Ảnh bìa hoạt động (Link ảnh hoặc tải từ máy)" FontSize="12" 
+                                <Label Text="Ảnh bìa hoạt động (Link ảnh trực tuyến hoặc tự lấy từ YouTube)" FontSize="12" 
                                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                     <Border Grid.Column="0" StrokeShape="RoundRectangle 10" 
                                             Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
                                             Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
-                                        <Entry Text="{Binding FormImageUrl}" Placeholder="https://... hoặc đường dẫn ảnh" FontSize="13" HeightRequest="42" />
+                                        <Entry Text="{Binding FormImageUrl}" Placeholder="https://... hoặc tự động lấy từ YouTube" FontSize="13" HeightRequest="42" />
                                     </Border>
                                     <Button Grid.Column="1" Text="📷 Chọn ảnh" Command="{Binding PickCoverPhotoCommand}" 
                                             HeightRequest="42" CornerRadius="10" Style="{StaticResource PrimaryButton}" Padding="12,0" FontSize="12" />
                                 </Grid>
                             </VerticalStackLayout>
 
-                            <!-- Video Picker -->
-                            <VerticalStackLayout Spacing="4">
-                                <Label Text="Video giới thiệu hoạt động (YouTube, MP4 hoặc video từ máy)" FontSize="12" 
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                    <Border Grid.Column="0" StrokeShape="RoundRectangle 10" 
-                                            Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
-                                            Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
-                                        <Entry Text="{Binding FormVideoUrl}" Placeholder="https://youtube.com/... hoặc link mp4" FontSize="13" HeightRequest="42" />
-                                    </Border>
-                                    <Button Grid.Column="1" Text="🎬 Chọn video" Command="{Binding PickVideoCommand}" 
-                                            HeightRequest="42" CornerRadius="10" BackgroundColor="{StaticResource Secondary}" 
+                            <!-- Video Picker (Tối ưu YouTube) -->
+                            <VerticalStackLayout Spacing="6">
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="🎬 Video giới thiệu (Khuyên dùng YouTube)" FontSize="12.5" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+                                    <Label Text="HD" FontSize="10" FontAttributes="Bold" TextColor="#2563EB" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                
+                                <Border StrokeShape="RoundRectangle 10" 
+                                        Stroke="{AppThemeBinding Light={StaticResource BorderDivider}, Dark={StaticResource BorderDividerDark}}" 
+                                        Padding="12,0" BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBackground}}">
+                                    <Entry Text="{Binding FormVideoUrl}" 
+                                           Placeholder="Dán link YouTube (vd: https://youtu.be/... hoặc youtube.com/watch?v=...)" 
+                                           FontSize="13" HeightRequest="42" ClearButtonVisibility="WhileEditing" />
+                                </Border>
+
+                                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="6">
+                                    <Button Grid.Column="0" Text="📋 Dán link" Command="{Binding PasteYouTubeUrlCommand}" 
+                                            HeightRequest="36" CornerRadius="8" Style="{StaticResource PrimaryButton}" Padding="4,0" FontSize="11" />
+                                    <Button Grid.Column="1" Text="▶️ Xem thử" Command="{Binding PreviewVideoCommand}" 
+                                            HeightRequest="36" CornerRadius="8" BackgroundColor="#059669" TextColor="White" Padding="4,0" FontSize="11" FontAttributes="Bold" />
+                                    <Button Grid.Column="2" Text="📁 Chọn máy" Command="{Binding PickVideoCommand}" 
+                                            HeightRequest="36" CornerRadius="8" BackgroundColor="{StaticResource Secondary}" 
                                             TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
-                                            Padding="12,0" FontSize="12" FontAttributes="Bold" />
+                                            Padding="4,0" FontSize="11" />
                                 </Grid>
+                                
+                                <Label Text="💡 Video YouTube phát trực tiếp trong app, không tốn dung lượng máy chủ và xem được trên mọi máy." 
+                                       FontSize="11" TextColor="#2563EB" LineBreakMode="WordWrap" />
                             </VerticalStackLayout>
                         </VerticalStackLayout>
 

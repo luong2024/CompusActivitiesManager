@@ -376,53 +376,12 @@ namespace CampusActivitiesManager.PageModels
         private void PrepareEmbeddedVideo(string url)
         {
             var trimmed = url.Trim();
-            string embedUrl = trimmed;
 
-            if (trimmed.Contains("youtube.com") || trimmed.Contains("youtu.be"))
+            if (YouTubeHelper.TryExtractVideoId(trimmed, out var videoId))
             {
-                string videoId = "";
-                if (trimmed.Contains("youtu.be/"))
-                {
-                    var parts = trimmed.Split("youtu.be/");
-                    if (parts.Length > 1) videoId = parts[1].Split('?')[0].Split('&')[0];
-                }
-                else if (trimmed.Contains("watch?v="))
-                {
-                    var parts = trimmed.Split("watch?v=");
-                    if (parts.Length > 1) videoId = parts[1].Split('&')[0];
-                }
-                else if (trimmed.Contains("shorts/"))
-                {
-                    var parts = trimmed.Split("shorts/");
-                    if (parts.Length > 1) videoId = parts[1].Split('?')[0];
-                }
-                else if (trimmed.Contains("embed/"))
-                {
-                    var parts = trimmed.Split("embed/");
-                    if (parts.Length > 1) videoId = parts[1].Split('?')[0];
-                }
-
-                if (!string.IsNullOrWhiteSpace(videoId))
-                {
-                    embedUrl = $"https://www.youtube.com/embed/{videoId}?autoplay=1&playsinline=1&rel=0";
-                    var html = $@"
-<!DOCTYPE html>
-<html>
-<head>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
-<style>
-* {{ margin: 0; padding: 0; box-sizing: border-box; }}
-body {{ background-color: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }}
-iframe {{ width: 100vw; height: 100vh; border: none; }}
-</style>
-</head>
-<body>
-<iframe src='{embedUrl}' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>
-</body>
-</html>";
-                    EmbeddedVideoHtmlSource = new HtmlWebViewSource { Html = html };
-                    return;
-                }
+                var html = YouTubeHelper.BuildEmbedHtml(videoId, EventItem?.Name ?? "Video Hoạt Động");
+                EmbeddedVideoHtmlSource = new HtmlWebViewSource { Html = html };
+                return;
             }
 
             if (!trimmed.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
@@ -431,14 +390,13 @@ iframe {{ width: 100vw; height: 100vh; border: none; }}
                 trimmed = "https://" + trimmed;
             }
 
-            var videoHtml = $@"
-<!DOCTYPE html>
+            var videoHtml = $@"<!DOCTYPE html>
 <html>
 <head>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
 <style>
 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-body {{ background-color: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }}
+html, body {{ background-color: #000; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }}
 video {{ width: 100%; height: 100%; object-fit: contain; }}
 </style>
 </head>

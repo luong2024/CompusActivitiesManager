@@ -60,8 +60,12 @@ namespace CampusActivitiesManager.Utilities
             }
 
             // 2. Chuẩn hóa URL cho video trực tuyến (YouTube, MP4 web...)
-            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
-                !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            if (YouTubeHelper.TryExtractVideoId(url, out var yId))
+            {
+                url = YouTubeHelper.GetWatchUrl(yId);
+            }
+            else if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                     !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
                 url = "https://" + url;
             }

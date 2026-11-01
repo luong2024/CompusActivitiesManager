@@ -25,6 +25,18 @@ namespace CampusActivitiesManager
 #if IOS || MACCATALYST
     				handlers.AddHandler<Microsoft.Maui.Controls.CollectionView, Microsoft.Maui.Controls.Handlers.Items2.CollectionViewHandler2>();
 #endif
+#if ANDROID
+                    Microsoft.Maui.Handlers.WebViewHandler.Mapper.AppendToMapping("YouTubeVideoPlayback", (handler, view) =>
+                    {
+                        if (handler.PlatformView != null)
+                        {
+                            handler.PlatformView.Settings.JavaScriptEnabled = true;
+                            handler.PlatformView.Settings.MediaPlaybackRequiresUserGesture = false;
+                            handler.PlatformView.Settings.DomStorageEnabled = true;
+                            handler.PlatformView.SetWebChromeClient(new Android.Webkit.WebChromeClient());
+                        }
+                    });
+#endif
 #if WINDOWS
                     Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("Borderless", (handler, view) =>
                     {
