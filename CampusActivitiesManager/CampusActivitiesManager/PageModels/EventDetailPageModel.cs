@@ -78,7 +78,7 @@ namespace CampusActivitiesManager.PageModels
         private bool _isQrModalVisible;
 
         [ObservableProperty]
-        private ImageSource? _eventQrImageSource;
+        private ImageSource _eventQrImageSource;
 
         [ObservableProperty]
         private string _eventShareUrl = string.Empty;
