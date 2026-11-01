@@ -142,6 +142,17 @@
 
                 <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
 
+                    <!-- Sync & Reload Cloud Button -->
+                    <Border WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 12"
+                            Background="{AppThemeBinding Light=#EFF6FF, Dark={StaticResource DarkCardBackground}}"
+                            Stroke="{AppThemeBinding Light=#BFDBFE, Dark={StaticResource Gray700}}"
+                            StrokeThickness="1" VerticalOptions="Center" HorizontalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer AutomationId="btnSyncReload" Command="{Binding RefreshCommand}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="🔄" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+
                     <!-- Notification Bell Button with Badge -->
 
                     <Grid WidthRequest="40" HeightRequest="40">
@@ -1522,25 +1533,30 @@
 
                         <!-- ============================================== -->
 
-                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
 
                             <Label Text="🔥 Hoạt động đang mở đăng ký" FontSize="16" FontAttributes="Bold" 
-
                                    TextColor="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" 
-
                                    VerticalOptions="Center" />
 
-                            <Button Grid.Column="1" Text="Xem tất cả ➔" 
+                            <Border Grid.Column="1" StrokeShape="RoundRectangle 8" 
+                                    BackgroundColor="{AppThemeBinding Light=#EFF6FF, Dark={StaticResource DarkSecondaryBackground}}" 
+                                    Stroke="{AppThemeBinding Light=#BFDBFE, Dark={StaticResource Gray700}}" StrokeThickness="1" 
+                                    Padding="8,4" VerticalOptions="Center">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding RefreshCommand}" />
+                                </Border.GestureRecognizers>
+                                <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                                    <Label Text="🔄" FontSize="11" VerticalOptions="Center" />
+                                    <Label Text="Làm mới" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Primary}" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
 
+                            <Button Grid.Column="2" Text="Xem tất cả ➔" 
                                     Command="{Binding NavigateToEventsCommand}" 
-
                                     Background="Transparent" 
-
                                     TextColor="{StaticResource Primary}" 
-
-                                    FontSize="12" FontAttributes="Bold" Padding="0" HeightRequest="32" />
-
-                        </Grid>
+                                    FontSize="12" FontAttributes="Bold" Padding="0" HeightRequest="32" /></Grid>
 
 
 

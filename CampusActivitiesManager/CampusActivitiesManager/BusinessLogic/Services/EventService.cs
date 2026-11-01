@@ -421,15 +421,29 @@ namespace CampusActivitiesManager.BusinessLogic.Services
                 var cloud = await _firebaseSync.PullEventsAsync();
                 if (cloud != null && cloud.Count > 0)
                 {
+                    var cloudIds = cloud.Select(c => c.ID).ToHashSet();
+                    var localOnly = _localEvents.Where(l => !cloudIds.Contains(l.ID)).ToList();
+
                     _localEvents.Clear();
                     _localEvents.AddRange(cloud);
+                    _localEvents.AddRange(localOnly);
+                    _localEvents.RemoveAll(e => e.ApprovalStatus == "Rejected" || e.Status == "Đã từ chối");
+
                     await SaveEventsToDiskInternalAsync();
+
+                    if (localOnly.Count > 0)
+                    {
+                        _ = Task.Run(async () => await _firebaseSync.PushEventsAsync(localOnly));
+                    }
+
+                    _logger.LogInformation("Đã đồng bộ {Count} sự kiện từ Cloud Firestore", _localEvents.Count);
                     return true;
                 }
-                else
+                else if (_localEvents.Count > 0)
                 {
                     return await _firebaseSync.PushEventsAsync(_localEvents);
                 }
+                return false;
             }
             catch (Exception ex)
             {

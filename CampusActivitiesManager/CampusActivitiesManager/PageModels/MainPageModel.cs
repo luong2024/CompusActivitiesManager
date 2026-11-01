@@ -274,6 +274,23 @@ namespace CampusActivitiesManager.PageModels
             UpdateStudentProfile();
             await LoadEventsData();
             await LoadNotificationsAsync();
+
+            // Tự động kiểm tra và đồng bộ hoạt động mới từ Firebase Cloud ngầm
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    bool hasNew = await _eventService.SyncWithCloudAsync();
+                    if (hasNew)
+                    {
+                        MainThread.BeginInvokeOnMainThread(async () =>
+                        {
+                            await LoadEventsData();
+                        });
+                    }
+                }
+                catch { }
+            });
         }
 
         [RelayCommand]
@@ -283,8 +300,14 @@ namespace CampusActivitiesManager.PageModels
             {
                 IsRefreshing = true;
                 UpdateStudentProfile();
+                await _eventService.SyncWithCloudAsync();
                 await LoadEventsData();
                 await LoadNotificationsAsync();
+                await AppShell.DisplayToastAsync("Đã cập nhật hoạt động mới nhất! ⚡");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi làm mới: {ex.Message}");
             }
             finally
             {

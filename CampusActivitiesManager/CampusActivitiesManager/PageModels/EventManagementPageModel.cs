@@ -219,7 +219,9 @@ namespace CampusActivitiesManager.PageModels
             try
             {
                 IsRefreshing = true;
+                await _eventService.SyncWithCloudAsync();
                 await LoadData();
+                await AppShell.DisplayToastAsync("Đã làm mới dữ liệu sự kiện từ Cloud! ⚡");
             }
             finally
             {
@@ -681,6 +683,7 @@ namespace CampusActivitiesManager.PageModels
                 if (success)
                 {
                     IsModalVisible = false;
+                    await _eventService.SyncWithCloudAsync();
                     await LoadData();
 
                     if (!isUserAdmin && !IsEditing)

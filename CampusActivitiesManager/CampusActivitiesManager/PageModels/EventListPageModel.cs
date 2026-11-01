@@ -47,12 +47,15 @@ namespace CampusActivitiesManager.PageModels
         {
             try
             {
+                IsRefreshing = true;
+                await _eventService.SyncWithCloudAsync();
                 var events = await _eventService.GetEventsAsync();
                 Events.Clear();
                 foreach (var e in events)
                 {
                     Events.Add(e);
                 }
+                await AppShell.DisplayToastAsync("Đã cập nhật hoạt động mới nhất! ⚡");
             }
             finally
             {
@@ -64,6 +67,23 @@ namespace CampusActivitiesManager.PageModels
         private async Task Appearing()
         {
             await LoadEventsAsync();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    bool synced = await _eventService.SyncWithCloudAsync();
+                    if (synced)
+                    {
+                        var events = await _eventService.GetEventsAsync();
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            Events.Clear();
+                            foreach (var e in events) Events.Add(e);
+                        });
+                    }
+                }
+                catch { }
+            });
         }
 
         [RelayCommand]
