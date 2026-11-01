@@ -761,25 +761,14 @@ namespace CampusActivitiesManager.PageModels
         {
             if (evt == null || string.IsNullOrWhiteSpace(evt.VideoUrl))
             {
-                await Shell.Current.DisplayAlert("Thông báo", "Hoạt động này chưa có video đính kèm.", "Đóng");
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Thông báo", "Hoạt động này chưa có video đính kèm.", "Đóng");
+                }
                 return;
             }
 
-            try
-            {
-                if (Uri.TryCreate(evt.VideoUrl, UriKind.Absolute, out var uri))
-                {
-                    await Launcher.Default.OpenAsync(uri);
-                }
-                else
-                {
-                    await Shell.Current.DisplayAlert("Video hoạt động", $"Đường dẫn video:\n{evt.VideoUrl}", "Đóng");
-                }
-            }
-            catch (Exception ex)
-            {
-                _errorHandler.HandleError(ex);
-            }
+            await VideoLauncherHelper.OpenVideoAsync(evt.VideoUrl, evt.Name);
         }
 
         [RelayCommand]

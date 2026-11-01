@@ -78,8 +78,8 @@ namespace CampusActivitiesManager.Pages
                 {
                     WidthRequest = 256,
                     HeightRequest = 256,
-                    HorizontalOptions = LayoutOptions.FillAndExpand,
-                    VerticalOptions = LayoutOptions.FillAndExpand,
+                    HorizontalOptions = LayoutOptions.Fill,
+                    VerticalOptions = LayoutOptions.Fill,
                     CameraLocation = _viewModel.SelectedCameraLocation,
                     IsTorchOn = _viewModel.IsTorchOn,
                     IsDetecting = true,

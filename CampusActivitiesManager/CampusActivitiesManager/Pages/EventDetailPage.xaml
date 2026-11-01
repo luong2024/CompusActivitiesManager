@@ -345,8 +345,8 @@
               BackgroundColor="#CC000000"
               IsVisible="{Binding IsVideoModalVisible}"
               Padding="16"
-              HorizontalOptions="FillAndExpand"
-              VerticalOptions="FillAndExpand">
+              HorizontalOptions="Fill"
+              VerticalOptions="Fill">
 
             <Border StrokeShape="RoundRectangle 24"
                     BackgroundColor="#0F172A"
@@ -378,10 +378,10 @@
                             Stroke="#1E293B"
                             StrokeThickness="1"
                             HeightRequest="220"
-                            HorizontalOptions="FillAndExpand">
+                            HorizontalOptions="Fill">
                         <WebView Source="{Binding EmbeddedVideoHtmlSource}"
-                                 HorizontalOptions="FillAndExpand"
-                                 VerticalOptions="FillAndExpand" />
+                                 HorizontalOptions="Fill"
+                                 VerticalOptions="Fill" />
                     </Border>
 
                     <!-- Event Name in Modal -->

@@ -4,7 +4,7 @@ namespace CampusActivitiesManager.Utilities
 {
     /// <summary>
     /// Tiện ích hỗ trợ mở video an toàn trên đa nền tảng (Android, Windows, iOS)
-    /// Tự động xử lý URL thiếu https://, video YouTube, video mp4 trên web và file video nội bộ
+    /// Tự động xử lý URL thiếu https://, video YouTube, video mp4 trên web và phát hiện file video cục bộ
     /// </summary>
     public static class VideoLauncherHelper
     {
@@ -14,29 +14,49 @@ namespace CampusActivitiesManager.Utilities
             {
                 if (Shell.Current != null)
                 {
-                    await Shell.Current.DisplayAlert("Thông báo", "Hoạt động này chưa có liên kết video.", "Đóng");
+                    await Shell.Current.DisplayAlert("Thông báo", "Hoạt động này chưa có liên kết video đính kèm.", "Đóng");
                 }
                 return;
             }
 
             var url = rawUrl.Trim();
 
-            // 1. Nếu là đường dẫn file video cục bộ trên thiết bị
-            if (File.Exists(url))
+            // 1. Kiểm tra nếu là đường dẫn file cục bộ trên thiết bị (local file path)
+            bool isLocalPath = url.StartsWith("/") ||
+                               url.StartsWith("\\") ||
+                               url.StartsWith("file:", StringComparison.OrdinalIgnoreCase) ||
+                               url.StartsWith("content:", StringComparison.OrdinalIgnoreCase) ||
+                               (url.Length > 2 && url[1] == ':' && (url[2] == '\\' || url[2] == '/'));
+
+            if (isLocalPath)
             {
-                try
+                // Nếu file thực sự tồn tại trên máy hiện tại
+                if (File.Exists(url))
                 {
-                    await Launcher.Default.OpenAsync(new OpenFileRequest
+                    try
                     {
-                        File = new ReadOnlyFile(url),
-                        Title = $"Video: {eventName}"
-                    });
-                    return;
+                        await Launcher.Default.OpenAsync(new OpenFileRequest
+                        {
+                            File = new ReadOnlyFile(url),
+                            Title = $"Video: {eventName}"
+                        });
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Lỗi mở file video cục bộ: {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
+
+                // File cục bộ nhưng KHÔNG tồn tại trên máy này (do tạo từ máy khác hoặc file đã xóa)
+                if (Shell.Current != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Lỗi mở file video cục bộ: {ex.Message}");
+                    await Shell.Current.DisplayAlert(
+                        "Video cục bộ 📁",
+                        $"Video này được đính kèm từ bộ nhớ máy của người tạo sự kiện ({url}). Tệp này không nằm trên thiết bị hiện tại của bạn.\n\n💡 Để tất cả sinh viên trên mọi máy đều xem được, Ban tổ chức nên dán đường dẫn YouTube hoặc liên kết video trực tuyến công khai.",
+                        "Đã hiểu");
                 }
+                return;
             }
 
             // 2. Chuẩn hóa URL cho video trực tuyến (YouTube, MP4 web...)
@@ -88,10 +108,17 @@ namespace CampusActivitiesManager.Utilities
                 System.Diagnostics.Debug.WriteLine($"Không thể mở Launcher: {exLauncher.Message}");
             }
 
-            // 6. Nếu tất cả đều không có app xử lý (trên một số thiết bị tối giản không có trình duyệt)
+            // 6. Nếu tất cả đều không có app xử lý (thiết bị tối giản không có trình duyệt)
             if (Shell.Current != null)
             {
-                await Shell.Current.DisplayAlert("Video giới thiệu", $"Đường dẫn video:\n{url}\n\nBạn có thể sao chép đường dẫn này để xem trên trình duyệt.", "Đóng");
+                bool copy = await Shell.Current.DisplayAlert(
+                    "Video giới thiệu",
+                    $"Không tìm thấy ứng dụng xem video tương thích trên máy.\n\nĐường dẫn video:\n{url}",
+                    "Sao chép liên kết", "Đóng");
+                if (copy)
+                {
+                    await Clipboard.Default.SetTextAsync(url);
+                }
             }
         }
     }
