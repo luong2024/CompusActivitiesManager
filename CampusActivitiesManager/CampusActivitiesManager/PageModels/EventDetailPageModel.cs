@@ -13,6 +13,7 @@ namespace CampusActivitiesManager.PageModels
         private readonly IEventService _eventService;
         private readonly IAuthenticationService _authService;
         private readonly IAttendanceService _attendanceService;
+        private readonly IQrCodeService _qrCodeService;
 
         [ObservableProperty]
         private CampusEvent _eventItem;
@@ -73,14 +74,25 @@ namespace CampusActivitiesManager.PageModels
         [ObservableProperty]
         private int _totalRegistrations;
 
+        [ObservableProperty]
+        private bool _isQrModalVisible;
+
+        [ObservableProperty]
+        private ImageSource? _eventQrImageSource;
+
+        [ObservableProperty]
+        private string _eventShareUrl = string.Empty;
+
         public EventDetailPageModel(
             IEventService eventService,
             IAuthenticationService authService,
-            IAttendanceService attendanceService)
+            IAttendanceService attendanceService,
+            IQrCodeService qrCodeService)
         {
             _eventService = eventService;
             _authService = authService;
             _attendanceService = attendanceService;
+            _qrCodeService = qrCodeService;
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -516,6 +528,66 @@ video {{ width: 100%; height: 100%; object-fit: contain; }}
             }
 
             await Shell.Current.GoToAsync($"attendancereport?eventId={EventItem.ID}");
+        }
+
+        [RelayCommand]
+        public void ShowQrModal()
+        {
+            if (EventItem == null) return;
+            EventShareUrl = $"https://campus.fpt.edu.vn/event/{EventItem.ID}";
+            EventQrImageSource = _qrCodeService.GenerateQrCodeImageSource(EventShareUrl, pixelsPerModule: 20);
+            IsQrModalVisible = true;
+        }
+
+        [RelayCommand]
+        public void CloseQrModal()
+        {
+            IsQrModalVisible = false;
+        }
+
+        [RelayCommand]
+        public async Task CopyShareLinkAsync()
+        {
+            if (string.IsNullOrWhiteSpace(EventShareUrl) && EventItem != null)
+            {
+                EventShareUrl = $"https://campus.fpt.edu.vn/event/{EventItem.ID}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(EventShareUrl))
+            {
+                await Clipboard.Default.SetTextAsync(EventShareUrl);
+                if (Shell.Current != null)
+                {
+                    await Shell.Current.DisplayAlert("Đã sao chép 📋", $"Đã sao chép liên kết chia sẻ:\n{EventShareUrl}", "Đóng");
+                }
+            }
+        }
+
+        [RelayCommand]
+        public async Task ShareEventAsync()
+        {
+            if (EventItem == null) return;
+
+            if (string.IsNullOrWhiteSpace(EventShareUrl))
+            {
+                EventShareUrl = $"https://campus.fpt.edu.vn/event/{EventItem.ID}";
+            }
+
+            try
+            {
+                await Share.Default.RequestAsync(new ShareTextRequest
+                {
+                    Title = EventItem.Name,
+                    Subject = $"Tham gia hoạt động: {EventItem.Name}",
+                    Text = $"Tham gia hoạt động \"{EventItem.Name}\" ({EventItem.StartDate} tại {EventItem.Location}) trên Campus Activity Manager!",
+                    Uri = EventShareUrl
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Share error: {ex.Message}");
+                await CopyShareLinkAsync();
+            }
         }
 
         [RelayCommand]

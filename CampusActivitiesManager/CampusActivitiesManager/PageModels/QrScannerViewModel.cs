@@ -322,66 +322,56 @@ namespace CampusActivitiesManager.PageModels
 
 
 
-                // Parse eventId from code (supports: "1", "EVT:1", "event/1", "campus://event/1", "https://campus.edu.vn/events/1")
-
+                                // Parse eventId from code (supports: "1", "EVT:1", "event/1", "events/1", "campus://event/1", "https://campus.fpt.edu.vn/event/1")
                 var cleanCode = code.Trim();
 
                 if (int.TryParse(cleanCode, out int directId))
-
                 {
-
                     eventId = directId;
-
                 }
-
                 else if (cleanCode.Contains("EVT:"))
-
                 {
-
                     var parts = cleanCode.Split('|');
-
                     foreach (var part in parts)
-
                     {
-
-                        if (part.StartsWith("EVT:") && int.TryParse(part.Replace("EVT:", ""), out int parsedId))
-
+                        if (part.StartsWith("EVT:") && int.TryParse(part.Replace("EVT:", "").Trim(), out int parsedId))
                         {
-
                             eventId = parsedId;
-
                         }
-
                     }
-
                 }
-
                 else if (cleanCode.Contains("event/"))
-
                 {
-
                     var segment = cleanCode.Substring(cleanCode.LastIndexOf("event/") + 6);
-
+                    segment = segment.Split('?')[0].Split('&')[0].Split('#')[0].Trim().TrimEnd('/');
                     if (int.TryParse(segment, out int parsedId))
-
                     {
-
                         eventId = parsedId;
-
                     }
-
                 }
-
-
+                else if (cleanCode.Contains("events/"))
+                {
+                    var segment = cleanCode.Substring(cleanCode.LastIndexOf("events/") + 7);
+                    segment = segment.Split('?')[0].Split('&')[0].Split('#')[0].Trim().TrimEnd('/');
+                    if (int.TryParse(segment, out int parsedId))
+                    {
+                        eventId = parsedId;
+                    }
+                }
+                else if (cleanCode.Contains("eventId=") || cleanCode.Contains("eventid="))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(cleanCode, @"eventId=(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    if (match.Success && int.TryParse(match.Groups[1].Value, out int parsedId))
+                    {
+                        eventId = parsedId;
+                    }
+                }
 
                 if (Shell.Current != null)
-
                 {
-
+                    await AppShell.DisplayToastAsync($"Đang mở chi tiết hoạt động #{eventId}... 🚀");
                     await Shell.Current.GoToAsync($"eventdetail?eventId={eventId}");
-
                 }
-
             }
 
             finally

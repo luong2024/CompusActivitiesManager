@@ -19,7 +19,7 @@
     <Grid RowDefinitions="Auto,*">
         <!-- Modern Header -->
         <Border Grid.Row="0" Background="{StaticResource PrimaryGradientBrush}" Padding="16,40,16,16" StrokeThickness="0">
-            <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
                 <Button Grid.Column="0" Text="←" FontSize="20" FontAttributes="Bold"
                         TextColor="{StaticResource White}" BackgroundColor="{StaticResource TranslucentWhite}"
                         WidthRequest="40" HeightRequest="40" CornerRadius="20" Padding="0"
@@ -28,9 +28,22 @@
                 <Label Grid.Column="1" Text="Thông tin Hoạt động" FontSize="18" FontAttributes="Bold"
                        TextColor="{StaticResource White}" HorizontalOptions="Center" VerticalOptions="Center" />
 
+                <!-- Share QR Button in Header -->
                 <Border Grid.Column="2" WidthRequest="40" HeightRequest="40" StrokeShape="RoundRectangle 20"
                         BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0">
-                    <Label Text="📌" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ShowQrModalCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="📱" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+
+                <!-- Share Link Button in Header -->
+                <Border Grid.Column="3" WidthRequest="40" HeightRequest="40" StrokeShape="RoundRectangle 20"
+                        BackgroundColor="{StaticResource TranslucentWhite}" StrokeThickness="0">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ShareEventCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="🔗" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center" />
                 </Border>
             </Grid>
         </Border>
@@ -171,6 +184,35 @@
                             <Label Grid.Row="1" Grid.Column="1" Text="{Binding EventItem.ParticipantsDisplay}" FontSize="14" FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource White}}" />
                         </Grid>
+
+                        <!-- Event QR Code Sharing Card -->
+                        <Border StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{AppThemeBinding Light=#EFF6FF, Dark=#1E293B}"
+                                Stroke="#3B82F6"
+                                StrokeThickness="1"
+                                Padding="14,10"
+                                Margin="0,6,0,0">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ShowQrModalCommand}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                <Border Grid.Column="0" WidthRequest="40" HeightRequest="40" StrokeShape="RoundRectangle 10"
+                                        BackgroundColor="#2563EB" StrokeThickness="0">
+                                    <Label Text="📱" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                    <Label Text="Mã QR Chia Sẻ Hoạt Động" FontSize="13.5" FontAttributes="Bold" 
+                                           TextColor="{AppThemeBinding Light=#1E40AF, Dark=#93C5FD}" />
+                                    <Label Text="Quét mã để mở trực tiếp trang này" FontSize="11" 
+                                           TextColor="{AppThemeBinding Light=#475569, Dark=#94A3B8}" />
+                                </VerticalStackLayout>
+                                <Button Grid.Column="2" Text="Xem QR 🔍"
+                                        Command="{Binding ShowQrModalCommand}"
+                                        HeightRequest="34" CornerRadius="8"
+                                        BackgroundColor="#2563EB" TextColor="White"
+                                        FontSize="11.5" FontAttributes="Bold" Padding="10,0" />
+                            </Grid>
+                        </Border>
 
                         <!-- Video Showcase Card with In-App Playback -->
                         <Border IsVisible="{Binding HasVideo}"
@@ -415,6 +457,88 @@
                             TextColor="White"
                             FontAttributes="Bold"
                             HeightRequest="42" CornerRadius="12" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- ============================================== -->
+        <!-- EVENT SHARING QR CODE MODAL                    -->
+        <!-- ============================================== -->
+        <Grid Grid.Row="0" Grid.RowSpan="2"
+              BackgroundColor="#CC000000"
+              IsVisible="{Binding IsQrModalVisible}"
+              Padding="20"
+              HorizontalOptions="Fill"
+              VerticalOptions="Fill">
+
+            <Border StrokeShape="RoundRectangle 24"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                    Stroke="#334155"
+                    StrokeThickness="1"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    MaximumWidthRequest="360"
+                    Padding="20">
+                <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
+                    <!-- Modal Header -->
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center" WidthRequest="320">
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Label Text="📱" FontSize="20" VerticalOptions="Center" />
+                            <Label Text="Mã QR Hoạt Động" FontSize="16" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#0F172A, Dark=White}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <Border Grid.Column="1" WidthRequest="32" HeightRequest="32" StrokeShape="RoundRectangle 16"
+                                BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#334155}" StrokeThickness="0">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CloseQrModalCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="✕" FontSize="14" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#64748B, Dark=White}"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                    </Grid>
+
+                    <!-- Event Name -->
+                    <Label Text="{Binding EventItem.Name}"
+                           FontSize="14" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#1E293B, Dark=#F8FAFC}"
+                           HorizontalTextAlignment="Center" LineBreakMode="WordWrap" MaxLines="2" />
+
+                    <!-- QR Code Display Screen -->
+                    <Border StrokeShape="RoundRectangle 16"
+                            BackgroundColor="White"
+                            Stroke="#CBD5E1"
+                            StrokeThickness="1"
+                            Padding="16"
+                            HorizontalOptions="Center"
+                            WidthRequest="230"
+                            HeightRequest="230">
+                        <Image Source="{Binding EventQrImageSource}"
+                               Aspect="AspectFit"
+                               HorizontalOptions="Fill"
+                               VerticalOptions="Fill" />
+                    </Border>
+
+                    <Label Text="Dùng camera hoặc mục Quét QR trong ứng dụng để quét mã và mở trực tiếp hoạt động này."
+                           FontSize="11.5"
+                           TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                           HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
+
+                    <!-- Action Buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" WidthRequest="320">
+                        <Button Grid.Column="0"
+                                Text="📋 Sao chép link"
+                                Command="{Binding CopyShareLinkCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#1E293B}"
+                                TextColor="{AppThemeBinding Light=#2563EB, Dark=#60A5FA}"
+                                FontSize="12" FontAttributes="Bold" HeightRequest="40" CornerRadius="10" />
+                        <Button Grid.Column="1"
+                                Text="📤 Chia sẻ"
+                                Command="{Binding ShareEventCommand}"
+                                BackgroundColor="#2563EB"
+                                TextColor="White"
+                                FontSize="12" FontAttributes="Bold" HeightRequest="40" CornerRadius="10" />
+                    </Grid>
                 </VerticalStackLayout>
             </Border>
         </Grid>
